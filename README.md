@@ -12,6 +12,7 @@
 - Docker Compose、Caddy、健康检查和本地环境模板；
 - 后端、Web、Android 与基础设施 CI。
 - 643 条原始考纲的幂等导入、五级考纲树 API 与 Web 只读浏览。
+- 阶段与四科配比、Availability、资料库和任务模板的配置 API 与 Web 页面。
 
 ## 快速启动
 
@@ -23,6 +24,7 @@ docker compose up --build
 - Web：`http://localhost:8080`
 - API 文档：`http://localhost:8000/api/docs`
 - 考纲树：`http://localhost:8080/syllabus`
+- 规划配置：`http://localhost:8080/planning`
 
 ## 仓库结构
 
@@ -40,8 +42,8 @@ docs/             架构、开发、部署与产品资料
 
 ## 后续顺序
 
-后续按“阶段与可用时段 → 资料与任务池 → 确定性排程 → 今日任务 → 打卡与顺延”
-推进，再扩展题库、SM-2、AI/RAG 和离线同步。
+后续按“任务池 → 确定性排程 → 日历与今日任务 → 打卡与顺延”推进，再扩展题库、
+SM-2、AI/RAG 和离线同步。
 
 ## 安全
 

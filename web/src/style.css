@@ -84,6 +84,26 @@ a {
   font-weight: 650;
 }
 
+.app-nav {
+  display: flex;
+  gap: 8px;
+  margin-left: auto;
+  margin-right: 16px;
+}
+
+.app-nav a {
+  padding: 8px 11px;
+  border-radius: 10px;
+  color: #647087;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.app-nav a.router-link-active {
+  color: #174cb7;
+  background: #edf4ff;
+}
+
 .page {
   width: min(1120px, 88vw);
   margin: 0 auto;
@@ -97,6 +117,10 @@ a {
 
   .environment-label {
     display: none;
+  }
+
+  .app-nav {
+    margin-right: 0;
   }
 
   .page {
