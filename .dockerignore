@@ -1,0 +1,11 @@
+.git
+**/__pycache__
+**/.pytest_cache
+**/.ruff_cache
+**/.mypy_cache
+backend/.venv
+web/node_modules
+web/dist
+android/.gradle
+android/build
+android/app/build

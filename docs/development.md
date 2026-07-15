@@ -23,8 +23,12 @@ cd backend
 cp .env.example .env
 uv python install 3.11
 uv sync --all-groups
+uv run alembic upgrade head
+uv run python -m graduate_entrance.syllabus.importer
 uv run uvicorn graduate_entrance.main:app --reload
 ```
+
+Docker Compose applies migrations and performs the idempotent syllabus import automatically.
 
 ## Web
 

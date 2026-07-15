@@ -4,13 +4,14 @@
 
 ## 工程状态
 
-仓库当前提供完整的可运行工程骨架，尚未实现业务功能：
+仓库当前提供完整的可运行工程骨架，并已进入首个 P0 业务纵切片：
 
 - FastAPI、SQLAlchemy、Alembic 与 PostgreSQL/pgvector 后端基线；
 - Vue 3、Vite、TypeScript Web 管理端；
 - Kotlin、Jetpack Compose、Room/Retrofit Android 基线；
 - Docker Compose、Caddy、健康检查和本地环境模板；
 - 后端、Web、Android 与基础设施 CI。
+- 643 条原始考纲的幂等导入、五级考纲树 API 与 Web 只读浏览。
 
 ## 快速启动
 
@@ -21,6 +22,7 @@ docker compose up --build
 
 - Web：`http://localhost:8080`
 - API 文档：`http://localhost:8000/api/docs`
+- 考纲树：`http://localhost:8080/syllabus`
 
 ## 仓库结构
 
@@ -38,7 +40,7 @@ docs/             架构、开发、部署与产品资料
 
 ## 后续顺序
 
-首个业务纵切片将按“考纲导入 → 阶段与可用时段 → 确定性排程 → 今日任务 → 打卡与顺延”
+后续按“阶段与可用时段 → 资料与任务池 → 确定性排程 → 今日任务 → 打卡与顺延”
 推进，再扩展题库、SM-2、AI/RAG 和离线同步。
 
 ## 安全

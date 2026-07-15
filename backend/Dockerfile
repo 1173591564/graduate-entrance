@@ -10,12 +10,13 @@ COPY --from=uv /uv /uvx /bin/
 
 WORKDIR /app
 
-COPY pyproject.toml uv.lock README.md ./
+COPY backend/pyproject.toml backend/uv.lock backend/README.md ./
 RUN uv sync --frozen --no-dev --no-install-project
 
-COPY alembic.ini ./
-COPY migrations ./migrations
-COPY src ./src
+COPY backend/alembic.ini ./
+COPY backend/migrations ./migrations
+COPY backend/src ./src
+COPY seed/syllabus/raw ./seed/syllabus/raw
 RUN uv sync --frozen --no-dev
 
 RUN useradd --create-home --uid 10001 app \
@@ -24,4 +25,4 @@ USER app
 
 EXPOSE 8000
 
-CMD ["sh", "-c", "uv run --no-sync alembic upgrade head && exec uv run --no-sync uvicorn graduate_entrance.main:app --host 0.0.0.0 --port 8000"]
+CMD ["sh", "-c", "uv run --no-sync alembic upgrade head && uv run --no-sync python -m graduate_entrance.syllabus.importer && exec uv run --no-sync uvicorn graduate_entrance.main:app --host 0.0.0.0 --port 8000"]
