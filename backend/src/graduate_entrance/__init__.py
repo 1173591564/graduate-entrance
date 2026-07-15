@@ -1,0 +1,1 @@
+"""Graduate entrance preparation API."""

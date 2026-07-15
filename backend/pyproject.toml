@@ -1,0 +1,47 @@
+[project]
+name = "graduate-entrance-api"
+version = "0.1.0"
+description = "Backend API for the 11408 graduate entrance preparation system"
+readme = "README.md"
+requires-python = ">=3.11,<3.12"
+dependencies = [
+    "alembic>=1.16.2,<2",
+    "asyncpg>=0.30.0,<1",
+    "fastapi>=0.115.14,<1",
+    "pydantic-settings>=2.10.1,<3",
+    "sqlalchemy[asyncio]>=2.0.41,<3",
+    "uvicorn[standard]>=0.34.3,<1",
+]
+
+[dependency-groups]
+dev = [
+    "httpx>=0.28.1,<1",
+    "mypy>=1.16.1,<2",
+    "pytest>=8.4.1,<9",
+    "pytest-asyncio>=1.0.0,<2",
+    "ruff>=0.12.0,<1",
+]
+
+[build-system]
+requires = ["hatchling>=1.27.0,<2"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/graduate_entrance"]
+
+[tool.pytest.ini_options]
+addopts = "-q"
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["ASYNC", "B", "E", "F", "I", "SIM", "UP"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+files = ["src", "tests"]
+plugins = ["pydantic.mypy"]

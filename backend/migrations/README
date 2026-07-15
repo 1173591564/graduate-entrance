@@ -1,0 +1,7 @@
+Database migrations are generated with:
+
+    uv run alembic revision --autogenerate -m "description"
+
+Apply migrations with:
+
+    uv run alembic upgrade head
