@@ -1,7 +1,7 @@
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Response, status
+from fastapi import APIRouter, Depends, Query, Response, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from graduate_entrance.db.session import get_session
@@ -23,6 +23,7 @@ from graduate_entrance.planning.service import (
     update_phase,
     update_task_template,
 )
+from graduate_entrance.scheduling.service import generate_task_pool, list_task_pool
 from graduate_entrance.schemas.planning import (
     AvailabilityExceptionInput,
     AvailabilityExceptionRead,
@@ -36,6 +37,7 @@ from graduate_entrance.schemas.planning import (
     TaskTemplateInput,
     TaskTemplateRead,
 )
+from graduate_entrance.schemas.scheduling import TaskPoolGenerationResponse, TaskPoolPage
 
 router = APIRouter(prefix="/planning", tags=["planning"])
 Session = Annotated[AsyncSession, Depends(get_session)]
@@ -183,3 +185,19 @@ async def replace_task_template(
 async def remove_task_template(template_id: UUID, session: Session) -> Response:
     await delete_task_template(session, template_id)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.post("/task-pool/generate", response_model=TaskPoolGenerationResponse)
+async def generate_planning_task_pool(session: Session) -> TaskPoolGenerationResponse:
+    return await generate_task_pool(session)
+
+
+@router.get("/task-pool", response_model=TaskPoolPage)
+async def read_task_pool(
+    session: Session,
+    phase_id: UUID | None = None,
+    subject_id: UUID | None = None,
+    offset: Annotated[int, Query(ge=0)] = 0,
+    limit: Annotated[int, Query(ge=1, le=500)] = 100,
+) -> TaskPoolPage:
+    return await list_task_pool(session, phase_id, subject_id, offset, limit)

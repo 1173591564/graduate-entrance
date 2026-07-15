@@ -185,6 +185,97 @@
         "title": "AvailabilityRuleInput",
         "type": "object"
       },
+      "CalendarDayRead": {
+        "properties": {
+          "completed_minutes": {
+            "title": "Completed Minutes",
+            "type": "integer"
+          },
+          "date": {
+            "format": "date",
+            "title": "Date",
+            "type": "string"
+          },
+          "planned_minutes": {
+            "title": "Planned Minutes",
+            "type": "integer"
+          },
+          "tasks": {
+            "items": {
+              "$ref": "#/components/schemas/PlanTaskRead"
+            },
+            "title": "Tasks",
+            "type": "array"
+          }
+        },
+        "required": [
+          "date",
+          "planned_minutes",
+          "completed_minutes",
+          "tasks"
+        ],
+        "title": "CalendarDayRead",
+        "type": "object"
+      },
+      "CalendarResponse": {
+        "properties": {
+          "days": {
+            "items": {
+              "$ref": "#/components/schemas/CalendarDayRead"
+            },
+            "title": "Days",
+            "type": "array"
+          },
+          "month": {
+            "title": "Month",
+            "type": "string"
+          },
+          "weeks": {
+            "items": {
+              "$ref": "#/components/schemas/CalendarWeekRead"
+            },
+            "title": "Weeks",
+            "type": "array"
+          }
+        },
+        "required": [
+          "month",
+          "days",
+          "weeks"
+        ],
+        "title": "CalendarResponse",
+        "type": "object"
+      },
+      "CalendarWeekRead": {
+        "properties": {
+          "completed_minutes": {
+            "title": "Completed Minutes",
+            "type": "integer"
+          },
+          "planned_minutes": {
+            "title": "Planned Minutes",
+            "type": "integer"
+          },
+          "week_end": {
+            "format": "date",
+            "title": "Week End",
+            "type": "string"
+          },
+          "week_start": {
+            "format": "date",
+            "title": "Week Start",
+            "type": "string"
+          }
+        },
+        "required": [
+          "week_start",
+          "week_end",
+          "planned_minutes",
+          "completed_minutes"
+        ],
+        "title": "CalendarWeekRead",
+        "type": "object"
+      },
       "ChapterRead": {
         "properties": {
           "id": {
@@ -632,6 +723,55 @@
         "title": "PhaseSubjectRatioInput",
         "type": "object"
       },
+      "PlanDaySummary": {
+        "properties": {
+          "available_minutes": {
+            "title": "Available Minutes",
+            "type": "integer"
+          },
+          "date": {
+            "format": "date",
+            "title": "Date",
+            "type": "string"
+          },
+          "planned_minutes": {
+            "title": "Planned Minutes",
+            "type": "integer"
+          },
+          "remaining_minutes": {
+            "title": "Remaining Minutes",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "date",
+          "available_minutes",
+          "planned_minutes",
+          "remaining_minutes"
+        ],
+        "title": "PlanDaySummary",
+        "type": "object"
+      },
+      "PlanGenerationRequest": {
+        "properties": {
+          "end_date": {
+            "format": "date",
+            "title": "End Date",
+            "type": "string"
+          },
+          "start_date": {
+            "format": "date",
+            "title": "Start Date",
+            "type": "string"
+          }
+        },
+        "required": [
+          "start_date",
+          "end_date"
+        ],
+        "title": "PlanGenerationRequest",
+        "type": "object"
+      },
       "PlanPhaseInput": {
         "properties": {
           "allow_new_tasks": {
@@ -754,6 +894,271 @@
           "id"
         ],
         "title": "PlanPhaseRead",
+        "type": "object"
+      },
+      "PlanResponse": {
+        "properties": {
+          "days": {
+            "items": {
+              "$ref": "#/components/schemas/PlanDaySummary"
+            },
+            "title": "Days",
+            "type": "array"
+          },
+          "end_date": {
+            "format": "date",
+            "title": "End Date",
+            "type": "string"
+          },
+          "persisted": {
+            "title": "Persisted",
+            "type": "boolean"
+          },
+          "start_date": {
+            "format": "date",
+            "title": "Start Date",
+            "type": "string"
+          },
+          "subjects": {
+            "items": {
+              "$ref": "#/components/schemas/PlanSubjectSummary"
+            },
+            "title": "Subjects",
+            "type": "array"
+          },
+          "tasks": {
+            "items": {
+              "$ref": "#/components/schemas/PlanTaskRead"
+            },
+            "title": "Tasks",
+            "type": "array"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Warnings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "start_date",
+          "end_date",
+          "persisted",
+          "tasks",
+          "days",
+          "subjects",
+          "warnings"
+        ],
+        "title": "PlanResponse",
+        "type": "object"
+      },
+      "PlanSubjectSummary": {
+        "properties": {
+          "phase_id": {
+            "format": "uuid",
+            "title": "Phase Id",
+            "type": "string"
+          },
+          "phase_name": {
+            "title": "Phase Name",
+            "type": "string"
+          },
+          "planned_minutes": {
+            "title": "Planned Minutes",
+            "type": "integer"
+          },
+          "subject_id": {
+            "format": "uuid",
+            "title": "Subject Id",
+            "type": "string"
+          },
+          "subject_name": {
+            "title": "Subject Name",
+            "type": "string"
+          },
+          "target_percentage": {
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Target Percentage",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "phase_id",
+          "phase_name",
+          "subject_id",
+          "subject_name",
+          "target_percentage",
+          "planned_minutes"
+        ],
+        "title": "PlanSubjectSummary",
+        "type": "object"
+      },
+      "PlanTaskRead": {
+        "properties": {
+          "actual_minutes": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Actual Minutes"
+          },
+          "carry_count": {
+            "default": 0,
+            "title": "Carry Count",
+            "type": "integer"
+          },
+          "est_minutes": {
+            "title": "Est Minutes",
+            "type": "integer"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "knowledge_point_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Knowledge Point Id"
+          },
+          "knowledge_point_name": {
+            "title": "Knowledge Point Name",
+            "type": "string"
+          },
+          "material_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Material Id"
+          },
+          "material_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Material Name"
+          },
+          "order": {
+            "title": "Order",
+            "type": "integer"
+          },
+          "phase_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Phase Id"
+          },
+          "phase_name": {
+            "title": "Phase Name",
+            "type": "string"
+          },
+          "planned_date": {
+            "format": "date",
+            "title": "Planned Date",
+            "type": "string"
+          },
+          "pool_item_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pool Item Id"
+          },
+          "status": {
+            "enum": [
+              "planned",
+              "completed",
+              "skipped"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "subject_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subject Id"
+          },
+          "subject_name": {
+            "title": "Subject Name",
+            "type": "string"
+          },
+          "task_type": {
+            "enum": [
+              "reading",
+              "practice",
+              "dictation",
+              "past_paper",
+              "memorization",
+              "review"
+            ],
+            "title": "Task Type",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "pool_item_id",
+          "phase_id",
+          "phase_name",
+          "subject_id",
+          "subject_name",
+          "knowledge_point_id",
+          "knowledge_point_name",
+          "material_id",
+          "material_name",
+          "title",
+          "task_type",
+          "planned_date",
+          "est_minutes",
+          "status",
+          "order"
+        ],
+        "title": "PlanTaskRead",
         "type": "object"
       },
       "PlanningConfigResponse": {
@@ -1023,6 +1428,176 @@
         "title": "SyllabusVersionRead",
         "type": "object"
       },
+      "TaskPoolGenerationResponse": {
+        "properties": {
+          "created": {
+            "title": "Created",
+            "type": "integer"
+          },
+          "deleted": {
+            "title": "Deleted",
+            "type": "integer"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          },
+          "updated": {
+            "title": "Updated",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "created",
+          "updated",
+          "deleted",
+          "total"
+        ],
+        "title": "TaskPoolGenerationResponse",
+        "type": "object"
+      },
+      "TaskPoolItemRead": {
+        "properties": {
+          "est_minutes": {
+            "title": "Est Minutes",
+            "type": "integer"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "knowledge_point_id": {
+            "format": "uuid",
+            "title": "Knowledge Point Id",
+            "type": "string"
+          },
+          "knowledge_point_name": {
+            "title": "Knowledge Point Name",
+            "type": "string"
+          },
+          "material_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Material Id"
+          },
+          "material_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Material Name"
+          },
+          "phase_id": {
+            "format": "uuid",
+            "title": "Phase Id",
+            "type": "string"
+          },
+          "phase_name": {
+            "title": "Phase Name",
+            "type": "string"
+          },
+          "priority": {
+            "title": "Priority",
+            "type": "integer"
+          },
+          "subject_id": {
+            "format": "uuid",
+            "title": "Subject Id",
+            "type": "string"
+          },
+          "subject_name": {
+            "title": "Subject Name",
+            "type": "string"
+          },
+          "task_template_id": {
+            "format": "uuid",
+            "title": "Task Template Id",
+            "type": "string"
+          },
+          "task_template_name": {
+            "title": "Task Template Name",
+            "type": "string"
+          },
+          "task_type": {
+            "enum": [
+              "reading",
+              "practice",
+              "dictation",
+              "past_paper",
+              "memorization",
+              "review"
+            ],
+            "title": "Task Type",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "phase_id",
+          "phase_name",
+          "subject_id",
+          "subject_name",
+          "knowledge_point_id",
+          "knowledge_point_name",
+          "task_template_id",
+          "task_template_name",
+          "material_id",
+          "material_name",
+          "title",
+          "task_type",
+          "est_minutes",
+          "priority"
+        ],
+        "title": "TaskPoolItemRead",
+        "type": "object"
+      },
+      "TaskPoolPage": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/TaskPoolItemRead"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "limit": {
+            "title": "Limit",
+            "type": "integer"
+          },
+          "offset": {
+            "title": "Offset",
+            "type": "integer"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "total",
+          "offset",
+          "limit"
+        ],
+        "title": "TaskPoolPage",
+        "type": "object"
+      },
       "TaskTemplateInput": {
         "properties": {
           "active": {
@@ -1226,6 +1801,74 @@
   },
   "openapi": "3.1.0",
   "paths": {
+    "/api/calendar": {
+      "get": {
+        "operationId": "read_calendar_api_calendar_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "month",
+            "required": true,
+            "schema": {
+              "pattern": "^\\d{4}-\\d{2}$",
+              "title": "Month",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CalendarResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Read Calendar",
+        "tags": [
+          "calendar"
+        ]
+      }
+    },
     "/api/health/live": {
       "get": {
         "operationId": "liveness_api_health_live_get",
@@ -1381,6 +2024,138 @@
         "summary": "Ping",
         "tags": [
           "health"
+        ]
+      }
+    },
+    "/api/plan/generate": {
+      "post": {
+        "operationId": "generate_plan_api_plan_generate_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlanGenerationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Generate Plan",
+        "tags": [
+          "plan"
+        ]
+      }
+    },
+    "/api/plan/preview": {
+      "post": {
+        "operationId": "preview_generated_plan_api_plan_preview_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlanGenerationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Preview Generated Plan",
+        "tags": [
+          "plan"
         ]
       }
     },
@@ -2247,6 +3022,177 @@
           }
         ],
         "summary": "Replace Phase",
+        "tags": [
+          "planning"
+        ]
+      }
+    },
+    "/api/planning/task-pool": {
+      "get": {
+        "operationId": "read_task_pool_api_planning_task_pool_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "phase_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Phase Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "subject_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Subject Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 100,
+              "maximum": 500,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskPoolPage"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Read Task Pool",
+        "tags": [
+          "planning"
+        ]
+      }
+    },
+    "/api/planning/task-pool/generate": {
+      "post": {
+        "operationId": "generate_planning_task_pool_api_planning_task_pool_generate_post",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskPoolGenerationResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Generate Planning Task Pool",
         "tags": [
           "planning"
         ]

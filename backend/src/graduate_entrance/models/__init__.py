@@ -9,6 +9,7 @@ from graduate_entrance.models.planning import (
     TaskTemplate,
     TaskTemplatePhase,
 )
+from graduate_entrance.models.scheduling import ScheduledTask, TaskPoolItem
 from graduate_entrance.models.syllabus import (
     Chapter,
     ExamBlueprint,
@@ -34,10 +35,12 @@ __all__ = [
     "Material",
     "PlanPhase",
     "PlanPhaseSubjectRatio",
+    "ScheduledTask",
     "Section",
     "Subject",
     "SyllabusModule",
     "SyllabusVersion",
     "TaskTemplate",
     "TaskTemplatePhase",
+    "TaskPoolItem",
 ]

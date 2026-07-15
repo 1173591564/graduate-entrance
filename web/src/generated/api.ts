@@ -4,6 +4,23 @@
  */
 
 export interface paths {
+    "/api/calendar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read Calendar */
+        get: operations["read_calendar_api_calendar_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/health/live": {
         parameters: {
             query?: never;
@@ -49,6 +66,40 @@ export interface paths {
         get: operations["ping_api_ping_get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/plan/generate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Generate Plan */
+        post: operations["generate_plan_api_plan_generate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/plan/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Preview Generated Plan */
+        post: operations["preview_generated_plan_api_plan_preview_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -212,6 +263,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/planning/task-pool": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read Task Pool */
+        get: operations["read_task_pool_api_planning_task_pool_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/planning/task-pool/generate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Generate Planning Task Pool */
+        post: operations["generate_planning_task_pool_api_planning_task_pool_generate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/planning/task-templates": {
         parameters: {
             query?: never;
@@ -362,6 +447,46 @@ export interface components {
             available_minutes: number;
             /** Weekday */
             weekday: number;
+        };
+        /** CalendarDayRead */
+        CalendarDayRead: {
+            /** Completed Minutes */
+            completed_minutes: number;
+            /**
+             * Date
+             * Format: date
+             */
+            date: string;
+            /** Planned Minutes */
+            planned_minutes: number;
+            /** Tasks */
+            tasks: components["schemas"]["PlanTaskRead"][];
+        };
+        /** CalendarResponse */
+        CalendarResponse: {
+            /** Days */
+            days: components["schemas"]["CalendarDayRead"][];
+            /** Month */
+            month: string;
+            /** Weeks */
+            weeks: components["schemas"]["CalendarWeekRead"][];
+        };
+        /** CalendarWeekRead */
+        CalendarWeekRead: {
+            /** Completed Minutes */
+            completed_minutes: number;
+            /** Planned Minutes */
+            planned_minutes: number;
+            /**
+             * Week End
+             * Format: date
+             */
+            week_end: string;
+            /**
+             * Week Start
+             * Format: date
+             */
+            week_start: string;
         };
         /** ChapterRead */
         ChapterRead: {
@@ -538,6 +663,33 @@ export interface components {
              */
             subject_id: string;
         };
+        /** PlanDaySummary */
+        PlanDaySummary: {
+            /** Available Minutes */
+            available_minutes: number;
+            /**
+             * Date
+             * Format: date
+             */
+            date: string;
+            /** Planned Minutes */
+            planned_minutes: number;
+            /** Remaining Minutes */
+            remaining_minutes: number;
+        };
+        /** PlanGenerationRequest */
+        PlanGenerationRequest: {
+            /**
+             * End Date
+             * Format: date
+             */
+            end_date: string;
+            /**
+             * Start Date
+             * Format: date
+             */
+            start_date: string;
+        };
         /** PlanPhaseInput */
         PlanPhaseInput: {
             /**
@@ -610,6 +762,104 @@ export interface components {
             start_date: string;
             /** Subject Ratios */
             subject_ratios?: components["schemas"]["PhaseSubjectRatioInput"][];
+        };
+        /** PlanResponse */
+        PlanResponse: {
+            /** Days */
+            days: components["schemas"]["PlanDaySummary"][];
+            /**
+             * End Date
+             * Format: date
+             */
+            end_date: string;
+            /** Persisted */
+            persisted: boolean;
+            /**
+             * Start Date
+             * Format: date
+             */
+            start_date: string;
+            /** Subjects */
+            subjects: components["schemas"]["PlanSubjectSummary"][];
+            /** Tasks */
+            tasks: components["schemas"]["PlanTaskRead"][];
+            /** Warnings */
+            warnings: string[];
+        };
+        /** PlanSubjectSummary */
+        PlanSubjectSummary: {
+            /**
+             * Phase Id
+             * Format: uuid
+             */
+            phase_id: string;
+            /** Phase Name */
+            phase_name: string;
+            /** Planned Minutes */
+            planned_minutes: number;
+            /**
+             * Subject Id
+             * Format: uuid
+             */
+            subject_id: string;
+            /** Subject Name */
+            subject_name: string;
+            /** Target Percentage */
+            target_percentage: number;
+        };
+        /** PlanTaskRead */
+        PlanTaskRead: {
+            /** Actual Minutes */
+            actual_minutes?: number | null;
+            /**
+             * Carry Count
+             * @default 0
+             */
+            carry_count: number;
+            /** Est Minutes */
+            est_minutes: number;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Knowledge Point Id */
+            knowledge_point_id: string | null;
+            /** Knowledge Point Name */
+            knowledge_point_name: string;
+            /** Material Id */
+            material_id: string | null;
+            /** Material Name */
+            material_name: string | null;
+            /** Order */
+            order: number;
+            /** Phase Id */
+            phase_id: string | null;
+            /** Phase Name */
+            phase_name: string;
+            /**
+             * Planned Date
+             * Format: date
+             */
+            planned_date: string;
+            /** Pool Item Id */
+            pool_item_id: string | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "planned" | "completed" | "skipped";
+            /** Subject Id */
+            subject_id: string | null;
+            /** Subject Name */
+            subject_name: string;
+            /**
+             * Task Type
+             * @enum {string}
+             */
+            task_type: "reading" | "practice" | "dictation" | "past_paper" | "memorization" | "review";
+            /** Title */
+            title: string;
         };
         /** PlanningConfigResponse */
         PlanningConfigResponse: {
@@ -711,6 +961,79 @@ export interface components {
             /** Source Name */
             source_name: string;
         };
+        /** TaskPoolGenerationResponse */
+        TaskPoolGenerationResponse: {
+            /** Created */
+            created: number;
+            /** Deleted */
+            deleted: number;
+            /** Total */
+            total: number;
+            /** Updated */
+            updated: number;
+        };
+        /** TaskPoolItemRead */
+        TaskPoolItemRead: {
+            /** Est Minutes */
+            est_minutes: number;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Knowledge Point Id
+             * Format: uuid
+             */
+            knowledge_point_id: string;
+            /** Knowledge Point Name */
+            knowledge_point_name: string;
+            /** Material Id */
+            material_id: string | null;
+            /** Material Name */
+            material_name: string | null;
+            /**
+             * Phase Id
+             * Format: uuid
+             */
+            phase_id: string;
+            /** Phase Name */
+            phase_name: string;
+            /** Priority */
+            priority: number;
+            /**
+             * Subject Id
+             * Format: uuid
+             */
+            subject_id: string;
+            /** Subject Name */
+            subject_name: string;
+            /**
+             * Task Template Id
+             * Format: uuid
+             */
+            task_template_id: string;
+            /** Task Template Name */
+            task_template_name: string;
+            /**
+             * Task Type
+             * @enum {string}
+             */
+            task_type: "reading" | "practice" | "dictation" | "past_paper" | "memorization" | "review";
+            /** Title */
+            title: string;
+        };
+        /** TaskPoolPage */
+        TaskPoolPage: {
+            /** Items */
+            items: components["schemas"]["TaskPoolItemRead"][];
+            /** Limit */
+            limit: number;
+            /** Offset */
+            offset: number;
+            /** Total */
+            total: number;
+        };
         /** TaskTemplateInput */
         TaskTemplateInput: {
             /**
@@ -806,6 +1129,55 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    read_calendar_api_calendar_get: {
+        parameters: {
+            query: {
+                month: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CalendarResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
     liveness_api_health_live_get: {
         parameters: {
             query?: never;
@@ -916,6 +1288,108 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ServiceStatus"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    generate_plan_api_plan_generate_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PlanGenerationRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    preview_generated_plan_api_plan_preview_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PlanGenerationRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanResponse"];
                 };
             };
             /** @description Unauthorized */
@@ -1568,6 +2042,105 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    read_task_pool_api_planning_task_pool_get: {
+        parameters: {
+            query?: {
+                phase_id?: string | null;
+                subject_id?: string | null;
+                offset?: number;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaskPoolPage"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    generate_planning_task_pool_api_planning_task_pool_generate_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaskPoolGenerationResponse"];
+                };
             };
             /** @description Unauthorized */
             401: {
