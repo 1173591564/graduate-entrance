@@ -349,6 +349,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/tasks/{task_id}/done": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Mark Task Done */
+        post: operations["mark_task_done_api_tasks__task_id__done_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/today": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read Today */
+        get: operations["read_today_api_today_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -816,6 +850,8 @@ export interface components {
              * @default 0
              */
             carry_count: number;
+            /** Done At */
+            done_at?: string | null;
             /** Est Minutes */
             est_minutes: number;
             /**
@@ -960,6 +996,11 @@ export interface components {
             source_checksum: string;
             /** Source Name */
             source_name: string;
+        };
+        /** TaskCompletionRequest */
+        TaskCompletionRequest: {
+            /** Actual Minutes */
+            actual_minutes: number;
         };
         /** TaskPoolGenerationResponse */
         TaskPoolGenerationResponse: {
@@ -1110,6 +1151,22 @@ export interface components {
              * @enum {string}
              */
             task_type: "reading" | "practice" | "dictation" | "past_paper" | "memorization" | "review";
+        };
+        /** TodayResponse */
+        TodayResponse: {
+            /** Completed Minutes */
+            completed_minutes: number;
+            /**
+             * Date
+             * Format: date
+             */
+            date: string;
+            /** Planned Minutes */
+            planned_minutes: number;
+            /** Remaining Minutes */
+            remaining_minutes: number;
+            /** Tasks */
+            tasks: components["schemas"]["PlanTaskRead"][];
         };
         /** ValidationIssue */
         ValidationIssue: {
@@ -2338,6 +2395,108 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SyllabusTreeResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    mark_task_done_api_tasks__task_id__done_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                task_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TaskCompletionRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanTaskRead"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    read_today_api_today_get: {
+        parameters: {
+            query?: {
+                date?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TodayResponse"];
                 };
             };
             /** @description Unauthorized */
