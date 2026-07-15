@@ -27,12 +27,20 @@ onMounted(async () => {
       <p class="summary">
         工程骨架已覆盖 Web、API、Android、数据库和部署入口，后续功能将按考纲和阶段计划逐步交付。
       </p>
-      <RouterLink
-        class="primary-link"
-        to="/syllabus"
-      >
-        查看考纲树
-      </RouterLink>
+      <div class="hero-actions">
+        <RouterLink
+          class="primary-link"
+          to="/planning"
+        >
+          配置学习计划
+        </RouterLink>
+        <RouterLink
+          class="secondary-link"
+          to="/syllabus"
+        >
+          查看考纲树
+        </RouterLink>
+      </div>
     </div>
     <div
       class="module-grid"
@@ -98,11 +106,26 @@ h1 {
 
 .primary-link {
   display: inline-flex;
-  margin-top: 28px;
   padding: 12px 18px;
   border-radius: 999px;
   color: white;
   background: #2764e7;
+  font-weight: 800;
+}
+
+.hero-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 28px;
+}
+
+.secondary-link {
+  display: inline-flex;
+  padding: 12px 18px;
+  border: 1px solid #dbe3ef;
+  border-radius: 999px;
+  color: #465269;
+  background: white;
   font-weight: 800;
 }
 

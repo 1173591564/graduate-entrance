@@ -18,3 +18,6 @@ Copy `.env.example` to `.env` when running outside Docker Compose.
 
 The importer reads the four versioned CSV files from `../seed/syllabus/raw`. It uses deterministic
 identifiers, so repeated imports update the same records instead of creating duplicates.
+
+Planning configuration is exposed under `/api/planning`: phases and subject ratios, availability
+periods and date exceptions, materials, and phase-scoped task templates.

@@ -9,6 +9,7 @@ docker compose up --build
 
 - Web: `http://localhost:8080`
 - API documentation: `http://localhost:8000/api/docs`
+- Planning configuration: `http://localhost:8080/planning`
 - PostgreSQL: `localhost:5432`
 
 Stop the stack with `docker compose down`. Add `--volumes` only when intentionally deleting local
