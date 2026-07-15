@@ -5,6 +5,10 @@ plugins {
     alias(libs.plugins.ksp)
 }
 
+val apiToken = providers.gradleProperty("API_TOKEN")
+    .orElse("local-development-only")
+    .get()
+
 android {
     namespace = "com.graduateentrance.app"
     compileSdk = 35
@@ -18,6 +22,7 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField("String", "API_BASE_URL", "\"http://10.0.2.2:8000/\"")
+        buildConfigField("String", "API_TOKEN", "\"$apiToken\"")
     }
 
     buildTypes {

@@ -11,6 +11,7 @@
 - Kotlin、Jetpack Compose、Room/Retrofit Android 基线；
 - Docker Compose、Caddy、健康检查和本地环境模板；
 - 后端、Web、Android 与基础设施 CI。
+- 单用户 Bearer token、统一错误响应、请求日志与 OpenAPI 类型生成。
 - 643 条原始考纲的幂等导入、五级考纲树 API 与 Web 只读浏览。
 - 阶段与四科配比、Availability、资料库和任务模板的配置 API 与 Web 页面。
 

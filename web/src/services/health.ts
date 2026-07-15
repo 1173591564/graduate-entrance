@@ -1,12 +1,10 @@
-export interface ServiceStatus {
-  status: 'ok'
-  service: string
-  environment: string
-}
+import type { components } from '../generated/api'
+import { apiFetch } from './api'
+
+export type ServiceStatus = components['schemas']['ServiceStatus']
 
 export async function fetchServiceStatus(): Promise<ServiceStatus> {
-  const baseUrl = import.meta.env.VITE_API_BASE_URL ?? ''
-  const response = await fetch(`${baseUrl}/api/ping`)
+  const response = await apiFetch('/api/ping')
 
   if (!response.ok) {
     throw new Error(`Health check failed with status ${response.status}`)

@@ -7,6 +7,7 @@ from graduate_entrance.core.config import Settings, get_settings
 from graduate_entrance.db.session import is_database_ready
 
 router = APIRouter(tags=["health"])
+public_router = APIRouter(tags=["health"])
 
 
 class ServiceStatus(BaseModel):
@@ -28,12 +29,12 @@ async def ping(settings: Annotated[Settings, Depends(get_settings)]) -> ServiceS
     )
 
 
-@router.get("/health/live", response_model=HealthStatus)
+@public_router.get("/health/live", response_model=HealthStatus)
 async def liveness() -> HealthStatus:
     return HealthStatus(status="ok")
 
 
-@router.get("/health/ready", response_model=HealthStatus)
+@public_router.get("/health/ready", response_model=HealthStatus)
 async def readiness(database_ready: Annotated[bool, Depends(is_database_ready)]) -> HealthStatus:
     if not database_ready:
         raise HTTPException(

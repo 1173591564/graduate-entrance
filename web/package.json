@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "npm run typecheck && vite build",
+    "generate:api": "openapi-typescript openapi.json -o src/generated/api.ts",
     "lint": "eslint . --max-warnings=0",
     "preview": "vite preview",
     "test": "vitest run",
@@ -24,6 +25,7 @@
     "eslint-plugin-vue": "^10.2.0",
     "globals": "^16.3.0",
     "jsdom": "^26.1.0",
+    "openapi-typescript": "7.13.0",
     "typescript": "~5.7.2",
     "typescript-eslint": "^8.35.1",
     "vite": "^6.2.0",

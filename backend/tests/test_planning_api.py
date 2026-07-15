@@ -44,7 +44,11 @@ async def client() -> AsyncIterator[AsyncClient]:
 
     app.dependency_overrides[get_session] = override_session
     transport = ASGITransport(app=app)
-    async with AsyncClient(transport=transport, base_url="http://test") as test_client:
+    async with AsyncClient(
+        transport=transport,
+        base_url="http://test",
+        headers={"Authorization": "Bearer local-development-only"},
+    ) as test_client:
         yield test_client
     app.dependency_overrides.clear()
     await engine.dispose()
@@ -191,3 +195,6 @@ async def test_phase_ratios_must_total_one_hundred(client: AsyncClient) -> None:
     response = await client.post("/api/planning/phases", json=payload)
 
     assert response.status_code == 422
+    error = response.json()["error"]
+    assert error["code"] == "validation_error"
+    assert error["details"][0]["location"] == "body"

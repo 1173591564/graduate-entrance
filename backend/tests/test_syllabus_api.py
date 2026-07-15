@@ -77,7 +77,11 @@ async def fake_syllabus_tree() -> SyllabusTreeResponse:
 async def client() -> AsyncIterator[AsyncClient]:
     app.dependency_overrides[get_syllabus_response] = fake_syllabus_tree
     transport = ASGITransport(app=app)
-    async with AsyncClient(transport=transport, base_url="http://test") as test_client:
+    async with AsyncClient(
+        transport=transport,
+        base_url="http://test",
+        headers={"Authorization": "Bearer local-development-only"},
+    ) as test_client:
         yield test_client
     app.dependency_overrides.clear()
 
