@@ -1,0 +1,2515 @@
+{
+  "components": {
+    "schemas": {
+      "AvailabilityExceptionInput": {
+        "properties": {
+          "available_minutes": {
+            "maximum": 1440.0,
+            "minimum": 0.0,
+            "title": "Available Minutes",
+            "type": "integer"
+          },
+          "date": {
+            "format": "date",
+            "title": "Date",
+            "type": "string"
+          },
+          "reason": {
+            "default": "",
+            "maxLength": 240,
+            "title": "Reason",
+            "type": "string"
+          }
+        },
+        "required": [
+          "date",
+          "available_minutes"
+        ],
+        "title": "AvailabilityExceptionInput",
+        "type": "object"
+      },
+      "AvailabilityExceptionRead": {
+        "properties": {
+          "available_minutes": {
+            "maximum": 1440.0,
+            "minimum": 0.0,
+            "title": "Available Minutes",
+            "type": "integer"
+          },
+          "date": {
+            "format": "date",
+            "title": "Date",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "reason": {
+            "default": "",
+            "maxLength": 240,
+            "title": "Reason",
+            "type": "string"
+          }
+        },
+        "required": [
+          "date",
+          "available_minutes",
+          "id"
+        ],
+        "title": "AvailabilityExceptionRead",
+        "type": "object"
+      },
+      "AvailabilityPeriodInput": {
+        "properties": {
+          "end_date": {
+            "format": "date",
+            "title": "End Date",
+            "type": "string"
+          },
+          "name": {
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "order": {
+            "default": 0,
+            "minimum": 0.0,
+            "title": "Order",
+            "type": "integer"
+          },
+          "rules": {
+            "items": {
+              "$ref": "#/components/schemas/AvailabilityRuleInput"
+            },
+            "title": "Rules",
+            "type": "array"
+          },
+          "start_date": {
+            "format": "date",
+            "title": "Start Date",
+            "type": "string"
+          },
+          "weekly_target_minutes": {
+            "maximum": 10080.0,
+            "minimum": 0.0,
+            "title": "Weekly Target Minutes",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "name",
+          "start_date",
+          "end_date",
+          "weekly_target_minutes",
+          "rules"
+        ],
+        "title": "AvailabilityPeriodInput",
+        "type": "object"
+      },
+      "AvailabilityPeriodRead": {
+        "properties": {
+          "end_date": {
+            "format": "date",
+            "title": "End Date",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "order": {
+            "default": 0,
+            "minimum": 0.0,
+            "title": "Order",
+            "type": "integer"
+          },
+          "rules": {
+            "items": {
+              "$ref": "#/components/schemas/AvailabilityRuleInput"
+            },
+            "title": "Rules",
+            "type": "array"
+          },
+          "start_date": {
+            "format": "date",
+            "title": "Start Date",
+            "type": "string"
+          },
+          "weekly_target_minutes": {
+            "maximum": 10080.0,
+            "minimum": 0.0,
+            "title": "Weekly Target Minutes",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "name",
+          "start_date",
+          "end_date",
+          "weekly_target_minutes",
+          "rules",
+          "id"
+        ],
+        "title": "AvailabilityPeriodRead",
+        "type": "object"
+      },
+      "AvailabilityRuleInput": {
+        "properties": {
+          "available_minutes": {
+            "maximum": 1440.0,
+            "minimum": 0.0,
+            "title": "Available Minutes",
+            "type": "integer"
+          },
+          "weekday": {
+            "maximum": 6.0,
+            "minimum": 0.0,
+            "title": "Weekday",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "weekday",
+          "available_minutes"
+        ],
+        "title": "AvailabilityRuleInput",
+        "type": "object"
+      },
+      "ChapterRead": {
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "knowledge_points": {
+            "items": {
+              "$ref": "#/components/schemas/KnowledgePointRead"
+            },
+            "title": "Knowledge Points",
+            "type": "array"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "order": {
+            "title": "Order",
+            "type": "integer"
+          },
+          "sections": {
+            "items": {
+              "$ref": "#/components/schemas/SectionRead"
+            },
+            "title": "Sections",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "order",
+          "sections",
+          "knowledge_points"
+        ],
+        "title": "ChapterRead",
+        "type": "object"
+      },
+      "ErrorDetail": {
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "details": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/ValidationIssue"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Details"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "request_id": {
+            "title": "Request Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "message",
+          "request_id"
+        ],
+        "title": "ErrorDetail",
+        "type": "object"
+      },
+      "ErrorResponse": {
+        "properties": {
+          "error": {
+            "$ref": "#/components/schemas/ErrorDetail"
+          }
+        },
+        "required": [
+          "error"
+        ],
+        "title": "ErrorResponse",
+        "type": "object"
+      },
+      "ExamBlueprintRead": {
+        "properties": {
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "duration_minutes": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duration Minutes"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "sections": {
+            "items": {
+              "$ref": "#/components/schemas/ExamSectionRead"
+            },
+            "title": "Sections",
+            "type": "array"
+          },
+          "total_score": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Total Score"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "total_score",
+          "duration_minutes",
+          "description",
+          "sections"
+        ],
+        "title": "ExamBlueprintRead",
+        "type": "object"
+      },
+      "ExamSectionRead": {
+        "properties": {
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "duration_minutes": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duration Minutes"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "order": {
+            "title": "Order",
+            "type": "integer"
+          },
+          "score": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Score"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "score",
+          "duration_minutes",
+          "description",
+          "order"
+        ],
+        "title": "ExamSectionRead",
+        "type": "object"
+      },
+      "HealthStatus": {
+        "properties": {
+          "status": {
+            "enum": [
+              "ok",
+              "unavailable"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status"
+        ],
+        "title": "HealthStatus",
+        "type": "object"
+      },
+      "KnowledgePointRead": {
+        "properties": {
+          "common_exam_style": {
+            "title": "Common Exam Style",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "note": {
+            "title": "Note",
+            "type": "string"
+          },
+          "order": {
+            "title": "Order",
+            "type": "integer"
+          },
+          "requirement_actions": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Requirement Actions",
+            "type": "array"
+          },
+          "requirement_level": {
+            "title": "Requirement Level",
+            "type": "string"
+          },
+          "requirement_raw": {
+            "title": "Requirement Raw",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "requirement_raw",
+          "requirement_level",
+          "requirement_actions",
+          "common_exam_style",
+          "note",
+          "order"
+        ],
+        "title": "KnowledgePointRead",
+        "type": "object"
+      },
+      "MaterialInput": {
+        "properties": {
+          "active": {
+            "default": true,
+            "title": "Active",
+            "type": "boolean"
+          },
+          "description": {
+            "default": "",
+            "maxLength": 4000,
+            "title": "Description",
+            "type": "string"
+          },
+          "material_type": {
+            "enum": [
+              "textbook",
+              "exercise_book",
+              "past_paper",
+              "course",
+              "vocabulary",
+              "other"
+            ],
+            "title": "Material Type",
+            "type": "string"
+          },
+          "name": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "order": {
+            "default": 0,
+            "minimum": 0.0,
+            "title": "Order",
+            "type": "integer"
+          },
+          "source": {
+            "default": "",
+            "maxLength": 240,
+            "title": "Source",
+            "type": "string"
+          },
+          "subject_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subject Id"
+          }
+        },
+        "required": [
+          "name",
+          "material_type"
+        ],
+        "title": "MaterialInput",
+        "type": "object"
+      },
+      "MaterialRead": {
+        "properties": {
+          "active": {
+            "default": true,
+            "title": "Active",
+            "type": "boolean"
+          },
+          "description": {
+            "default": "",
+            "maxLength": 4000,
+            "title": "Description",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "material_type": {
+            "enum": [
+              "textbook",
+              "exercise_book",
+              "past_paper",
+              "course",
+              "vocabulary",
+              "other"
+            ],
+            "title": "Material Type",
+            "type": "string"
+          },
+          "name": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "order": {
+            "default": 0,
+            "minimum": 0.0,
+            "title": "Order",
+            "type": "integer"
+          },
+          "source": {
+            "default": "",
+            "maxLength": 240,
+            "title": "Source",
+            "type": "string"
+          },
+          "subject_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subject Id"
+          }
+        },
+        "required": [
+          "name",
+          "material_type",
+          "id"
+        ],
+        "title": "MaterialRead",
+        "type": "object"
+      },
+      "ModuleRead": {
+        "properties": {
+          "chapters": {
+            "items": {
+              "$ref": "#/components/schemas/ChapterRead"
+            },
+            "title": "Chapters",
+            "type": "array"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "order": {
+            "title": "Order",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "order",
+          "chapters"
+        ],
+        "title": "ModuleRead",
+        "type": "object"
+      },
+      "PhaseSubjectRatioInput": {
+        "properties": {
+          "percentage": {
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Percentage",
+            "type": "integer"
+          },
+          "subject_id": {
+            "format": "uuid",
+            "title": "Subject Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "subject_id",
+          "percentage"
+        ],
+        "title": "PhaseSubjectRatioInput",
+        "type": "object"
+      },
+      "PlanPhaseInput": {
+        "properties": {
+          "allow_new_tasks": {
+            "default": true,
+            "title": "Allow New Tasks",
+            "type": "boolean"
+          },
+          "description": {
+            "default": "",
+            "maxLength": 4000,
+            "title": "Description",
+            "type": "string"
+          },
+          "end_date": {
+            "format": "date",
+            "title": "End Date",
+            "type": "string"
+          },
+          "milestones": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 20,
+            "title": "Milestones",
+            "type": "array"
+          },
+          "name": {
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "order": {
+            "default": 0,
+            "minimum": 0.0,
+            "title": "Order",
+            "type": "integer"
+          },
+          "start_date": {
+            "format": "date",
+            "title": "Start Date",
+            "type": "string"
+          },
+          "subject_ratios": {
+            "items": {
+              "$ref": "#/components/schemas/PhaseSubjectRatioInput"
+            },
+            "title": "Subject Ratios",
+            "type": "array"
+          }
+        },
+        "required": [
+          "name",
+          "start_date",
+          "end_date"
+        ],
+        "title": "PlanPhaseInput",
+        "type": "object"
+      },
+      "PlanPhaseRead": {
+        "properties": {
+          "allow_new_tasks": {
+            "default": true,
+            "title": "Allow New Tasks",
+            "type": "boolean"
+          },
+          "description": {
+            "default": "",
+            "maxLength": 4000,
+            "title": "Description",
+            "type": "string"
+          },
+          "end_date": {
+            "format": "date",
+            "title": "End Date",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "milestones": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 20,
+            "title": "Milestones",
+            "type": "array"
+          },
+          "name": {
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "order": {
+            "default": 0,
+            "minimum": 0.0,
+            "title": "Order",
+            "type": "integer"
+          },
+          "start_date": {
+            "format": "date",
+            "title": "Start Date",
+            "type": "string"
+          },
+          "subject_ratios": {
+            "items": {
+              "$ref": "#/components/schemas/PhaseSubjectRatioInput"
+            },
+            "title": "Subject Ratios",
+            "type": "array"
+          }
+        },
+        "required": [
+          "name",
+          "start_date",
+          "end_date",
+          "id"
+        ],
+        "title": "PlanPhaseRead",
+        "type": "object"
+      },
+      "PlanningConfigResponse": {
+        "properties": {
+          "availability_exceptions": {
+            "items": {
+              "$ref": "#/components/schemas/AvailabilityExceptionRead"
+            },
+            "title": "Availability Exceptions",
+            "type": "array"
+          },
+          "availability_periods": {
+            "items": {
+              "$ref": "#/components/schemas/AvailabilityPeriodRead"
+            },
+            "title": "Availability Periods",
+            "type": "array"
+          },
+          "materials": {
+            "items": {
+              "$ref": "#/components/schemas/MaterialRead"
+            },
+            "title": "Materials",
+            "type": "array"
+          },
+          "phases": {
+            "items": {
+              "$ref": "#/components/schemas/PlanPhaseRead"
+            },
+            "title": "Phases",
+            "type": "array"
+          },
+          "subjects": {
+            "items": {
+              "$ref": "#/components/schemas/PlanningSubjectRead"
+            },
+            "title": "Subjects",
+            "type": "array"
+          },
+          "task_templates": {
+            "items": {
+              "$ref": "#/components/schemas/TaskTemplateRead"
+            },
+            "title": "Task Templates",
+            "type": "array"
+          }
+        },
+        "required": [
+          "subjects",
+          "phases",
+          "availability_periods",
+          "availability_exceptions",
+          "materials",
+          "task_templates"
+        ],
+        "title": "PlanningConfigResponse",
+        "type": "object"
+      },
+      "PlanningSubjectRead": {
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "order": {
+            "title": "Order",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "code",
+          "name",
+          "order"
+        ],
+        "title": "PlanningSubjectRead",
+        "type": "object"
+      },
+      "SectionRead": {
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "knowledge_points": {
+            "items": {
+              "$ref": "#/components/schemas/KnowledgePointRead"
+            },
+            "title": "Knowledge Points",
+            "type": "array"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "order": {
+            "title": "Order",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "order",
+          "knowledge_points"
+        ],
+        "title": "SectionRead",
+        "type": "object"
+      },
+      "ServiceStatus": {
+        "properties": {
+          "environment": {
+            "title": "Environment",
+            "type": "string"
+          },
+          "service": {
+            "title": "Service",
+            "type": "string"
+          },
+          "status": {
+            "const": "ok",
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "service",
+          "environment"
+        ],
+        "title": "ServiceStatus",
+        "type": "object"
+      },
+      "SubjectRead": {
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "exam_blueprints": {
+            "items": {
+              "$ref": "#/components/schemas/ExamBlueprintRead"
+            },
+            "title": "Exam Blueprints",
+            "type": "array"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "knowledge_point_count": {
+            "title": "Knowledge Point Count",
+            "type": "integer"
+          },
+          "modules": {
+            "items": {
+              "$ref": "#/components/schemas/ModuleRead"
+            },
+            "title": "Modules",
+            "type": "array"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "order": {
+            "title": "Order",
+            "type": "integer"
+          },
+          "source_row_count": {
+            "title": "Source Row Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "code",
+          "name",
+          "order",
+          "modules",
+          "exam_blueprints",
+          "source_row_count",
+          "knowledge_point_count"
+        ],
+        "title": "SubjectRead",
+        "type": "object"
+      },
+      "SyllabusTreeResponse": {
+        "properties": {
+          "exam_blueprint_count": {
+            "title": "Exam Blueprint Count",
+            "type": "integer"
+          },
+          "knowledge_point_count": {
+            "title": "Knowledge Point Count",
+            "type": "integer"
+          },
+          "source_row_count": {
+            "title": "Source Row Count",
+            "type": "integer"
+          },
+          "subjects": {
+            "items": {
+              "$ref": "#/components/schemas/SubjectRead"
+            },
+            "title": "Subjects",
+            "type": "array"
+          },
+          "versions": {
+            "items": {
+              "$ref": "#/components/schemas/SyllabusVersionRead"
+            },
+            "title": "Versions",
+            "type": "array"
+          }
+        },
+        "required": [
+          "source_row_count",
+          "knowledge_point_count",
+          "exam_blueprint_count",
+          "versions",
+          "subjects"
+        ],
+        "title": "SyllabusTreeResponse",
+        "type": "object"
+      },
+      "SyllabusVersionRead": {
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "imported_at": {
+            "format": "date-time",
+            "title": "Imported At",
+            "type": "string"
+          },
+          "row_count": {
+            "title": "Row Count",
+            "type": "integer"
+          },
+          "source_checksum": {
+            "title": "Source Checksum",
+            "type": "string"
+          },
+          "source_name": {
+            "title": "Source Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "source_name",
+          "source_checksum",
+          "row_count",
+          "imported_at"
+        ],
+        "title": "SyllabusVersionRead",
+        "type": "object"
+      },
+      "TaskTemplateInput": {
+        "properties": {
+          "active": {
+            "default": true,
+            "title": "Active",
+            "type": "boolean"
+          },
+          "default_est_minutes": {
+            "exclusiveMinimum": 0.0,
+            "maximum": 1440.0,
+            "title": "Default Est Minutes",
+            "type": "integer"
+          },
+          "description": {
+            "default": "",
+            "maxLength": 4000,
+            "title": "Description",
+            "type": "string"
+          },
+          "material_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Material Id"
+          },
+          "name": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "order": {
+            "default": 0,
+            "minimum": 0.0,
+            "title": "Order",
+            "type": "integer"
+          },
+          "phase_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "minItems": 1,
+            "title": "Phase Ids",
+            "type": "array"
+          },
+          "subject_id": {
+            "format": "uuid",
+            "title": "Subject Id",
+            "type": "string"
+          },
+          "task_type": {
+            "enum": [
+              "reading",
+              "practice",
+              "dictation",
+              "past_paper",
+              "memorization",
+              "review"
+            ],
+            "title": "Task Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "subject_id",
+          "name",
+          "task_type",
+          "default_est_minutes",
+          "phase_ids"
+        ],
+        "title": "TaskTemplateInput",
+        "type": "object"
+      },
+      "TaskTemplateRead": {
+        "properties": {
+          "active": {
+            "default": true,
+            "title": "Active",
+            "type": "boolean"
+          },
+          "default_est_minutes": {
+            "exclusiveMinimum": 0.0,
+            "maximum": 1440.0,
+            "title": "Default Est Minutes",
+            "type": "integer"
+          },
+          "description": {
+            "default": "",
+            "maxLength": 4000,
+            "title": "Description",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "material_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Material Id"
+          },
+          "name": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "order": {
+            "default": 0,
+            "minimum": 0.0,
+            "title": "Order",
+            "type": "integer"
+          },
+          "phase_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "minItems": 1,
+            "title": "Phase Ids",
+            "type": "array"
+          },
+          "subject_id": {
+            "format": "uuid",
+            "title": "Subject Id",
+            "type": "string"
+          },
+          "task_type": {
+            "enum": [
+              "reading",
+              "practice",
+              "dictation",
+              "past_paper",
+              "memorization",
+              "review"
+            ],
+            "title": "Task Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "subject_id",
+          "name",
+          "task_type",
+          "default_est_minutes",
+          "phase_ids",
+          "id"
+        ],
+        "title": "TaskTemplateRead",
+        "type": "object"
+      },
+      "ValidationIssue": {
+        "properties": {
+          "location": {
+            "title": "Location",
+            "type": "string"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "type": {
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "location",
+          "message"
+        ],
+        "title": "ValidationIssue",
+        "type": "object"
+      }
+    },
+    "securitySchemes": {
+      "HTTPBearer": {
+        "scheme": "bearer",
+        "type": "http"
+      }
+    }
+  },
+  "info": {
+    "title": "Graduate Entrance API",
+    "version": "0.1.0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/api/health/live": {
+      "get": {
+        "operationId": "liveness_api_health_live_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthStatus"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Liveness",
+        "tags": [
+          "health"
+        ]
+      }
+    },
+    "/api/health/ready": {
+      "get": {
+        "operationId": "readiness_api_health_ready_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthStatus"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Readiness",
+        "tags": [
+          "health"
+        ]
+      }
+    },
+    "/api/ping": {
+      "get": {
+        "operationId": "ping_api_ping_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServiceStatus"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Ping",
+        "tags": [
+          "health"
+        ]
+      }
+    },
+    "/api/planning/availability-exceptions": {
+      "post": {
+        "operationId": "add_availability_exception_api_planning_availability_exceptions_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AvailabilityExceptionInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AvailabilityExceptionRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Add Availability Exception",
+        "tags": [
+          "planning"
+        ]
+      }
+    },
+    "/api/planning/availability-exceptions/{exception_id}": {
+      "delete": {
+        "operationId": "remove_availability_exception_api_planning_availability_exceptions__exception_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "exception_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Exception Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Remove Availability Exception",
+        "tags": [
+          "planning"
+        ]
+      },
+      "put": {
+        "operationId": "replace_availability_exception_api_planning_availability_exceptions__exception_id__put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "exception_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Exception Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AvailabilityExceptionInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AvailabilityExceptionRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Replace Availability Exception",
+        "tags": [
+          "planning"
+        ]
+      }
+    },
+    "/api/planning/availability-periods": {
+      "post": {
+        "operationId": "add_availability_period_api_planning_availability_periods_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AvailabilityPeriodInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AvailabilityPeriodRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Add Availability Period",
+        "tags": [
+          "planning"
+        ]
+      }
+    },
+    "/api/planning/availability-periods/{period_id}": {
+      "delete": {
+        "operationId": "remove_availability_period_api_planning_availability_periods__period_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "period_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Period Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Remove Availability Period",
+        "tags": [
+          "planning"
+        ]
+      },
+      "put": {
+        "operationId": "replace_availability_period_api_planning_availability_periods__period_id__put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "period_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Period Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AvailabilityPeriodInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AvailabilityPeriodRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Replace Availability Period",
+        "tags": [
+          "planning"
+        ]
+      }
+    },
+    "/api/planning/config": {
+      "get": {
+        "operationId": "read_planning_config_api_planning_config_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanningConfigResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Read Planning Config",
+        "tags": [
+          "planning"
+        ]
+      }
+    },
+    "/api/planning/materials": {
+      "post": {
+        "operationId": "add_material_api_planning_materials_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MaterialInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MaterialRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Add Material",
+        "tags": [
+          "planning"
+        ]
+      }
+    },
+    "/api/planning/materials/{material_id}": {
+      "delete": {
+        "operationId": "remove_material_api_planning_materials__material_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "material_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Material Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Remove Material",
+        "tags": [
+          "planning"
+        ]
+      },
+      "put": {
+        "operationId": "replace_material_api_planning_materials__material_id__put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "material_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Material Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MaterialInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MaterialRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Replace Material",
+        "tags": [
+          "planning"
+        ]
+      }
+    },
+    "/api/planning/phases": {
+      "post": {
+        "operationId": "add_phase_api_planning_phases_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlanPhaseInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanPhaseRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Add Phase",
+        "tags": [
+          "planning"
+        ]
+      }
+    },
+    "/api/planning/phases/{phase_id}": {
+      "delete": {
+        "operationId": "remove_phase_api_planning_phases__phase_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "phase_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Phase Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Remove Phase",
+        "tags": [
+          "planning"
+        ]
+      },
+      "put": {
+        "operationId": "replace_phase_api_planning_phases__phase_id__put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "phase_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Phase Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlanPhaseInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanPhaseRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Replace Phase",
+        "tags": [
+          "planning"
+        ]
+      }
+    },
+    "/api/planning/task-templates": {
+      "post": {
+        "operationId": "add_task_template_api_planning_task_templates_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TaskTemplateInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskTemplateRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Add Task Template",
+        "tags": [
+          "planning"
+        ]
+      }
+    },
+    "/api/planning/task-templates/{template_id}": {
+      "delete": {
+        "operationId": "remove_task_template_api_planning_task_templates__template_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "template_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Template Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Remove Task Template",
+        "tags": [
+          "planning"
+        ]
+      },
+      "put": {
+        "operationId": "replace_task_template_api_planning_task_templates__template_id__put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "template_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Template Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TaskTemplateInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskTemplateRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Replace Task Template",
+        "tags": [
+          "planning"
+        ]
+      }
+    },
+    "/api/syllabus": {
+      "get": {
+        "operationId": "read_syllabus_api_syllabus_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SyllabusTreeResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Read Syllabus",
+        "tags": [
+          "syllabus"
+        ]
+      }
+    }
+  }
+}

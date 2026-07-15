@@ -1,3 +1,5 @@
+import { apiFetch } from './api'
+
 export interface PlanningSubject {
   id: string
   code: string
@@ -108,10 +110,8 @@ export interface PlanningConfig {
   task_templates: TaskTemplate[]
 }
 
-const baseUrl = import.meta.env.VITE_API_BASE_URL ?? ''
-
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(`${baseUrl}/api/planning${path}`, {
+  const response = await apiFetch(`/api/planning${path}`, {
     ...init,
     headers: {
       'Content-Type': 'application/json',

@@ -16,8 +16,14 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.graduateentrance.app.network.ApiClient
 
 private data class PlannedModule(
     val title: String,
@@ -31,9 +37,25 @@ private val plannedModules = listOf(
     PlannedModule("离线同步", "本地事件队列与服务端合并"),
 )
 
+private enum class BackendStatus(val label: String) {
+    Checking("后端连接中"),
+    Online("后端已连接"),
+    Offline("后端未连接"),
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GraduateEntranceApp() {
+    var backendStatus by remember { mutableStateOf(BackendStatus.Checking) }
+
+    LaunchedEffect(Unit) {
+        backendStatus = runCatching { ApiClient.service.ping() }
+            .fold(
+                onSuccess = { BackendStatus.Online },
+                onFailure = { BackendStatus.Offline },
+            )
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -41,7 +63,7 @@ fun GraduateEntranceApp() {
                     Column {
                         Text("11408 备考")
                         Text(
-                            text = "工程骨架",
+                            text = backendStatus.label,
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )

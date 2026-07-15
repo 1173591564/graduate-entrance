@@ -1,3 +1,5 @@
+import { apiFetch } from './api'
+
 export interface KnowledgePoint {
   id: string
   name: string
@@ -77,8 +79,7 @@ export interface SyllabusTree {
 }
 
 export async function fetchSyllabusTree(): Promise<SyllabusTree> {
-  const baseUrl = import.meta.env.VITE_API_BASE_URL ?? ''
-  const response = await fetch(`${baseUrl}/api/syllabus`)
+  const response = await apiFetch('/api/syllabus')
 
   if (!response.ok) {
     throw new Error(`Syllabus request failed with status ${response.status}`)
