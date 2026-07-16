@@ -660,6 +660,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/retro": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read Retro Session */
+        get: operations["read_retro_session_api_retro_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/retro/confirm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Post Retro Confirm */
+        post: operations["post_retro_confirm_api_retro_confirm_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/retro/messages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Post Retro Message */
+        post: operations["post_retro_message_api_retro_messages_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/stats/insights": {
         parameters: {
             query?: never;
@@ -1781,6 +1832,92 @@ export interface components {
          * @enum {string}
          */
         ReciteResult: "remembered" | "forgot";
+        /** RetroChatRequest */
+        RetroChatRequest: {
+            /** Content */
+            content: string;
+            /** Week Start */
+            week_start?: string | null;
+        };
+        /** RetroChatResponse */
+        RetroChatResponse: {
+            /** Messages */
+            messages: components["schemas"]["RetroMessageRead"][];
+        };
+        /** RetroConfirmRequest */
+        RetroConfirmRequest: {
+            /** Week Start */
+            week_start?: string | null;
+        };
+        /** RetroConfirmResponse */
+        RetroConfirmResponse: {
+            plan: components["schemas"]["AiWeekPlanResponse"];
+        };
+        /** RetroContext */
+        RetroContext: {
+            /** Completed Minutes */
+            completed_minutes: number;
+            /** Completed Tasks */
+            completed_tasks: number;
+            /** Days To Exam */
+            days_to_exam: number;
+            /** Execution Rate */
+            execution_rate: number;
+            /** Planned Minutes */
+            planned_minutes: number;
+            /** Subjects */
+            subjects: components["schemas"]["RetroSubjectSnapshot"][];
+            /** Total Tasks */
+            total_tasks: number;
+            /** Weak Points */
+            weak_points: string[];
+            /**
+             * Week End
+             * Format: date
+             */
+            week_end: string;
+            /**
+             * Week Start
+             * Format: date
+             */
+            week_start: string;
+        };
+        /** RetroMessageRead */
+        RetroMessageRead: {
+            /** Content */
+            content: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Role */
+            role: string;
+        };
+        /** RetroSessionResponse */
+        RetroSessionResponse: {
+            context: components["schemas"]["RetroContext"];
+            /** Messages */
+            messages: components["schemas"]["RetroMessageRead"][];
+        };
+        /** RetroSubjectSnapshot */
+        RetroSubjectSnapshot: {
+            /** Coverage */
+            coverage: number;
+            /** Estimated Score */
+            estimated_score: number | null;
+            /** Mastery */
+            mastery: number;
+            /** Subject Name */
+            subject_name: string;
+            /** Target Score */
+            target_score: number | null;
+        };
         /** ReviewDueResponse */
         ReviewDueResponse: {
             /**
@@ -4685,6 +4822,157 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["GoalsResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    read_retro_session_api_retro_get: {
+        parameters: {
+            query?: {
+                week_start?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RetroSessionResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    post_retro_confirm_api_retro_confirm_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RetroConfirmRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RetroConfirmResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    post_retro_message_api_retro_messages_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RetroChatRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RetroChatResponse"];
                 };
             };
             /** @description Unauthorized */

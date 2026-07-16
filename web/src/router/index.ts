@@ -5,6 +5,7 @@ import HomeView from '../views/HomeView.vue'
 import InsightsView from '../views/InsightsView.vue'
 import PlanningView from '../views/PlanningView.vue'
 import ProblemsView from '../views/ProblemsView.vue'
+import RetroView from '../views/RetroView.vue'
 import ReviewsView from '../views/ReviewsView.vue'
 import StatsView from '../views/StatsView.vue'
 import SyllabusView from '../views/SyllabusView.vue'
@@ -47,6 +48,11 @@ const router = createRouter({
       path: '/reviews',
       name: 'reviews',
       component: ReviewsView,
+    },
+    {
+      path: '/retro',
+      name: 'retro',
+      component: RetroView,
     },
     {
       path: '/insights',
