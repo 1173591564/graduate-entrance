@@ -4,7 +4,9 @@ import com.graduateentrance.app.data.GradeResult
 import com.graduateentrance.app.data.ReviewsLoadResult
 import com.graduateentrance.app.data.ReviewsRepository
 import com.graduateentrance.app.network.DueReviewsDto
+import com.graduateentrance.app.network.ExtractionResultDto
 import com.graduateentrance.app.network.GraduateEntranceApi
+import com.graduateentrance.app.network.ProblemCreatedDto
 import com.graduateentrance.app.network.ReviewProblemDto
 import com.graduateentrance.app.network.ReviewRequest
 import com.graduateentrance.app.network.ReviewResultDto
@@ -15,6 +17,8 @@ import com.graduateentrance.app.network.TodayTaskDto
 import java.io.IOException
 import kotlinx.coroutines.test.runTest
 import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.MultipartBody
+import okhttp3.RequestBody
 import okhttp3.ResponseBody.Companion.toResponseBody
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -67,6 +71,15 @@ private class FakeReviewsApi : GraduateEntranceApi {
         graded.add(problemId to payload.grade)
         return ReviewResultDto(payload.grade, 2.6, 6, 2, "2026-08-11")
     }
+
+    override suspend fun submitProblem(
+        kind: RequestBody,
+        note: RequestBody,
+        images: List<MultipartBody.Part>,
+    ): ProblemCreatedDto = ProblemCreatedDto("p", "draft", emptyList())
+
+    override suspend fun extractProblem(problemId: String): ExtractionResultDto =
+        ExtractionResultDto(problemId, "test", "", emptyList(), null)
 }
 
 class ReviewsRepositoryTest {

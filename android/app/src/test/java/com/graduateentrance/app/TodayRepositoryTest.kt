@@ -6,7 +6,9 @@ import com.graduateentrance.app.data.local.PendingCheckInEntity
 import com.graduateentrance.app.data.local.TodayDao
 import com.graduateentrance.app.data.local.TodayTaskEntity
 import com.graduateentrance.app.network.DueReviewsDto
+import com.graduateentrance.app.network.ExtractionResultDto
 import com.graduateentrance.app.network.GraduateEntranceApi
+import com.graduateentrance.app.network.ProblemCreatedDto
 import com.graduateentrance.app.network.ReviewRequest
 import com.graduateentrance.app.network.ReviewResultDto
 import com.graduateentrance.app.network.ServiceStatus
@@ -16,6 +18,8 @@ import com.graduateentrance.app.network.TodayTaskDto
 import java.io.IOException
 import kotlinx.coroutines.test.runTest
 import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.MultipartBody
+import okhttp3.RequestBody
 import okhttp3.ResponseBody.Companion.toResponseBody
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -99,6 +103,15 @@ private class FakeApi : GraduateEntranceApi {
 
     override suspend fun reviewProblem(problemId: String, payload: ReviewRequest): ReviewResultDto =
         ReviewResultDto(payload.grade, 2.5, 1, 1, "2026-08-06")
+
+    override suspend fun submitProblem(
+        kind: RequestBody,
+        note: RequestBody,
+        images: List<MultipartBody.Part>,
+    ): ProblemCreatedDto = ProblemCreatedDto("p", "draft", emptyList())
+
+    override suspend fun extractProblem(problemId: String): ExtractionResultDto =
+        ExtractionResultDto(problemId, "test", "", emptyList(), null)
 }
 
 private fun dto(id: String, status: String = "planned", est: Int = 60, order: Int = 0) = TodayTaskDto(

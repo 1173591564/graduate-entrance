@@ -7,9 +7,9 @@
 *.key
 
 # Runtime data
-data/
-backups/
-uploads/
+/data/
+/backups/
+/uploads/
 
 # Python
 __pycache__/
