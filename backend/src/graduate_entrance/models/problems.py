@@ -55,6 +55,9 @@ class Problem(Base):
     due_date: Mapped[date | None] = mapped_column(Date, index=True)
     reps: Mapped[int] = mapped_column(default=0)
     confirmed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    ai_score: Mapped[float | None] = mapped_column(Float)
+    ai_feedback_md: Mapped[str] = mapped_column(Text, default="")
+    ai_graded_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),

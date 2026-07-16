@@ -289,6 +289,108 @@ describe('ProblemsView', () => {
     expect(wrapper.find('.ai-solution').exists()).toBe(false)
   })
 
+  it('submits a batch and reports the extraction summary', async () => {
+    let pendingCalls = 0
+    let batchForm: FormData | null = null
+    stubFetch({
+      'GET /api/problems/pending': () => {
+        pendingCalls += 1
+        return pendingCalls === 1
+          ? { total: 0, problems: [] }
+          : { total: 2, problems: [draftProblem()] }
+      },
+      'GET /api/syllabus': () => syllabusPayload,
+      'POST /api/problems/batch': (init) => {
+        batchForm = init?.body as FormData
+        return {
+          total: 2,
+          extracted: 1,
+          items: [
+            {
+              problem: draftProblem(),
+              extraction: {
+                problem_id: PROBLEM_ID,
+                model: 'gpt-test',
+                content_md: '识别的题面',
+                knowledge_points: [],
+                solution: null,
+              },
+              error: null,
+            },
+            {
+              problem: { ...draftProblem(), id: '55555555-5555-5555-5555-555555555555' },
+              extraction: null,
+              error: 'AI extraction returned invalid JSON',
+            },
+          ],
+        }
+      },
+    })
+
+    const wrapper = mount(ProblemsView)
+    await flushPromises()
+
+    const batchInput = wrapper.get('.batch-card input[type="file"]')
+    const file = new File(['x'], 'a.png', { type: 'image/png' })
+    Object.defineProperty(batchInput.element, 'files', { value: [file] })
+    await batchInput.trigger('change')
+    await wrapper.get('form.batch-card').trigger('submit')
+    await flushPromises()
+
+    expect(batchForm).not.toBeNull()
+    expect((batchForm as unknown as FormData).getAll('images')).toHaveLength(1)
+    expect(wrapper.text()).toContain('已录入 2 题，AI 识别成功 1 题，1 题需手动补题面')
+  })
+
+  it('grades a subjective answer for gradable subjects', async () => {
+    const englishDraft = {
+      ...draftProblem(),
+      subject_name: '英语一',
+      content_md: 'Write an essay.',
+      my_answer_md: 'My essay ...',
+    }
+    let gradeBody: Record<string, unknown> | null = null
+    stubFetch({
+      'GET /api/problems/pending': () => ({ total: 1, problems: [englishDraft] }),
+      'GET /api/syllabus': () => syllabusPayload,
+      [`POST /api/problems/${PROBLEM_ID}/grade`]: (init) => {
+        gradeBody = JSON.parse(String(init?.body)) as Record<string, unknown>
+        return {
+          problem_id: PROBLEM_ID,
+          model: 'gpt-test',
+          score: 72.5,
+          feedback_md: '结构完整，第二段论证薄弱。',
+          suggestions: ['增加数据支撑'],
+          graded_at: '2026-07-16T03:00:00Z',
+        }
+      },
+    })
+
+    const wrapper = mount(ProblemsView)
+    await flushPromises()
+
+    expect(wrapper.find('.grade-panel').exists()).toBe(true)
+    await wrapper.get('.grade-panel .ai-button').trigger('click')
+    await flushPromises()
+
+    expect(gradeBody).toMatchObject({ answer_md: 'My essay ...' })
+    expect(wrapper.text()).toContain('得分 72.5 / 100')
+    expect(wrapper.text()).toContain('论证薄弱')
+    expect(wrapper.text()).toContain('增加数据支撑')
+  })
+
+  it('hides the grade panel for math subjects', async () => {
+    stubFetch({
+      'GET /api/problems/pending': () => ({ total: 1, problems: [draftProblem()] }),
+      'GET /api/syllabus': () => syllabusPayload,
+    })
+
+    const wrapper = mount(ProblemsView)
+    await flushPromises()
+
+    expect(wrapper.find('.grade-panel').exists()).toBe(false)
+  })
+
   it('shows an error when AI extraction fails', async () => {
     stubFetch({
       'GET /api/problems/pending': () => ({ total: 1, problems: [draftProblem()] }),

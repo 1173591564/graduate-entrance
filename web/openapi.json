@@ -284,6 +284,67 @@
         "title": "AvailabilityRuleInput",
         "type": "object"
       },
+      "BatchExtractionItem": {
+        "properties": {
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          },
+          "extraction": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ProblemExtractionResult"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "problem": {
+            "$ref": "#/components/schemas/ProblemRead"
+          }
+        },
+        "required": [
+          "problem",
+          "extraction",
+          "error"
+        ],
+        "title": "BatchExtractionItem",
+        "type": "object"
+      },
+      "BatchExtractionResponse": {
+        "properties": {
+          "extracted": {
+            "title": "Extracted",
+            "type": "integer"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/BatchExtractionItem"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "total",
+          "extracted",
+          "items"
+        ],
+        "title": "BatchExtractionResponse",
+        "type": "object"
+      },
       "Body_submit_problem_api_problems_post": {
         "properties": {
           "content_md": {
@@ -345,6 +406,50 @@
           }
         },
         "title": "Body_submit_problem_api_problems_post",
+        "type": "object"
+      },
+      "Body_submit_problem_batch_api_problems_batch_post": {
+        "properties": {
+          "images": {
+            "items": {
+              "contentMediaType": "application/octet-stream",
+              "type": "string"
+            },
+            "title": "Images",
+            "type": "array"
+          },
+          "kind": {
+            "default": "wrong",
+            "enum": [
+              "wrong",
+              "hard",
+              "good"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "source_ref": {
+            "default": "",
+            "title": "Source Ref",
+            "type": "string"
+          },
+          "subject_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subject Id"
+          }
+        },
+        "required": [
+          "images"
+        ],
+        "title": "Body_submit_problem_batch_api_problems_batch_post",
         "type": "object"
       },
       "CalendarDayRead": {
@@ -937,6 +1042,62 @@
           "content_md"
         ],
         "title": "ExtractedSolution",
+        "type": "object"
+      },
+      "GradeRequest": {
+        "properties": {
+          "answer_md": {
+            "default": "",
+            "title": "Answer Md",
+            "type": "string"
+          }
+        },
+        "title": "GradeRequest",
+        "type": "object"
+      },
+      "GradeResult": {
+        "properties": {
+          "feedback_md": {
+            "title": "Feedback Md",
+            "type": "string"
+          },
+          "graded_at": {
+            "format": "date-time",
+            "title": "Graded At",
+            "type": "string"
+          },
+          "model": {
+            "title": "Model",
+            "type": "string"
+          },
+          "problem_id": {
+            "format": "uuid",
+            "title": "Problem Id",
+            "type": "string"
+          },
+          "score": {
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Score",
+            "type": "number"
+          },
+          "suggestions": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Suggestions",
+            "type": "array"
+          }
+        },
+        "required": [
+          "problem_id",
+          "model",
+          "score",
+          "feedback_md",
+          "suggestions",
+          "graded_at"
+        ],
+        "title": "GradeResult",
         "type": "object"
       },
       "HealthStatus": {
@@ -2082,6 +2243,33 @@
       },
       "ProblemRead": {
         "properties": {
+          "ai_feedback_md": {
+            "title": "Ai Feedback Md",
+            "type": "string"
+          },
+          "ai_graded_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ai Graded At"
+          },
+          "ai_score": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ai Score"
+          },
           "cause": {
             "enum": [
               "",
@@ -2226,6 +2414,9 @@
           "due_date",
           "reps",
           "confirmed_at",
+          "ai_score",
+          "ai_feedback_md",
+          "ai_graded_at",
           "created_at",
           "knowledge_points",
           "solutions"
@@ -5635,6 +5826,72 @@
         ]
       }
     },
+    "/api/problems/batch": {
+      "post": {
+        "operationId": "submit_problem_batch_api_problems_batch_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_submit_problem_batch_api_problems_batch_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BatchExtractionResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Submit Problem Batch",
+        "tags": [
+          "problems"
+        ]
+      }
+    },
     "/api/problems/images/{image_name}": {
       "get": {
         "operationId": "read_problem_image_api_problems_images__image_name__get",
@@ -6062,6 +6319,84 @@
           }
         ],
         "summary": "Extract Problem Endpoint",
+        "tags": [
+          "problems"
+        ]
+      }
+    },
+    "/api/problems/{problem_id}/grade": {
+      "post": {
+        "operationId": "grade_problem_endpoint_api_problems__problem_id__grade_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "problem_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Problem Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GradeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GradeResult"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Grade Problem Endpoint",
         "tags": [
           "problems"
         ]

@@ -7,8 +7,11 @@ import {
   extractProblem,
   fetchPendingProblems,
   fetchProblemImage,
+  gradeProblem,
   submitProblem,
+  submitProblemBatch,
   type ExtractedSolution,
+  type GradeResult,
   type Problem,
   type ProblemCause,
   type ProblemKind,
@@ -75,7 +78,26 @@ const intake = reactive({
 })
 const intakeFiles = ref<File[]>([])
 
+const batch = reactive({
+  subjectId: '',
+  kind: 'wrong' as ProblemKind,
+  sourceRef: '',
+  submitting: false,
+  error: '',
+  summary: '',
+})
+const batchFiles = ref<File[]>([])
+
+const grading = reactive<Record<string, boolean>>({})
+const gradeErrors = reactive<Record<string, string>>({})
+const gradeResults = reactive<Record<string, GradeResult>>({})
+
 const pendingCount = computed(() => pending.value.length)
+
+function isGradable(problem: Problem): boolean {
+  const name = problem.subject_name ?? ''
+  return name.includes('英语') || name.includes('政治')
+}
 
 function ensureForm(problem: Problem): ReviewForm {
   const existing = forms[problem.id]
@@ -180,6 +202,76 @@ async function handleSubmitProblem(): Promise<void> {
     intake.error = '录入失败，请重试'
   } finally {
     intake.submitting = false
+  }
+}
+
+function onBatchFilesChange(event: Event): void {
+  const input = event.target as HTMLInputElement
+  batchFiles.value = Array.from(input.files ?? [])
+}
+
+async function handleSubmitBatch(): Promise<void> {
+  batch.error = ''
+  batch.summary = ''
+  if (batchFiles.value.length === 0) {
+    batch.error = '请先选择题目图片（每张图片会生成一道题）'
+    return
+  }
+  batch.submitting = true
+  try {
+    const result = await submitProblemBatch({
+      subjectId: batch.subjectId || undefined,
+      kind: batch.kind,
+      sourceRef: batch.sourceRef,
+      images: batchFiles.value,
+    })
+    const failed = result.total - result.extracted
+    batch.summary =
+      failed > 0
+        ? `已录入 ${result.total} 题，AI 识别成功 ${result.extracted} 题，${failed} 题需手动补题面`
+        : `已录入 ${result.total} 题，AI 全部识别完成，请在下方审核定稿`
+    batchFiles.value = []
+    batch.sourceRef = ''
+    await loadPending()
+    for (const item of result.items) {
+      if (item.extraction) {
+        const form = forms[item.problem.id]
+        if (form && item.extraction.content_md.trim()) {
+          form.content_md = item.extraction.content_md
+        }
+        if (form && item.extraction.knowledge_points.length) {
+          form.mappings = item.extraction.knowledge_points.map((entry) => ({
+            knowledge_point_id: entry.knowledge_point_id,
+            role: entry.role,
+            weight: entry.weight,
+          }))
+        }
+        if (item.extraction.solution) {
+          aiSolutions[item.problem.id] = item.extraction.solution
+        }
+      }
+    }
+  } catch {
+    batch.error = '批量录入失败，请重试（请确认已配置 AI 服务）'
+  } finally {
+    batch.submitting = false
+  }
+}
+
+async function handleGrade(problem: Problem): Promise<void> {
+  const form = ensureForm(problem)
+  gradeErrors[problem.id] = ''
+  if (!form.my_answer_md.trim()) {
+    gradeErrors[problem.id] = '请先在「我的解答」中填入作答内容'
+    return
+  }
+  grading[problem.id] = true
+  try {
+    gradeResults[problem.id] = await gradeProblem(problem.id, form.my_answer_md)
+  } catch {
+    gradeErrors[problem.id] = 'AI 判卷失败（请确认已配置 AI 服务）'
+  } finally {
+    grading[problem.id] = false
   }
 }
 
@@ -375,6 +467,77 @@ onMounted(() => loadPending())
       </button>
     </form>
 
+    <form
+      class="intake-card batch-card"
+      @submit.prevent="handleSubmitBatch()"
+    >
+      <h2>批量识别（一张图片一道题）</h2>
+      <div class="intake-grid">
+        <label>
+          科目
+          <select v-model="batch.subjectId">
+            <option value="">
+              未指定
+            </option>
+            <option
+              v-for="subject in subjects"
+              :key="subject.id"
+              :value="subject.id"
+            >
+              {{ subject.name }}
+            </option>
+          </select>
+        </label>
+        <label>
+          类型
+          <select v-model="batch.kind">
+            <option
+              v-for="(label, value) in KIND_LABELS"
+              :key="value"
+              :value="value"
+            >
+              {{ label }}
+            </option>
+          </select>
+        </label>
+        <label>
+          来源
+          <input
+            v-model="batch.sourceRef"
+            type="text"
+            placeholder="真题 2021 / 模拟卷 3"
+          >
+        </label>
+        <label>
+          题目图片（可多选，最多 12 张）
+          <input
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            multiple
+            @change="onBatchFilesChange"
+          >
+        </label>
+      </div>
+      <p
+        v-if="batch.error"
+        class="feedback error"
+      >
+        {{ batch.error }}
+      </p>
+      <p
+        v-if="batch.summary"
+        class="feedback success"
+      >
+        {{ batch.summary }}
+      </p>
+      <button
+        type="submit"
+        :disabled="batch.submitting"
+      >
+        {{ batch.submitting ? 'AI 识别中，请稍候…' : '批量录入并识别' }}
+      </button>
+    </form>
+
     <p
       v-if="feedback"
       class="feedback success"
@@ -484,6 +647,47 @@ onMounted(() => loadPending())
               rows="2"
             />
           </label>
+          <div
+            v-if="isGradable(problem)"
+            class="grade-panel"
+          >
+            <div class="mapping-heading">
+              <h3>AI 判卷（主观题）</h3>
+              <button
+                type="button"
+                class="ai-button"
+                :disabled="grading[problem.id]"
+                @click="handleGrade(problem)"
+              >
+                {{ grading[problem.id] ? 'AI 判卷中…' : 'AI 判卷' }}
+              </button>
+            </div>
+            <p
+              v-if="gradeErrors[problem.id]"
+              class="feedback error"
+            >
+              {{ gradeErrors[problem.id] }}
+            </p>
+            <div
+              v-if="gradeResults[problem.id]"
+              class="grade-result"
+            >
+              <p class="grade-score">
+                得分 {{ gradeResults[problem.id].score }} / 100
+              </p>
+              <p class="grade-feedback">
+                {{ gradeResults[problem.id].feedback_md }}
+              </p>
+              <ul v-if="gradeResults[problem.id].suggestions.length">
+                <li
+                  v-for="(suggestion, index) in gradeResults[problem.id].suggestions"
+                  :key="index"
+                >
+                  {{ suggestion }}
+                </li>
+              </ul>
+            </div>
+          </div>
           <label>
             备注
             <textarea
@@ -752,6 +956,41 @@ onMounted(() => loadPending())
 .ai-button:disabled {
   opacity: 0.6;
   cursor: wait;
+}
+
+.batch-card {
+  border-color: #d9ccff;
+}
+
+.grade-panel {
+  display: grid;
+  gap: 8px;
+  padding: 14px;
+  border: 1px dashed #d9ccff;
+  border-radius: 14px;
+  background: #fbfaff;
+}
+
+.grade-result {
+  display: grid;
+  gap: 6px;
+}
+
+.grade-score {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 800;
+  color: #5f3dc4;
+}
+
+.grade-feedback {
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+.grade-result ul {
+  margin: 0;
+  padding-left: 20px;
 }
 
 .ai-solution {

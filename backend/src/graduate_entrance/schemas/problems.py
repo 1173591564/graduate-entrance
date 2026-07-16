@@ -55,6 +55,9 @@ class ProblemRead(BaseModel):
     due_date: date | None
     reps: int
     confirmed_at: datetime | None
+    ai_score: float | None
+    ai_feedback_md: str
+    ai_graded_at: datetime | None
     created_at: datetime
     knowledge_points: list[ProblemKnowledgePointRead]
     solutions: list[SolutionRead]
@@ -107,6 +110,31 @@ class ProblemExtractionResult(BaseModel):
     content_md: str
     knowledge_points: list[ExtractedKnowledgePoint]
     solution: ExtractedSolution | None
+
+
+class BatchExtractionItem(BaseModel):
+    problem: ProblemRead
+    extraction: ProblemExtractionResult | None
+    error: str | None
+
+
+class BatchExtractionResponse(BaseModel):
+    total: int
+    extracted: int
+    items: list[BatchExtractionItem]
+
+
+class GradeRequest(BaseModel):
+    answer_md: str = ""
+
+
+class GradeResult(BaseModel):
+    problem_id: UUID
+    model: str
+    score: float = Field(ge=0, le=100)
+    feedback_md: str
+    suggestions: list[str]
+    graded_at: datetime
 
 
 class KnowledgePointInsight(BaseModel):
