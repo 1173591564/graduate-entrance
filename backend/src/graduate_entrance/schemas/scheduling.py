@@ -169,3 +169,26 @@ class WeeklyStatsResponse(BaseModel):
     total_planned_minutes: int
     total_completed_minutes: int
     overall_execution_rate: float
+
+
+class AiDailyFocus(BaseModel):
+    date: date
+    focus: str
+
+
+class AiWeekAdvice(BaseModel):
+    week_start: date
+    summary: str
+    daily_focus: list[AiDailyFocus]
+    review_suggestions: list[str]
+    model: str
+    created_at: datetime
+
+
+class AiWeekPlanRequest(BaseModel):
+    start_date: date | None = None
+
+
+class AiWeekPlanResponse(BaseModel):
+    plan: PlanResponse
+    advice: AiWeekAdvice

@@ -4,6 +4,7 @@ from datetime import UTC, date, datetime
 from uuid import UUID
 
 from sqlalchemy import (
+    JSON,
     CheckConstraint,
     Date,
     DateTime,
@@ -116,6 +117,24 @@ class ScheduledTask(Base):
     done_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     carry_count: Mapped[int] = mapped_column(default=0)
     order: Mapped[int] = mapped_column(default=0)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=utc_now,
+        onupdate=utc_now,
+    )
+
+
+class AiWeekPlan(Base):
+    __tablename__ = "ai_week_plans"
+    __table_args__ = (UniqueConstraint("week_start", name="uq_ai_week_plans_week_start"),)
+
+    id: Mapped[UUID] = mapped_column(primary_key=True)
+    week_start: Mapped[date] = mapped_column(Date, index=True)
+    summary: Mapped[str] = mapped_column(Text)
+    daily_focus: Mapped[list[dict[str, str]]] = mapped_column(JSON, default=list)
+    review_suggestions: Mapped[list[str]] = mapped_column(JSON, default=list)
+    model: Mapped[str] = mapped_column(String(120))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
