@@ -9,6 +9,10 @@ val apiToken = providers.gradleProperty("API_TOKEN")
     .orElse("local-development-only")
     .get()
 
+val apiBaseUrl = providers.gradleProperty("API_BASE_URL")
+    .orElse("http://10.0.2.2:8000/")
+    .get()
+
 android {
     namespace = "com.graduateentrance.app"
     compileSdk = 35
@@ -21,7 +25,7 @@ android {
         versionName = "0.1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        buildConfigField("String", "API_BASE_URL", "\"http://10.0.2.2:8000/\"")
+        buildConfigField("String", "API_BASE_URL", "\"$apiBaseUrl\"")
         buildConfigField("String", "API_TOKEN", "\"$apiToken\"")
     }
 
