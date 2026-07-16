@@ -85,4 +85,63 @@ describe('TodayView', () => {
     expect(wrapper.text()).toContain('已完成 55 分钟')
     expect(wrapper.text()).toContain('极限 · 章节学习 已打卡')
   })
+
+  it('reschedules overdue tasks and marks leave days', async () => {
+    const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      if (String(input) === '/api/plan/reschedule' && init?.method === 'POST') {
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({
+            start_date: '2026-07-20',
+            end_date: '2026-11-30',
+            carried_over: 3,
+            warnings: [],
+          }),
+        }
+      }
+      return {
+        ok: true,
+        status: 200,
+        json: async () => ({
+          date: '2026-07-20',
+          planned_minutes: 60,
+          completed_minutes: 0,
+          remaining_minutes: 60,
+          tasks: [plannedTask],
+        }),
+      }
+    })
+    vi.stubGlobal('fetch', fetchMock)
+
+    const wrapper = mount(TodayView)
+    await flushPromises()
+
+    await wrapper.get('.reschedule-button').trigger('click')
+    await flushPromises()
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/plan/reschedule',
+      expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify({ start_date: '2026-07-20', leave_dates: [] }),
+      }),
+    )
+    expect(wrapper.text()).toContain('已从 2026-07-20 重排至 2026-11-30，顺延 3 项任务')
+
+    await wrapper.get('.leave-button').trigger('click')
+    await flushPromises()
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/plan/reschedule',
+      expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify({
+          start_date: '2026-07-20',
+          leave_dates: ['2026-07-20'],
+        }),
+      }),
+    )
+    expect(wrapper.text()).toContain('2026-07-20 已请假，顺延 3 项任务并重排至 2026-11-30')
+  })
 })

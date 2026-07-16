@@ -4,6 +4,7 @@ import { computed, onMounted, reactive, ref } from 'vue'
 import {
   completeTodayTask,
   fetchToday,
+  reschedulePlan,
   type TodaySummary,
   type TodayTask,
 } from '../services/daily'
@@ -13,6 +14,7 @@ const selectedDate = ref('')
 const actualMinutes = reactive<Record<string, number>>({})
 const loading = ref(true)
 const busyTaskId = ref('')
+const rescheduling = ref(false)
 const error = ref('')
 const notice = ref('')
 
@@ -74,6 +76,29 @@ async function complete(task: TodayTask): Promise<void> {
   }
 }
 
+async function reschedule(leave: boolean): Promise<void> {
+  if (!selectedDate.value) {
+    return
+  }
+  rescheduling.value = true
+  error.value = ''
+  notice.value = ''
+  try {
+    const result = await reschedulePlan({
+      startDate: selectedDate.value,
+      leaveDates: leave ? [selectedDate.value] : [],
+    })
+    await loadToday(selectedDate.value)
+    notice.value = leave
+      ? `${result.start_date} 已请假，顺延 ${result.carried_over} 项任务并重排至 ${result.end_date}`
+      : `已从 ${result.start_date} 重排至 ${result.end_date}，顺延 ${result.carried_over} 项任务`
+  } catch {
+    error.value = '重排失败，请稍后重试'
+  } finally {
+    rescheduling.value = false
+  }
+}
+
 onMounted(() => loadToday())
 </script>
 
@@ -103,6 +128,25 @@ onMounted(() => loadToday())
         </button>
       </form>
     </header>
+
+    <div class="plan-actions">
+      <button
+        class="reschedule-button"
+        type="button"
+        :disabled="rescheduling"
+        @click="reschedule(false)"
+      >
+        {{ rescheduling ? '重排中…' : '一键从当前日期重排' }}
+      </button>
+      <button
+        class="leave-button"
+        type="button"
+        :disabled="rescheduling"
+        @click="reschedule(true)"
+      >
+        请假并重排
+      </button>
+    </div>
 
     <p
       v-if="error"
@@ -268,6 +312,34 @@ onMounted(() => loadToday())
   background: #2764e7;
   cursor: pointer;
   font-weight: 800;
+}
+
+.plan-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.reschedule-button,
+.leave-button {
+  padding: 10px 16px;
+  border: 1px solid #2764e7;
+  border-radius: 10px;
+  color: #2764e7;
+  background: white;
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.leave-button {
+  border-color: #b7791f;
+  color: #b7791f;
+}
+
+.reschedule-button:disabled,
+.leave-button:disabled {
+  opacity: 0.6;
+  cursor: wait;
 }
 
 .summary-grid {

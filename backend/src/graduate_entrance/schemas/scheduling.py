@@ -54,6 +54,22 @@ class PlanGenerationRequest(BaseModel):
         return self
 
 
+class PlanRescheduleRequest(BaseModel):
+    start_date: date | None = None
+    end_date: date | None = None
+    leave_dates: list[date] = Field(default_factory=list, max_length=62)
+
+    @model_validator(mode="after")
+    def validate_date_range(self) -> "PlanRescheduleRequest":
+        if (
+            self.start_date is not None
+            and self.end_date is not None
+            and self.start_date > self.end_date
+        ):
+            raise ValueError("start_date must not be after end_date")
+        return self
+
+
 class PlanTaskRead(BaseModel):
     id: UUID
     pool_item_id: UUID | None
@@ -100,6 +116,7 @@ class PlanResponse(BaseModel):
     days: list[PlanDaySummary]
     subjects: list[PlanSubjectSummary]
     warnings: list[str]
+    carried_over: int = 0
 
 
 class CalendarDayRead(BaseModel):

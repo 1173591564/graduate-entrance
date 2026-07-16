@@ -896,8 +896,52 @@
         "title": "PlanPhaseRead",
         "type": "object"
       },
+      "PlanRescheduleRequest": {
+        "properties": {
+          "end_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "End Date"
+          },
+          "leave_dates": {
+            "items": {
+              "format": "date",
+              "type": "string"
+            },
+            "maxItems": 62,
+            "title": "Leave Dates",
+            "type": "array"
+          },
+          "start_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Start Date"
+          }
+        },
+        "title": "PlanRescheduleRequest",
+        "type": "object"
+      },
       "PlanResponse": {
         "properties": {
+          "carried_over": {
+            "default": 0,
+            "title": "Carried Over",
+            "type": "integer"
+          },
           "days": {
             "items": {
               "$ref": "#/components/schemas/PlanDaySummary"
@@ -2218,6 +2262,72 @@
           }
         ],
         "summary": "Preview Generated Plan",
+        "tags": [
+          "plan"
+        ]
+      }
+    },
+    "/api/plan/reschedule": {
+      "post": {
+        "operationId": "reschedule_generated_plan_api_plan_reschedule_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlanRescheduleRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Reschedule Generated Plan",
         "tags": [
           "plan"
         ]

@@ -4,8 +4,12 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from graduate_entrance.db.session import get_session
-from graduate_entrance.scheduling.service import persist_plan, preview_plan
-from graduate_entrance.schemas.scheduling import PlanGenerationRequest, PlanResponse
+from graduate_entrance.scheduling.service import persist_plan, preview_plan, reschedule_plan
+from graduate_entrance.schemas.scheduling import (
+    PlanGenerationRequest,
+    PlanRescheduleRequest,
+    PlanResponse,
+)
 
 router = APIRouter(prefix="/plan", tags=["plan"])
 Session = Annotated[AsyncSession, Depends(get_session)]
@@ -25,3 +29,11 @@ async def generate_plan(
     session: Session,
 ) -> PlanResponse:
     return await persist_plan(session, payload)
+
+
+@router.post("/reschedule", response_model=PlanResponse)
+async def reschedule_generated_plan(
+    payload: PlanRescheduleRequest,
+    session: Session,
+) -> PlanResponse:
+    return await reschedule_plan(session, payload)
