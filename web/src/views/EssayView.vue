@@ -291,41 +291,63 @@ onMounted(load)
     </form>
 
     <section class="filters">
-      <select
-        v-model="filterCategory"
-        @change="load"
-      >
-        <option value="">
-          全部分类
-        </option>
-        <option
+      <div class="category-pills">
+        <button
+          type="button"
+          class="pill"
+          :class="{ active: filterCategory === '' }"
+          @click="filterCategory = ''; load()"
+        >
+          全部
+        </button>
+        <button
           v-for="(label, value) in CATEGORY_LABELS"
           :key="value"
-          :value="value"
+          type="button"
+          class="pill"
+          :class="{ active: filterCategory === value }"
+          @click="filterCategory = value; load()"
         >
           {{ label }}
-        </option>
-      </select>
-      <input
-        v-model="searchInput"
-        type="search"
-        placeholder="搜索标题 / 内容 / 翻译"
-        @keyup.enter="load"
-      >
-      <button
-        type="button"
-        @click="load"
-      >
-        搜索
-      </button>
+        </button>
+      </div>
+      <div class="search-box">
+        <input
+          v-model="searchInput"
+          type="search"
+          placeholder="搜索标题 / 内容 / 翻译"
+          @keyup.enter="load"
+        >
+        <button
+          type="button"
+          @click="load"
+        >
+          搜索
+        </button>
+      </div>
     </section>
 
-    <p v-if="loading">
+    <p
+      v-if="loading"
+      class="empty-state"
+    >
       加载中…
     </p>
-    <p v-else-if="materials.length === 0">
-      暂无素材，点「新增素材」开始积累。
-    </p>
+    <div
+      v-else-if="materials.length === 0"
+      class="empty-state"
+    >
+      <span class="empty-icon">✍️</span>
+      <strong>还没有素材</strong>
+      <p>把背过的金句、模板、短语存进来，系统会按间隔计划提醒你背诵。</p>
+      <button
+        type="button"
+        class="primary"
+        @click="openCreate"
+      >
+        新增第一条素材
+      </button>
+    </div>
     <section
       v-else
       class="material-list"
@@ -384,6 +406,9 @@ onMounted(load)
   display: flex;
   flex-direction: column;
   gap: 20px;
+  max-width: 920px;
+  margin: 0 auto;
+  width: 100%;
 }
 
 .page-header {
@@ -544,19 +569,95 @@ onMounted(load)
 
 .filters {
   display: flex;
-  gap: 10px;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid #e4e7ec;
+  border-radius: 14px;
+  background: #fff;
+}
+
+.category-pills {
+  display: flex;
+  gap: 8px;
   flex-wrap: wrap;
 }
 
-.filters input[type='search'] {
+.pill {
+  padding: 6px 14px;
+  border: 1px solid #e4e7ec;
+  border-radius: 999px;
+  background: #fff;
+  color: #526077;
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.pill.active {
+  border-color: #2764e7;
+  background: #edf4ff;
+  color: #174cb7;
+}
+
+.search-box {
+  display: flex;
+  gap: 10px;
+}
+
+.search-box input[type='search'] {
   flex: 1;
   min-width: 200px;
+  border: 1px solid #d0d5dd;
+  border-radius: 10px;
+  padding: 9px 12px;
+  font: inherit;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 56px 24px;
+  border: 1px dashed #d0d5dd;
+  border-radius: 16px;
+  background: #fff;
+  color: #667085;
+  text-align: center;
+}
+
+.empty-icon {
+  font-size: 34px;
+}
+
+.empty-state strong {
+  color: #16213a;
+  font-size: 1.05rem;
+}
+
+.empty-state p {
+  margin: 0;
+  max-width: 380px;
+}
+
+.empty-state button {
+  margin-top: 8px;
 }
 
 .material-list {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
   gap: 12px;
+}
+
+.material-list .material-card {
+  height: 100%;
+}
+
+@media (max-width: 720px) {
+  .material-list {
+    grid-template-columns: 1fr;
+  }
 }
 
 button {
