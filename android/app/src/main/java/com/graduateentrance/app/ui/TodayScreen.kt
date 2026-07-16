@@ -1,5 +1,9 @@
 package com.graduateentrance.app.ui
 
+import android.Manifest
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -13,13 +17,16 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -27,13 +34,46 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.graduateentrance.app.data.local.TodayTaskEntity
+import com.graduateentrance.app.timer.PomodoroPhase
+import com.graduateentrance.app.timer.PomodoroService
+import com.graduateentrance.app.timer.PomodoroState
+import com.graduateentrance.app.timer.PomodoroTimer
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TodayScreen(viewModel: TodayViewModel) {
     val state by viewModel.uiState.collectAsState()
+    val pomodoro by PomodoroTimer.state.collectAsState()
+    val context = LocalContext.current
+    var pendingStart by rememberSaveable { mutableStateOf<String?>(null) }
+    val permissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission(),
+    ) { _ ->
+        pendingStart?.let { taskId ->
+            state.tasks.firstOrNull { it.id == taskId }?.let { task ->
+                PomodoroService.start(context, task.id, task.title, pomodoroMinutes(task.estMinutes))
+            }
+        }
+        pendingStart = null
+    }
+
+    fun startPomodoro(task: TodayTaskEntity) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            pendingStart = task.id
+            permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+        } else {
+            PomodoroService.start(context, task.id, task.title, pomodoroMinutes(task.estMinutes))
+        }
+    }
+
+    LaunchedEffect(pomodoro.phase) {
+        if (pomodoro.phase == PomodoroPhase.FINISHED) {
+            viewModel.refresh()
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -81,6 +121,20 @@ fun TodayScreen(viewModel: TodayViewModel) {
                     NoticeCard(notice)
                 }
             }
+            if (pomodoro.phase != PomodoroPhase.IDLE) {
+                item {
+                    PomodoroCard(
+                        state = pomodoro,
+                        onPause = { PomodoroService.pause(context) },
+                        onResume = { PomodoroService.resume(context) },
+                        onStop = { PomodoroService.stop(context) },
+                        onDismiss = {
+                            PomodoroTimer.clear()
+                            viewModel.refresh()
+                        },
+                    )
+                }
+            }
             item {
                 SummaryRow(
                     planned = state.plannedMinutes,
@@ -98,9 +152,12 @@ fun TodayScreen(viewModel: TodayViewModel) {
                 }
             }
             items(state.tasks, key = { it.id }) { task ->
-                TaskCard(task = task, onCheckIn = { minutes ->
-                    viewModel.checkIn(task.id, minutes)
-                })
+                TaskCard(
+                    task = task,
+                    pomodoroEnabled = !pomodoro.active,
+                    onCheckIn = { minutes -> viewModel.checkIn(task.id, minutes) },
+                    onStartPomodoro = { startPomodoro(task) },
+                )
             }
         }
     }
@@ -144,8 +201,82 @@ private fun SummaryCell(label: String, minutes: Int, modifier: Modifier = Modifi
     }
 }
 
+private fun pomodoroMinutes(estMinutes: Int): Int =
+    if (estMinutes in 1 until PomodoroService.DEFAULT_MINUTES) {
+        estMinutes
+    } else {
+        PomodoroService.DEFAULT_MINUTES
+    }
+
 @Composable
-private fun TaskCard(task: TodayTaskEntity, onCheckIn: (Int) -> Unit) {
+private fun PomodoroCard(
+    state: PomodoroState,
+    onPause: () -> Unit,
+    onResume: () -> Unit,
+    onStop: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.primaryContainer,
+        ),
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            if (state.phase == PomodoroPhase.FINISHED) {
+                Text("番茄钟完成", style = MaterialTheme.typography.titleMedium)
+                Text(
+                    text = state.notice ?: "专注 ${state.elapsedMinutes} 分钟",
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+                Button(onClick = onDismiss) {
+                    Text("知道了")
+                }
+            } else {
+                val minutes = state.remainingSeconds / 60
+                val seconds = state.remainingSeconds % 60
+                Text(
+                    text = if (state.phase == PomodoroPhase.PAUSED) "番茄钟已暂停" else "番茄钟专注中",
+                    style = MaterialTheme.typography.titleMedium,
+                )
+                Text(state.taskTitle, style = MaterialTheme.typography.bodyMedium)
+                Text(
+                    text = "%02d:%02d".format(minutes, seconds),
+                    style = MaterialTheme.typography.displaySmall,
+                )
+                LinearProgressIndicator(
+                    progress = {
+                        if (state.totalSeconds == 0) {
+                            0f
+                        } else {
+                            state.elapsedSeconds.toFloat() / state.totalSeconds
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    if (state.phase == PomodoroPhase.PAUSED) {
+                        Button(onClick = onResume) { Text("继续") }
+                    } else {
+                        Button(onClick = onPause) { Text("暂停") }
+                    }
+                    OutlinedButton(onClick = onStop) { Text("放弃") }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun TaskCard(
+    task: TodayTaskEntity,
+    pomodoroEnabled: Boolean,
+    onCheckIn: (Int) -> Unit,
+    onStartPomodoro: () -> Unit,
+) {
     var minutesInput by rememberSaveable(task.id) { mutableStateOf(task.estMinutes.toString()) }
     val completed = task.status == "completed"
 
@@ -217,6 +348,12 @@ private fun TaskCard(task: TodayTaskEntity, onCheckIn: (Int) -> Unit) {
                     ) {
                         Text("完成打卡")
                     }
+                }
+                OutlinedButton(
+                    onClick = onStartPomodoro,
+                    enabled = pomodoroEnabled,
+                ) {
+                    Text("番茄钟 ${pomodoroMinutes(task.estMinutes)} 分钟")
                 }
             }
         }
