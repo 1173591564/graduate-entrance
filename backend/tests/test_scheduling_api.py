@@ -315,3 +315,63 @@ async def test_persisted_plan_calendar_and_replan_preserve_completed_tasks(
     assert len(completed_tasks) == 1
     assert completed_tasks[0]["status"] == "completed"
     assert completed_tasks[0]["actual_minutes"] == 55
+
+
+@pytest.mark.asyncio
+async def test_today_and_check_in_are_idempotent(
+    scheduling_context: SchedulingContext,
+) -> None:
+    await scheduling_context.client.post("/api/planning/task-pool/generate")
+    request = {"start_date": "2026-07-20", "end_date": "2026-07-26"}
+    await scheduling_context.client.post("/api/plan/generate", json=request)
+
+    today = await scheduling_context.client.get(
+        "/api/today",
+        params={"date": "2026-07-20"},
+    )
+    assert today.status_code == 200
+    before = today.json()
+    assert before["date"] == "2026-07-20"
+    assert before["planned_minutes"] == 120
+    assert before["completed_minutes"] == 0
+    assert before["remaining_minutes"] == 120
+    assert len(before["tasks"]) == 2
+
+    task_id = before["tasks"][0]["id"]
+    first = await scheduling_context.client.post(
+        f"/api/tasks/{task_id}/done",
+        json={"actual_minutes": 55},
+    )
+    second = await scheduling_context.client.post(
+        f"/api/tasks/{task_id}/done",
+        json={"actual_minutes": 55},
+    )
+    assert first.status_code == 200
+    assert second.status_code == 200
+    assert first.json() == second.json()
+    assert first.json()["status"] == "completed"
+    assert first.json()["actual_minutes"] == 55
+    assert first.json()["done_at"] is not None
+
+    updated = await scheduling_context.client.get(
+        "/api/today",
+        params={"date": "2026-07-20"},
+    )
+    assert updated.status_code == 200
+    after = updated.json()
+    assert after["planned_minutes"] == 120
+    assert after["completed_minutes"] == 55
+    assert after["remaining_minutes"] == 60
+
+
+@pytest.mark.asyncio
+async def test_check_in_rejects_unknown_task(
+    scheduling_context: SchedulingContext,
+) -> None:
+    response = await scheduling_context.client.post(
+        f"/api/tasks/{uuid4()}/done",
+        json={"actual_minutes": 30},
+    )
+
+    assert response.status_code == 404
+    assert response.json()["error"]["message"] == "Scheduled task not found"

@@ -12,6 +12,9 @@
         </span>
       </RouterLink>
       <nav class="app-nav">
+        <RouterLink to="/today">
+          今日任务
+        </RouterLink>
         <RouterLink to="/syllabus">
           考纲
         </RouterLink>
@@ -19,7 +22,7 @@
           规划配置
         </RouterLink>
       </nav>
-      <span class="environment-label">P0-B</span>
+      <span class="environment-label">P0-D</span>
     </header>
     <main>
       <RouterView />

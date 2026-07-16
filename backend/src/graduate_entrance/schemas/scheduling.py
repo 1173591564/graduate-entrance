@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime
 from typing import Literal
 from uuid import UUID
 
@@ -71,6 +71,7 @@ class PlanTaskRead(BaseModel):
     est_minutes: int
     status: TaskStatus
     actual_minutes: int | None = None
+    done_at: datetime | None = None
     carry_count: int = 0
     order: int
 
@@ -119,3 +120,15 @@ class CalendarResponse(BaseModel):
     month: str
     days: list[CalendarDayRead]
     weeks: list[CalendarWeekRead]
+
+
+class TodayResponse(BaseModel):
+    date: date
+    planned_minutes: int
+    completed_minutes: int
+    remaining_minutes: int
+    tasks: list[PlanTaskRead]
+
+
+class TaskCompletionRequest(BaseModel):
+    actual_minutes: int = Field(ge=0, le=1440)

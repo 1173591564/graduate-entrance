@@ -1013,6 +1013,18 @@
             "title": "Carry Count",
             "type": "integer"
           },
+          "done_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Done At"
+          },
           "est_minutes": {
             "title": "Est Minutes",
             "type": "integer"
@@ -1428,6 +1440,21 @@
         "title": "SyllabusVersionRead",
         "type": "object"
       },
+      "TaskCompletionRequest": {
+        "properties": {
+          "actual_minutes": {
+            "maximum": 1440.0,
+            "minimum": 0.0,
+            "title": "Actual Minutes",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "actual_minutes"
+        ],
+        "title": "TaskCompletionRequest",
+        "type": "object"
+      },
       "TaskPoolGenerationResponse": {
         "properties": {
           "created": {
@@ -1762,6 +1789,43 @@
           "id"
         ],
         "title": "TaskTemplateRead",
+        "type": "object"
+      },
+      "TodayResponse": {
+        "properties": {
+          "completed_minutes": {
+            "title": "Completed Minutes",
+            "type": "integer"
+          },
+          "date": {
+            "format": "date",
+            "title": "Date",
+            "type": "string"
+          },
+          "planned_minutes": {
+            "title": "Planned Minutes",
+            "type": "integer"
+          },
+          "remaining_minutes": {
+            "title": "Remaining Minutes",
+            "type": "integer"
+          },
+          "tasks": {
+            "items": {
+              "$ref": "#/components/schemas/PlanTaskRead"
+            },
+            "title": "Tasks",
+            "type": "array"
+          }
+        },
+        "required": [
+          "date",
+          "planned_minutes",
+          "completed_minutes",
+          "remaining_minutes",
+          "tasks"
+        ],
+        "title": "TodayResponse",
         "type": "object"
       },
       "ValidationIssue": {
@@ -3454,6 +3518,159 @@
         "summary": "Read Syllabus",
         "tags": [
           "syllabus"
+        ]
+      }
+    },
+    "/api/tasks/{task_id}/done": {
+      "post": {
+        "operationId": "mark_task_done_api_tasks__task_id__done_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "task_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Task Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TaskCompletionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanTaskRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Mark Task Done",
+        "tags": [
+          "daily"
+        ]
+      }
+    },
+    "/api/today": {
+      "get": {
+        "operationId": "read_today_api_today_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "date",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Date"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TodayResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Read Today",
+        "tags": [
+          "daily"
         ]
       }
     }

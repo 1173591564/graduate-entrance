@@ -1,11 +1,12 @@
 from collections import defaultdict
 from collections.abc import Sequence
 from dataclasses import dataclass
-from datetime import date, timedelta
+from datetime import UTC, date, datetime, timedelta
 from fractions import Fraction
 from heapq import heappop, heappush
 from uuid import NAMESPACE_URL, UUID, uuid5
 
+from fastapi import HTTPException, status
 from sqlalchemy import and_, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -39,6 +40,7 @@ from graduate_entrance.schemas.scheduling import (
     TaskPoolGenerationResponse,
     TaskPoolItemRead,
     TaskPoolPage,
+    TodayResponse,
 )
 
 
@@ -414,6 +416,7 @@ def _task_read(task: ScheduledTask) -> PlanTaskRead:
         est_minutes=task.est_minutes,
         status=task.status,
         actual_minutes=task.actual_minutes,
+        done_at=task.done_at,
         carry_count=task.carry_count,
         order=task.order,
     )
@@ -859,3 +862,49 @@ async def get_calendar(
         for week, (planned, completed) in sorted(week_totals.items())
     ]
     return CalendarResponse(month=month, days=days, weeks=weeks)
+
+
+async def get_today(session: AsyncSession, target_date: date) -> TodayResponse:
+    tasks = (
+        await session.scalars(
+            select(ScheduledTask)
+            .where(ScheduledTask.planned_date == target_date)
+            .order_by(ScheduledTask.order, ScheduledTask.id)
+        )
+    ).all()
+    planned_minutes = sum(task.est_minutes for task in tasks if task.status != "skipped")
+    completed_minutes = sum(
+        task.actual_minutes if task.actual_minutes is not None else task.est_minutes
+        for task in tasks
+        if task.status == "completed"
+    )
+    remaining_minutes = sum(
+        task.est_minutes for task in tasks if task.status == "planned"
+    )
+    return TodayResponse(
+        date=target_date,
+        planned_minutes=planned_minutes,
+        completed_minutes=completed_minutes,
+        remaining_minutes=remaining_minutes,
+        tasks=[_task_read(task) for task in tasks],
+    )
+
+
+async def complete_task(
+    session: AsyncSession,
+    task_id: UUID,
+    actual_minutes: int,
+) -> PlanTaskRead:
+    task = await session.get(ScheduledTask, task_id)
+    if task is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Scheduled task not found",
+        )
+    if task.status != "completed":
+        task.done_at = datetime.now(UTC)
+    task.status = "completed"
+    task.actual_minutes = actual_minutes
+    await session.commit()
+    await session.refresh(task)
+    return _task_read(task)
