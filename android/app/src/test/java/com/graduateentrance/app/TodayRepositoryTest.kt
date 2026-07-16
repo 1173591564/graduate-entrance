@@ -5,7 +5,10 @@ import com.graduateentrance.app.data.TodayRepository
 import com.graduateentrance.app.data.local.PendingCheckInEntity
 import com.graduateentrance.app.data.local.TodayDao
 import com.graduateentrance.app.data.local.TodayTaskEntity
+import com.graduateentrance.app.network.DueReviewsDto
 import com.graduateentrance.app.network.GraduateEntranceApi
+import com.graduateentrance.app.network.ReviewRequest
+import com.graduateentrance.app.network.ReviewResultDto
 import com.graduateentrance.app.network.ServiceStatus
 import com.graduateentrance.app.network.TaskCompletionRequest
 import com.graduateentrance.app.network.TodayDto
@@ -90,6 +93,12 @@ private class FakeApi : GraduateEntranceApi {
             order = 0,
         )
     }
+
+    override suspend fun dueReviews(includeDrafts: Boolean, limit: Int): DueReviewsDto =
+        DueReviewsDto(0, "2026-08-05", emptyList())
+
+    override suspend fun reviewProblem(problemId: String, payload: ReviewRequest): ReviewResultDto =
+        ReviewResultDto(payload.grade, 2.5, 1, 1, "2026-08-06")
 }
 
 private fun dto(id: String, status: String = "planned", est: Int = 60, order: Int = 0) = TodayTaskDto(
