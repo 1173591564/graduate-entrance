@@ -1,6 +1,6 @@
 from collections import defaultdict
 from collections.abc import Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import UTC, date, datetime, timedelta
 from fractions import Fraction
 from heapq import heappop, heappush
@@ -34,6 +34,7 @@ from graduate_entrance.schemas.scheduling import (
     CalendarWeekRead,
     PlanDaySummary,
     PlanGenerationRequest,
+    PlanRescheduleRequest,
     PlanResponse,
     PlanSubjectSummary,
     PlanTaskRead,
@@ -75,6 +76,7 @@ class _Candidate:
     task_type: str
     est_minutes: int
     priority: int
+    carry_count: int = 0
 
 
 def _pool_item_id(phase_id: UUID, template_id: UUID, point_id: UUID) -> UUID:
@@ -439,6 +441,7 @@ def _proposal_read(candidate: _Candidate, planned_date: date, order: int) -> Pla
         planned_date=planned_date,
         est_minutes=candidate.est_minutes,
         status="planned",
+        carry_count=candidate.carry_count,
         order=order,
     )
 
@@ -457,6 +460,7 @@ def _date_range(start_date: date, end_date: date) -> list[date]:
 async def _build_plan(
     session: AsyncSession,
     payload: PlanGenerationRequest,
+    include_overdue: bool = False,
 ) -> PlanResponse:
     phases = (
         await session.scalars(
@@ -535,20 +539,43 @@ async def _build_plan(
         )
     )
     existing_tasks = (await session.scalars(existing_query)).all()
+
+    def _reschedulable(task: ScheduledTask) -> bool:
+        if task.status != "planned":
+            return False
+        if payload.start_date <= task.planned_date <= payload.end_date:
+            return True
+        return include_overdue and task.planned_date < payload.start_date
+
     reserved_pool_ids = {
         task.pool_item_id
         for task in existing_tasks
-        if task.pool_item_id is not None
-        and not (
-            task.status == "planned"
-            and payload.start_date <= task.planned_date <= payload.end_date
+        if task.pool_item_id is not None and not _reschedulable(task)
+    }
+    carry_by_pool = {
+        task.pool_item_id: (
+            task.carry_count + 1
+            if task.planned_date < payload.start_date
+            else task.carry_count
         )
+        for task in existing_tasks
+        if task.pool_item_id is not None and _reschedulable(task)
     }
     candidates = [
         candidate
+        if candidate.carry_count == carry_by_pool.get(candidate.pool_item_id, 0)
+        else replace(candidate, carry_count=carry_by_pool[candidate.pool_item_id])
         for candidate in candidates
         if candidate.pool_item_id not in reserved_pool_ids
     ]
+    candidate_pool_ids = {candidate.pool_item_id for candidate in candidates}
+    carried_over = sum(
+        1
+        for task in existing_tasks
+        if task.pool_item_id in candidate_pool_ids
+        and task.status == "planned"
+        and task.planned_date < payload.start_date
+    )
     fixed_tasks = [
         task
         for task in existing_tasks
@@ -729,6 +756,7 @@ async def _build_plan(
         days=days,
         subjects=subjects,
         warnings=warnings,
+        carried_over=carried_over,
     )
 
 
@@ -742,18 +770,24 @@ async def preview_plan(
 async def persist_plan(
     session: AsyncSession,
     payload: PlanGenerationRequest,
+    include_overdue: bool = False,
 ) -> PlanResponse:
-    plan = await _build_plan(session, payload)
+    plan = await _build_plan(session, payload, include_overdue=include_overdue)
     planned_tasks = [task for task in plan.tasks if task.status == "planned"]
     planned_pool_ids = {
         task.pool_item_id for task in planned_tasks if task.pool_item_id is not None
     }
+    date_filter = and_(
+        ScheduledTask.planned_date >= payload.start_date,
+        ScheduledTask.planned_date <= payload.end_date,
+    )
     existing = (
         await session.scalars(
             select(ScheduledTask).where(
                 ScheduledTask.status == "planned",
-                ScheduledTask.planned_date >= payload.start_date,
-                ScheduledTask.planned_date <= payload.end_date,
+                or_(date_filter, ScheduledTask.planned_date < payload.start_date)
+                if include_overdue
+                else date_filter,
             )
         )
     ).all()
@@ -761,7 +795,10 @@ async def persist_plan(
         task.pool_item_id: task for task in existing if task.pool_item_id is not None
     }
     for existing_task in existing:
-        if existing_task.pool_item_id not in planned_pool_ids:
+        if (
+            existing_task.pool_item_id not in planned_pool_ids
+            and existing_task.planned_date >= payload.start_date
+        ):
             await session.delete(existing_task)
     for proposal in planned_tasks:
         if proposal.pool_item_id is None:
@@ -803,9 +840,57 @@ async def persist_plan(
         scheduled_task.task_type = proposal.task_type
         scheduled_task.planned_date = proposal.planned_date
         scheduled_task.est_minutes = proposal.est_minutes
+        scheduled_task.carry_count = proposal.carry_count
         scheduled_task.order = proposal.order
     await session.commit()
     return plan.model_copy(update={"persisted": True})
+
+
+async def reschedule_plan(
+    session: AsyncSession,
+    payload: PlanRescheduleRequest,
+) -> PlanResponse:
+    start_date = payload.start_date or date.today()
+    end_date = payload.end_date
+    if end_date is None:
+        end_date = await session.scalar(select(func.max(PlanPhase.end_date)))
+    if end_date is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No planning phase exists to bound the reschedule range",
+        )
+    if end_date < start_date:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Reschedule range is empty: the last phase ends before start_date",
+        )
+    for leave_date in sorted(set(payload.leave_dates)):
+        exception = await session.scalar(
+            select(AvailabilityException).where(AvailabilityException.date == leave_date)
+        )
+        if exception is None:
+            session.add(
+                AvailabilityException(
+                    date=leave_date,
+                    available_minutes=0,
+                    reason="请假",
+                )
+            )
+        else:
+            exception.available_minutes = 0
+            if not exception.reason:
+                exception.reason = "请假"
+    try:
+        generation_payload = PlanGenerationRequest(
+            start_date=start_date,
+            end_date=end_date,
+        )
+    except ValueError as error:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(error),
+        ) from error
+    return await persist_plan(session, generation_payload, include_overdue=True)
 
 
 async def get_calendar(

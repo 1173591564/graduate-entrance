@@ -106,6 +106,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/plan/reschedule": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reschedule Generated Plan */
+        post: operations["reschedule_generated_plan_api_plan_reschedule_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/planning/availability-exceptions": {
         parameters: {
             query?: never;
@@ -797,8 +814,22 @@ export interface components {
             /** Subject Ratios */
             subject_ratios?: components["schemas"]["PhaseSubjectRatioInput"][];
         };
+        /** PlanRescheduleRequest */
+        PlanRescheduleRequest: {
+            /** End Date */
+            end_date?: string | null;
+            /** Leave Dates */
+            leave_dates?: string[];
+            /** Start Date */
+            start_date?: string | null;
+        };
         /** PlanResponse */
         PlanResponse: {
+            /**
+             * Carried Over
+             * @default 0
+             */
+            carried_over: number;
             /** Days */
             days: components["schemas"]["PlanDaySummary"][];
             /**
@@ -1437,6 +1468,57 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["PlanGenerationRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    reschedule_generated_plan_api_plan_reschedule_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PlanRescheduleRequest"];
             };
         };
         responses: {
