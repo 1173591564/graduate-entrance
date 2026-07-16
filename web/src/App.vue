@@ -24,6 +24,9 @@
         <RouterLink to="/reviews">
           复习
         </RouterLink>
+        <RouterLink to="/insights">
+          错因分析
+        </RouterLink>
         <RouterLink to="/syllabus">
           考纲
         </RouterLink>

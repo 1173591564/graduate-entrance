@@ -202,3 +202,48 @@ export async function fetchProblemImage(name: string): Promise<string> {
   }
   return URL.createObjectURL(await response.blob())
 }
+
+export interface KnowledgePointInsight {
+  knowledge_point_id: string
+  knowledge_point_name: string
+  problem_count: number
+  weighted_errors: number
+  forgot_reviews: number
+  total_reviews: number
+  weakness_score: number
+}
+
+export interface CauseInsight {
+  cause: ProblemCause
+  count: number
+}
+
+export interface SubjectInsight {
+  subject_id: string | null
+  subject_name: string
+  problem_count: number
+  wrong_count: number
+}
+
+export interface WeeklyTrendPoint {
+  week_start: string
+  new_problems: number
+  reviews: number
+  forgot: number
+  vague: number
+  mastered: number
+}
+
+export interface ProblemInsights {
+  as_of: string
+  total_problems: number
+  confirmed_problems: number
+  knowledge_points: KnowledgePointInsight[]
+  causes: CauseInsight[]
+  subjects: SubjectInsight[]
+  weekly_trend: WeeklyTrendPoint[]
+}
+
+export function fetchProblemInsights(): Promise<ProblemInsights> {
+  return requestJson<ProblemInsights>('/stats/insights')
+}
