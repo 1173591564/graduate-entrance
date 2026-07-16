@@ -1,5 +1,5 @@
 import math
-from datetime import UTC, date, datetime
+from datetime import UTC, date, datetime, timedelta
 from uuid import UUID, uuid4
 
 from fastapi import HTTPException, status
@@ -16,11 +16,34 @@ from graduate_entrance.schemas.problems import (
     ProblemListResponse,
     ProblemPendingResponse,
     ProblemRead,
+    ReviewDueResponse,
+    ReviewGrade,
+    ReviewResult,
     SolutionCreateRequest,
     SolutionRead,
 )
 
 MAX_IMAGES_PER_PROBLEM = 6
+MIN_EASE_FACTOR = 1.3
+GRADE_QUALITY: dict[ReviewGrade, int] = {"forgot": 2, "vague": 3, "mastered": 5}
+
+
+def _apply_sm2(
+    ef: float, interval_days: int, reps: int, grade: ReviewGrade
+) -> tuple[float, int, int]:
+    """Return updated (ef, interval_days, reps) for an SM-2 review response."""
+    quality = GRADE_QUALITY[grade]
+    next_ef = ef + (0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02))
+    next_ef = max(MIN_EASE_FACTOR, next_ef)
+    if quality < 3:
+        return next_ef, 1, 0
+    if reps <= 0:
+        next_interval = 1
+    elif reps == 1:
+        next_interval = 6
+    else:
+        next_interval = max(1, round(interval_days * next_ef))
+    return next_ef, next_interval, reps + 1
 
 
 async def _subject_names(session: AsyncSession, subject_ids: set[UUID]) -> dict[UUID, str]:
@@ -279,6 +302,63 @@ async def reopen_problem(session: AsyncSession, problem_id: UUID) -> ProblemRead
     await session.commit()
     loaded = await _load_problem(session, problem.id)
     return (await _read_problems(session, [loaded]))[0]
+
+
+async def list_due_reviews(
+    session: AsyncSession,
+    as_of: date,
+    include_drafts: bool,
+    limit: int,
+) -> ReviewDueResponse:
+    query = (
+        select(Problem)
+        .where(Problem.due_date.is_not(None), Problem.due_date <= as_of)
+        .options(selectinload(Problem.kp_links), selectinload(Problem.solutions))
+        .order_by(Problem.due_date, Problem.created_at)
+    )
+    if not include_drafts:
+        query = query.where(Problem.status == "confirmed")
+    problems = list((await session.scalars(query.limit(limit))).all())
+    count_query = (
+        select(func.count())
+        .select_from(Problem)
+        .where(Problem.due_date.is_not(None), Problem.due_date <= as_of)
+    )
+    if not include_drafts:
+        count_query = count_query.where(Problem.status == "confirmed")
+    total = await session.scalar(count_query)
+    return ReviewDueResponse(
+        total=total or 0,
+        as_of=as_of,
+        problems=await _read_problems(session, problems),
+    )
+
+
+async def review_problem(
+    session: AsyncSession,
+    problem_id: UUID,
+    grade: ReviewGrade,
+    as_of: date,
+) -> ReviewResult:
+    problem = await _load_problem(session, problem_id)
+    next_ef, next_interval, next_reps = _apply_sm2(
+        problem.ef, problem.interval_days, problem.reps, grade
+    )
+    problem.ef = next_ef
+    problem.interval_days = next_interval
+    problem.reps = next_reps
+    problem.due_date = as_of + timedelta(days=next_interval)
+    await session.commit()
+    loaded = await _load_problem(session, problem.id)
+    read = (await _read_problems(session, [loaded]))[0]
+    return ReviewResult(
+        problem=read,
+        grade=grade,
+        ef=loaded.ef,
+        interval_days=loaded.interval_days,
+        reps=loaded.reps,
+        due_date=loaded.due_date or as_of,
+    )
 
 
 async def add_solution(

@@ -1,4 +1,5 @@
 import re
+from datetime import date
 from pathlib import Path
 from typing import Annotated
 from uuid import UUID, uuid4
@@ -15,9 +16,11 @@ from graduate_entrance.problems.service import (
     confirm_problem,
     create_problem,
     get_problem,
+    list_due_reviews,
     list_pending,
     list_problems,
     reopen_problem,
+    review_problem,
 )
 from graduate_entrance.schemas.problems import (
     ProblemConfirmRequest,
@@ -25,6 +28,9 @@ from graduate_entrance.schemas.problems import (
     ProblemListResponse,
     ProblemPendingResponse,
     ProblemRead,
+    ReviewDueResponse,
+    ReviewRequest,
+    ReviewResult,
     SolutionCreateRequest,
 )
 
@@ -106,6 +112,16 @@ async def read_pending_problems(session: Session) -> ProblemPendingResponse:
     return await list_pending(session)
 
 
+@router.get("/problems/reviews/due", response_model=ReviewDueResponse)
+async def read_due_reviews(
+    session: Session,
+    as_of: Annotated[date | None, Query()] = None,
+    include_drafts: Annotated[bool, Query()] = True,
+    limit: Annotated[int, Query(ge=1, le=200)] = 50,
+) -> ReviewDueResponse:
+    return await list_due_reviews(session, as_of or date.today(), include_drafts, limit)
+
+
 @router.get("/problems/images/{image_name}")
 async def read_problem_image(image_name: str) -> FileResponse:
     if not IMAGE_NAME_PATTERN.fullmatch(image_name):
@@ -149,6 +165,16 @@ async def confirm_problem_endpoint(
 @router.post("/problems/{problem_id}/reopen", response_model=ProblemRead)
 async def reopen_problem_endpoint(problem_id: UUID, session: Session) -> ProblemRead:
     return await reopen_problem(session, problem_id)
+
+
+@router.post("/problems/{problem_id}/review", response_model=ReviewResult)
+async def review_problem_endpoint(
+    problem_id: UUID,
+    payload: ReviewRequest,
+    session: Session,
+    as_of: Annotated[date | None, Query()] = None,
+) -> ReviewResult:
+    return await review_problem(session, problem_id, payload.grade, as_of or date.today())
 
 
 @router.post(

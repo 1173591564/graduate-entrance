@@ -9,6 +9,7 @@ ProblemCause = Literal["", "concept", "calculation", "method", "memory", "misrea
 ProblemStatus = Literal["draft", "confirmed"]
 SolutionSource = Literal["self", "answer", "gpt"]
 KnowledgePointRole = Literal["primary", "secondary"]
+ReviewGrade = Literal["forgot", "vague", "mastered"]
 
 
 class ProblemKnowledgePointInput(BaseModel):
@@ -67,6 +68,25 @@ class ProblemPendingResponse(BaseModel):
 class ProblemListResponse(BaseModel):
     total: int
     problems: list[ProblemRead]
+
+
+class ReviewDueResponse(BaseModel):
+    total: int
+    as_of: date
+    problems: list[ProblemRead]
+
+
+class ReviewRequest(BaseModel):
+    grade: ReviewGrade
+
+
+class ReviewResult(BaseModel):
+    problem: ProblemRead
+    grade: ReviewGrade
+    ef: float
+    interval_days: int
+    reps: int
+    due_date: date
 
 
 class ProblemConfirmRequest(BaseModel):

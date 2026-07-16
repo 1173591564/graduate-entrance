@@ -21,6 +21,9 @@
         <RouterLink to="/problems">
           题库审核
         </RouterLink>
+        <RouterLink to="/reviews">
+          复习
+        </RouterLink>
         <RouterLink to="/syllabus">
           考纲
         </RouterLink>

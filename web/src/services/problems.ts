@@ -59,6 +59,23 @@ export interface PendingProblems {
   problems: Problem[]
 }
 
+export type ReviewGrade = 'forgot' | 'vague' | 'mastered'
+
+export interface DueReviews {
+  total: number
+  as_of: string
+  problems: Problem[]
+}
+
+export interface ReviewResult {
+  problem: Problem
+  grade: ReviewGrade
+  ef: number
+  interval_days: number
+  reps: number
+  due_date: string
+}
+
 export interface ProblemConfirmPayload {
   content_md: string
   kind: ProblemKind
@@ -124,6 +141,18 @@ export function confirmProblem(id: string, payload: ProblemConfirmPayload): Prom
   return requestJson<Problem>(`/problems/${id}/confirm`, {
     method: 'POST',
     body: JSON.stringify(payload),
+  })
+}
+
+export function fetchDueReviews(includeDrafts = true): Promise<DueReviews> {
+  const query = includeDrafts ? '' : '?include_drafts=false'
+  return requestJson<DueReviews>(`/problems/reviews/due${query}`)
+}
+
+export function reviewProblem(id: string, grade: ReviewGrade): Promise<ReviewResult> {
+  return requestJson<ReviewResult>(`/problems/${id}/review`, {
+    method: 'POST',
+    body: JSON.stringify({ grade }),
   })
 }
 
