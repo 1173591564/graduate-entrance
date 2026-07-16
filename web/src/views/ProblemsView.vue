@@ -817,7 +817,7 @@ onMounted(() => loadPending())
 
 .eyebrow {
   margin: 0 0 8px;
-  color: #2764e7;
+  color: var(--deep);
   font-size: 13px;
   font-weight: 800;
   letter-spacing: 0.08em;
@@ -831,14 +831,14 @@ onMounted(() => loadPending())
 
 .problems-hero p:last-child {
   margin: 12px 0 0;
-  color: #647087;
+  color: var(--ink-soft);
 }
 
 .pending-count {
   padding: 8px 14px;
   border-radius: 999px;
-  color: #174cb7;
-  background: #edf4ff;
+  color: var(--deep);
+  background: var(--paper-warm);
   font-weight: 800;
   white-space: nowrap;
 }
@@ -847,8 +847,8 @@ onMounted(() => loadPending())
   display: grid;
   gap: 14px;
   padding: 22px;
-  border: 1px solid #dfe6f0;
-  border-radius: 20px;
+  border: 1px solid var(--rule);
+  border-radius: 3px;
   background: white;
 }
 
@@ -867,7 +867,7 @@ onMounted(() => loadPending())
 .review-card label {
   display: grid;
   gap: 6px;
-  color: #526077;
+  color: var(--ink-soft);
   font-size: 13px;
   font-weight: 750;
 }
@@ -879,8 +879,8 @@ onMounted(() => loadPending())
 .review-card select,
 .review-card textarea {
   padding: 9px 10px;
-  border: 1px solid #d7dfeb;
-  border-radius: 10px;
+  border: 1px solid var(--rule);
+  border-radius: 3px;
   font: inherit;
 }
 
@@ -889,9 +889,9 @@ onMounted(() => loadPending())
   justify-self: start;
   padding: 10px 18px;
   border: 0;
-  border-radius: 10px;
+  border-radius: 3px;
   color: white;
-  background: #2764e7;
+  background: var(--deep);
   cursor: pointer;
   font-weight: 800;
 }
@@ -910,8 +910,8 @@ onMounted(() => loadPending())
   display: grid;
   gap: 14px;
   padding: 22px;
-  border: 1px solid #dfe6f0;
-  border-radius: 20px;
+  border: 1px solid var(--rule);
+  border-radius: 3px;
   background: white;
 }
 
@@ -930,8 +930,8 @@ onMounted(() => loadPending())
 .draft-badge {
   padding: 5px 9px;
   border-radius: 999px;
-  color: #8a5b12;
-  background: #fff3d6;
+  color: var(--warn);
+  background: var(--paper-warm);
   font-size: 12px;
   font-weight: 750;
 }
@@ -947,7 +947,7 @@ onMounted(() => loadPending())
   border: none;
   border-radius: 999px;
   color: white;
-  background: #7048e8;
+  background: var(--accent-cs);
   font-size: 13px;
   font-weight: 750;
   cursor: pointer;
@@ -959,16 +959,16 @@ onMounted(() => loadPending())
 }
 
 .batch-card {
-  border-color: #d9ccff;
+  border-color: var(--rule);
 }
 
 .grade-panel {
   display: grid;
   gap: 8px;
   padding: 14px;
-  border: 1px dashed #d9ccff;
-  border-radius: 14px;
-  background: #fbfaff;
+  border: 1px dashed var(--rule);
+  border-radius: 3px;
+  background: var(--card);
 }
 
 .grade-result {
@@ -980,7 +980,7 @@ onMounted(() => loadPending())
   margin: 0;
   font-size: 16px;
   font-weight: 800;
-  color: #5f3dc4;
+  color: var(--accent-cs);
 }
 
 .grade-feedback {
@@ -997,9 +997,9 @@ onMounted(() => loadPending())
   display: grid;
   gap: 8px;
   padding: 14px;
-  border: 1px solid #d9ccff;
-  border-radius: 14px;
-  background: #f6f2ff;
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  background: var(--paper-warm);
 }
 
 .ai-solution-content {
@@ -1010,8 +1010,8 @@ onMounted(() => loadPending())
 .method-tag {
   padding: 4px 10px;
   border-radius: 999px;
-  color: #5f3dc4;
-  background: #e5dbff;
+  color: var(--accent-cs);
+  background: var(--rule);
   font-size: 12px;
   font-weight: 750;
 }
@@ -1025,8 +1025,8 @@ onMounted(() => loadPending())
 .image-strip img {
   max-width: 240px;
   max-height: 180px;
-  border: 1px solid #e0e6f0;
-  border-radius: 12px;
+  border: 1px solid var(--rule);
+  border-radius: 3px;
   object-fit: contain;
 }
 
@@ -1040,8 +1040,8 @@ onMounted(() => loadPending())
   display: grid;
   gap: 10px;
   padding: 14px;
-  border: 1px dashed #c9d4e5;
-  border-radius: 14px;
+  border: 1px dashed var(--rule);
+  border-radius: 3px;
 }
 
 .mapping-heading {
@@ -1058,15 +1058,15 @@ onMounted(() => loadPending())
 .weight-total {
   padding: 4px 9px;
   border-radius: 999px;
-  color: #17641e;
-  background: #e9f8ec;
+  color: var(--ok);
+  background: var(--paper-warm);
   font-size: 12px;
   font-weight: 750;
 }
 
 .weight-total.invalid {
-  color: #8a2424;
-  background: #fff0f0;
+  color: var(--danger);
+  background: var(--paper-warm);
 }
 
 .mapping-row {
@@ -1078,10 +1078,10 @@ onMounted(() => loadPending())
 .add-button,
 .remove-button {
   padding: 8px 12px;
-  border: 1px solid #c9d4e5;
-  border-radius: 10px;
-  color: #2c3a52;
-  background: #f6f8fc;
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  color: var(--ink);
+  background: var(--paper-warm);
   cursor: pointer;
   font-weight: 750;
 }
@@ -1096,22 +1096,22 @@ onMounted(() => loadPending())
 .empty-state {
   margin: 0;
   padding: 16px 18px;
-  border-radius: 14px;
+  border-radius: 3px;
 }
 
 .feedback.error {
-  color: #8a2424;
-  background: #fff0f0;
+  color: var(--danger);
+  background: var(--paper-warm);
 }
 
 .feedback.success {
-  color: #17641e;
-  background: #e9f8ec;
+  color: var(--ok);
+  background: var(--paper-warm);
 }
 
 .loading-state,
 .empty-state {
-  color: #718096;
+  color: var(--ink-soft);
   background: white;
 }
 

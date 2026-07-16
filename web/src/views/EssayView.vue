@@ -424,31 +424,31 @@ onMounted(load)
 
 .page-header p {
   margin: 0;
-  color: var(--color-text-muted, #667085);
+  color: var(--color-text-muted, var(--ink-soft));
 }
 
 .notice {
-  background: #ecfdf3;
-  border: 1px solid #abefc6;
-  color: #067647;
+  background: var(--paper-warm);
+  border: 1px solid var(--ok);
+  color: var(--ok);
   padding: 10px 14px;
-  border-radius: 10px;
+  border-radius: 3px;
   margin: 0;
 }
 
 .error {
-  background: #fef3f2;
-  border: 1px solid #fecdca;
-  color: #b42318;
+  background: var(--paper-warm);
+  border: 1px solid var(--danger);
+  color: var(--danger);
   padding: 10px 14px;
-  border-radius: 10px;
+  border-radius: 3px;
   margin: 0;
 }
 
 .due-panel {
-  border: 1px solid #fedf89;
-  background: #fffaeb;
-  border-radius: 14px;
+  border: 1px solid var(--warn);
+  background: var(--paper-warm);
+  border-radius: 3px;
   padding: 16px;
   display: flex;
   flex-direction: column;
@@ -462,9 +462,9 @@ onMounted(load)
 
 .due-card,
 .material-card {
-  border: 1px solid #e4e7ec;
-  background: #fff;
-  border-radius: 12px;
+  border: 1px solid var(--rule);
+  background: var(--card);
+  border-radius: 3px;
   padding: 14px 16px;
   display: flex;
   flex-direction: column;
@@ -483,13 +483,13 @@ onMounted(load)
   font-size: 0.78rem;
   padding: 2px 8px;
   border-radius: 999px;
-  background: #eef4ff;
-  color: #3538cd;
+  background: var(--paper-warm);
+  color: var(--ink);
 }
 
 .badge.topic {
-  background: #f0fdf9;
-  color: #107569;
+  background: var(--paper-warm);
+  color: var(--ok);
 }
 
 .content {
@@ -499,7 +499,7 @@ onMounted(load)
 
 .translation {
   margin: 0;
-  color: #667085;
+  color: var(--ink-soft);
   white-space: pre-wrap;
 }
 
@@ -513,7 +513,7 @@ onMounted(load)
 }
 
 .meta {
-  color: #667085;
+  color: var(--ink-soft);
   font-size: 0.85rem;
 }
 
@@ -523,13 +523,13 @@ onMounted(load)
 }
 
 .material-form {
-  border: 1px solid #e4e7ec;
-  border-radius: 14px;
+  border: 1px solid var(--rule);
+  border-radius: 3px;
   padding: 16px;
   display: flex;
   flex-direction: column;
   gap: 12px;
-  background: #fff;
+  background: var(--card);
 }
 
 .material-form h2 {
@@ -556,8 +556,8 @@ onMounted(load)
 .material-form textarea,
 .filters input,
 .filters select {
-  border: 1px solid #d0d5dd;
-  border-radius: 8px;
+  border: 1px solid var(--rule);
+  border-radius: 3px;
   padding: 8px 10px;
   font: inherit;
 }
@@ -572,9 +572,9 @@ onMounted(load)
   flex-direction: column;
   gap: 12px;
   padding: 16px;
-  border: 1px solid #e4e7ec;
-  border-radius: 14px;
-  background: #fff;
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  background: var(--card);
 }
 
 .category-pills {
@@ -585,18 +585,18 @@ onMounted(load)
 
 .pill {
   padding: 6px 14px;
-  border: 1px solid #e4e7ec;
+  border: 1px solid var(--rule);
   border-radius: 999px;
-  background: #fff;
-  color: #526077;
+  background: var(--card);
+  color: var(--ink-soft);
   font-size: 0.88rem;
   font-weight: 600;
 }
 
 .pill.active {
-  border-color: #2764e7;
-  background: #edf4ff;
-  color: #174cb7;
+  border-color: var(--deep);
+  background: var(--paper-warm);
+  color: var(--deep);
 }
 
 .search-box {
@@ -607,8 +607,8 @@ onMounted(load)
 .search-box input[type='search'] {
   flex: 1;
   min-width: 200px;
-  border: 1px solid #d0d5dd;
-  border-radius: 10px;
+  border: 1px solid var(--rule);
+  border-radius: 3px;
   padding: 9px 12px;
   font: inherit;
 }
@@ -619,10 +619,10 @@ onMounted(load)
   align-items: center;
   gap: 8px;
   padding: 56px 24px;
-  border: 1px dashed #d0d5dd;
-  border-radius: 16px;
-  background: #fff;
-  color: #667085;
+  border: 1px dashed var(--rule);
+  border-radius: 3px;
+  background: var(--card);
+  color: var(--ink-soft);
   text-align: center;
 }
 
@@ -631,7 +631,7 @@ onMounted(load)
 }
 
 .empty-state strong {
-  color: #16213a;
+  color: var(--ink);
   font-size: 1.05rem;
 }
 
@@ -661,23 +661,23 @@ onMounted(load)
 }
 
 button {
-  border: 1px solid #d0d5dd;
-  background: #fff;
-  border-radius: 8px;
+  border: 1px solid var(--rule);
+  background: var(--card);
+  border-radius: 3px;
   padding: 8px 14px;
   cursor: pointer;
   font: inherit;
 }
 
 button.primary {
-  background: #444ce7;
-  border-color: #444ce7;
-  color: #fff;
+  background: var(--deep);
+  border-color: var(--deep);
+  color: var(--card);
 }
 
 button.danger {
-  color: #b42318;
-  border-color: #fecdca;
+  color: var(--danger);
+  border-color: var(--danger);
 }
 
 button:disabled {

@@ -230,7 +230,7 @@ onMounted(async () => {
 .summary {
   max-width: 560px;
   margin: 12px 0 0;
-  color: #647087;
+  color: var(--ink-soft);
   font-size: 16px;
   line-height: 1.8;
 }
@@ -245,30 +245,30 @@ onMounted(async () => {
   padding: 12px 18px;
   border-radius: 999px;
   color: white;
-  background: #2764e7;
+  background: var(--deep);
   font-weight: 800;
 }
 
 .secondary-link {
   display: inline-flex;
   padding: 12px 18px;
-  border: 1px solid #dbe3ef;
+  border: 1px solid var(--rule);
   border-radius: 999px;
-  color: #465269;
+  color: var(--ink-soft);
   background: white;
   font-weight: 800;
 }
 
 .state-card {
   padding: 28px;
-  border: 1px solid #e1e7f0;
-  border-radius: 18px;
+  border: 1px solid var(--rule);
+  border-radius: 3px;
   background: white;
-  color: #647087;
+  color: var(--ink-soft);
 }
 
 .state-card.error {
-  color: #b3261e;
+  color: var(--danger);
 }
 
 .metric-grid {
@@ -282,13 +282,13 @@ onMounted(async () => {
   flex-direction: column;
   gap: 6px;
   padding: 22px;
-  border: 1px solid #e1e7f0;
-  border-radius: 18px;
+  border: 1px solid var(--rule);
+  border-radius: 3px;
   background: white;
 }
 
 .metric-card span {
-  color: #8b96aa;
+  color: var(--ink-muted);
   font-size: 13px;
   font-weight: 750;
 }
@@ -299,7 +299,7 @@ onMounted(async () => {
 }
 
 .metric-card small {
-  color: #738097;
+  color: var(--ink-muted);
 }
 
 .subject-grid {
@@ -313,8 +313,8 @@ onMounted(async () => {
   flex-direction: column;
   gap: 14px;
   padding: 24px;
-  border: 1px solid #e1e7f0;
-  border-radius: 20px;
+  border: 1px solid var(--rule);
+  border-radius: 3px;
   background: white;
 }
 
@@ -331,21 +331,21 @@ onMounted(async () => {
 }
 
 .subject-card header strong {
-  color: #2764e7;
+  color: var(--deep);
   font-size: 14px;
 }
 
 .bar-row {
   display: grid;
   gap: 6px;
-  color: #647087;
+  color: var(--ink-soft);
   font-size: 13px;
 }
 
 .bar {
   height: 8px;
   border-radius: 999px;
-  background: #edf1f8;
+  background: var(--paper-warm);
   overflow: hidden;
 }
 
@@ -353,21 +353,21 @@ onMounted(async () => {
   display: block;
   height: 100%;
   border-radius: 999px;
-  background: linear-gradient(90deg, #2764e7, #6d47d9);
+  background: linear-gradient(90deg, var(--deep), var(--accent-cs));
 }
 
 .bar i.coverage {
-  background: #34a370;
+  background: var(--ok);
 }
 
 .subject-meta {
   margin: 0;
-  color: #738097;
+  color: var(--ink-muted);
   font-size: 13px;
 }
 
 .weak-list span {
-  color: #8b96aa;
+  color: var(--ink-muted);
   font-size: 13px;
   font-weight: 750;
 }
@@ -385,13 +385,13 @@ onMounted(async () => {
   display: flex;
   justify-content: space-between;
   gap: 12px;
-  color: #526077;
+  color: var(--ink-soft);
   font-size: 13px;
 }
 
 .weak-list em {
   font-style: normal;
-  color: #b3261e;
+  color: var(--danger);
   font-weight: 700;
 }
 </style>
