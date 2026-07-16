@@ -26,6 +26,7 @@ class Settings(BaseSettings):
     cors_origins: list[str] = ["http://localhost:5173"]
     log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"] = "INFO"
     syllabus_raw_dir: Path = Path("../seed/syllabus/raw")
+    problem_images_dir: Path = Path("./data/problem-images")
 
 
 @lru_cache
