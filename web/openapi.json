@@ -1894,6 +1894,106 @@
         ],
         "title": "ValidationIssue",
         "type": "object"
+      },
+      "WeeklyStatRead": {
+        "properties": {
+          "completed_minutes": {
+            "title": "Completed Minutes",
+            "type": "integer"
+          },
+          "completed_tasks": {
+            "title": "Completed Tasks",
+            "type": "integer"
+          },
+          "execution_rate": {
+            "title": "Execution Rate",
+            "type": "number"
+          },
+          "planned_minutes": {
+            "title": "Planned Minutes",
+            "type": "integer"
+          },
+          "target_minutes": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Minutes"
+          },
+          "total_tasks": {
+            "title": "Total Tasks",
+            "type": "integer"
+          },
+          "week_end": {
+            "format": "date",
+            "title": "Week End",
+            "type": "string"
+          },
+          "week_start": {
+            "format": "date",
+            "title": "Week Start",
+            "type": "string"
+          }
+        },
+        "required": [
+          "week_start",
+          "week_end",
+          "planned_minutes",
+          "completed_minutes",
+          "target_minutes",
+          "total_tasks",
+          "completed_tasks",
+          "execution_rate"
+        ],
+        "title": "WeeklyStatRead",
+        "type": "object"
+      },
+      "WeeklyStatsResponse": {
+        "properties": {
+          "end_date": {
+            "format": "date",
+            "title": "End Date",
+            "type": "string"
+          },
+          "overall_execution_rate": {
+            "title": "Overall Execution Rate",
+            "type": "number"
+          },
+          "start_date": {
+            "format": "date",
+            "title": "Start Date",
+            "type": "string"
+          },
+          "total_completed_minutes": {
+            "title": "Total Completed Minutes",
+            "type": "integer"
+          },
+          "total_planned_minutes": {
+            "title": "Total Planned Minutes",
+            "type": "integer"
+          },
+          "weeks": {
+            "items": {
+              "$ref": "#/components/schemas/WeeklyStatRead"
+            },
+            "title": "Weeks",
+            "type": "array"
+          }
+        },
+        "required": [
+          "start_date",
+          "end_date",
+          "weeks",
+          "total_planned_minutes",
+          "total_completed_minutes",
+          "overall_execution_rate"
+        ],
+        "title": "WeeklyStatsResponse",
+        "type": "object"
       }
     },
     "securitySchemes": {
@@ -3572,6 +3672,98 @@
         "summary": "Replace Task Template",
         "tags": [
           "planning"
+        ]
+      }
+    },
+    "/api/stats/weekly": {
+      "get": {
+        "operationId": "read_weekly_stats_api_stats_weekly_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "start",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Start"
+            }
+          },
+          {
+            "in": "query",
+            "name": "end",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "End"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WeeklyStatsResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Read Weekly Stats",
+        "tags": [
+          "stats"
         ]
       }
     },

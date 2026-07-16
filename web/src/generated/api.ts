@@ -349,6 +349,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/stats/weekly": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read Weekly Stats */
+        get: operations["read_weekly_stats_api_stats_weekly_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/syllabus": {
         parameters: {
             query?: never;
@@ -1207,6 +1224,52 @@ export interface components {
             message: string;
             /** Type */
             type: string;
+        };
+        /** WeeklyStatRead */
+        WeeklyStatRead: {
+            /** Completed Minutes */
+            completed_minutes: number;
+            /** Completed Tasks */
+            completed_tasks: number;
+            /** Execution Rate */
+            execution_rate: number;
+            /** Planned Minutes */
+            planned_minutes: number;
+            /** Target Minutes */
+            target_minutes: number | null;
+            /** Total Tasks */
+            total_tasks: number;
+            /**
+             * Week End
+             * Format: date
+             */
+            week_end: string;
+            /**
+             * Week Start
+             * Format: date
+             */
+            week_start: string;
+        };
+        /** WeeklyStatsResponse */
+        WeeklyStatsResponse: {
+            /**
+             * End Date
+             * Format: date
+             */
+            end_date: string;
+            /** Overall Execution Rate */
+            overall_execution_rate: number;
+            /**
+             * Start Date
+             * Format: date
+             */
+            start_date: string;
+            /** Total Completed Minutes */
+            total_completed_minutes: number;
+            /** Total Planned Minutes */
+            total_planned_minutes: number;
+            /** Weeks */
+            weeks: components["schemas"]["WeeklyStatRead"][];
         };
     };
     responses: never;
@@ -2431,6 +2494,56 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    read_weekly_stats_api_stats_weekly_get: {
+        parameters: {
+            query?: {
+                start?: string | null;
+                end?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WeeklyStatsResponse"];
+                };
             };
             /** @description Unauthorized */
             401: {

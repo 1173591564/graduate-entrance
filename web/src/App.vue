@@ -15,6 +15,9 @@
         <RouterLink to="/today">
           今日任务
         </RouterLink>
+        <RouterLink to="/stats">
+          周统计
+        </RouterLink>
         <RouterLink to="/syllabus">
           考纲
         </RouterLink>

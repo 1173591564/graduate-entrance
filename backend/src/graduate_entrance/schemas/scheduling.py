@@ -149,3 +149,23 @@ class TodayResponse(BaseModel):
 
 class TaskCompletionRequest(BaseModel):
     actual_minutes: int = Field(ge=0, le=1440)
+
+
+class WeeklyStatRead(BaseModel):
+    week_start: date
+    week_end: date
+    planned_minutes: int
+    completed_minutes: int
+    target_minutes: int | None
+    total_tasks: int
+    completed_tasks: int
+    execution_rate: float
+
+
+class WeeklyStatsResponse(BaseModel):
+    start_date: date
+    end_date: date
+    weeks: list[WeeklyStatRead]
+    total_planned_minutes: int
+    total_completed_minutes: int
+    overall_execution_rate: float
