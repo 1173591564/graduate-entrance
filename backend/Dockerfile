@@ -19,7 +19,8 @@ COPY backend/src ./src
 COPY seed/syllabus/raw ./seed/syllabus/raw
 RUN uv sync --frozen --no-dev
 
-RUN useradd --create-home --uid 10001 app \
+RUN mkdir -p /app/data/problem-images \
+    && useradd --create-home --uid 10001 app \
     && chown -R app:app /app
 USER app
 
