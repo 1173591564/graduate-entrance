@@ -8,6 +8,7 @@ from graduate_entrance.api.routes.health import router as protected_health_route
 from graduate_entrance.api.routes.plan import router as plan_router
 from graduate_entrance.api.routes.planning import router as planning_router
 from graduate_entrance.api.routes.problems import router as problems_router
+from graduate_entrance.api.routes.profile import router as profile_router
 from graduate_entrance.api.routes.stats import router as stats_router
 from graduate_entrance.api.routes.syllabus import router as syllabus_router
 from graduate_entrance.core.auth import require_api_token
@@ -25,3 +26,4 @@ protected_api_router.include_router(daily_router)
 protected_api_router.include_router(problems_router)
 protected_api_router.include_router(stats_router)
 protected_api_router.include_router(essay_router)
+protected_api_router.include_router(profile_router)

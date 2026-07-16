@@ -8,13 +8,33 @@ describe('PlanningView', () => {
     vi.unstubAllGlobals()
   })
 
-  it('renders phases, availability, materials, and task templates', async () => {
+  it('renders goals, phases, availability, materials, and task templates', async () => {
     vi.stubGlobal(
       'fetch',
-      vi.fn().mockResolvedValue({
-        ok: true,
-        status: 200,
-        json: async () => ({
+      vi.fn().mockImplementation(async (input: RequestInfo | URL) => {
+        const url = String(input)
+        if (url.includes('/api/profile/goals')) {
+          return {
+            ok: true,
+            status: 200,
+            json: async () => ({
+              goals: [
+                {
+                  subject_id: 'math',
+                  subject_name: '数学一',
+                  target_score: 125,
+                  full_score: 150,
+                  note: '',
+                  updated_at: '2026-07-16T00:00:00Z',
+                },
+              ],
+            }),
+          }
+        }
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({
           subjects: [
             { id: 'math', code: '数学一', name: '数学一', order: 1 },
             { id: 'cs', code: '408', name: '408', order: 2 },
@@ -87,7 +107,8 @@ describe('PlanningView', () => {
               phase_ids: ['foundation'],
             },
           ],
-        }),
+          }),
+        }
       }),
     )
 
@@ -102,6 +123,9 @@ describe('PlanningView', () => {
     })
     await flushPromises()
 
+    expect(wrapper.text()).toContain('各科目标分')
+    const mathGoal = wrapper.find('[data-testid="goal-target-数学一"]')
+    expect((mathGoal.element as HTMLInputElement).value).toBe('125')
     expect(wrapper.text()).toContain('基础期')
     expect(wrapper.text()).toContain('数学一 40%')
     expect(wrapper.text()).toContain('暑假')

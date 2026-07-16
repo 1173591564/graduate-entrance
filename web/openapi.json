@@ -1044,6 +1044,39 @@
         "title": "ExtractedSolution",
         "type": "object"
       },
+      "GoalsResponse": {
+        "properties": {
+          "goals": {
+            "items": {
+              "$ref": "#/components/schemas/SubjectGoalRead"
+            },
+            "title": "Goals",
+            "type": "array"
+          }
+        },
+        "required": [
+          "goals"
+        ],
+        "title": "GoalsResponse",
+        "type": "object"
+      },
+      "GoalsUpdateRequest": {
+        "properties": {
+          "goals": {
+            "items": {
+              "$ref": "#/components/schemas/SubjectGoalInput"
+            },
+            "minItems": 1,
+            "title": "Goals",
+            "type": "array"
+          }
+        },
+        "required": [
+          "goals"
+        ],
+        "title": "GoalsUpdateRequest",
+        "type": "object"
+      },
       "GradeRequest": {
         "properties": {
           "answer_md": {
@@ -2679,6 +2712,120 @@
         "title": "SolutionRead",
         "type": "object"
       },
+      "StudyProfileResponse": {
+        "properties": {
+          "as_of": {
+            "format": "date",
+            "title": "As Of",
+            "type": "string"
+          },
+          "days_to_exam": {
+            "title": "Days To Exam",
+            "type": "integer"
+          },
+          "exam_date": {
+            "format": "date",
+            "title": "Exam Date",
+            "type": "string"
+          },
+          "overall_coverage": {
+            "title": "Overall Coverage",
+            "type": "number"
+          },
+          "overall_mastery": {
+            "title": "Overall Mastery",
+            "type": "number"
+          },
+          "subjects": {
+            "items": {
+              "$ref": "#/components/schemas/SubjectMastery"
+            },
+            "title": "Subjects",
+            "type": "array"
+          }
+        },
+        "required": [
+          "as_of",
+          "exam_date",
+          "days_to_exam",
+          "overall_mastery",
+          "overall_coverage",
+          "subjects"
+        ],
+        "title": "StudyProfileResponse",
+        "type": "object"
+      },
+      "SubjectGoalInput": {
+        "properties": {
+          "full_score": {
+            "exclusiveMinimum": 0.0,
+            "title": "Full Score",
+            "type": "integer"
+          },
+          "note": {
+            "default": "",
+            "title": "Note",
+            "type": "string"
+          },
+          "subject_id": {
+            "format": "uuid",
+            "title": "Subject Id",
+            "type": "string"
+          },
+          "target_score": {
+            "minimum": 0.0,
+            "title": "Target Score",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "subject_id",
+          "target_score",
+          "full_score"
+        ],
+        "title": "SubjectGoalInput",
+        "type": "object"
+      },
+      "SubjectGoalRead": {
+        "properties": {
+          "full_score": {
+            "title": "Full Score",
+            "type": "integer"
+          },
+          "note": {
+            "title": "Note",
+            "type": "string"
+          },
+          "subject_id": {
+            "format": "uuid",
+            "title": "Subject Id",
+            "type": "string"
+          },
+          "subject_name": {
+            "title": "Subject Name",
+            "type": "string"
+          },
+          "target_score": {
+            "title": "Target Score",
+            "type": "integer"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "subject_id",
+          "subject_name",
+          "target_score",
+          "full_score",
+          "note",
+          "updated_at"
+        ],
+        "title": "SubjectGoalRead",
+        "type": "object"
+      },
       "SubjectInsight": {
         "properties": {
           "problem_count": {
@@ -2713,6 +2860,104 @@
           "wrong_count"
         ],
         "title": "SubjectInsight",
+        "type": "object"
+      },
+      "SubjectMastery": {
+        "properties": {
+          "coverage": {
+            "title": "Coverage",
+            "type": "number"
+          },
+          "estimated_score": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Estimated Score"
+          },
+          "full_score": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Full Score"
+          },
+          "knowledge_point_total": {
+            "title": "Knowledge Point Total",
+            "type": "integer"
+          },
+          "mastery": {
+            "title": "Mastery",
+            "type": "number"
+          },
+          "problem_count": {
+            "title": "Problem Count",
+            "type": "integer"
+          },
+          "studied_minutes": {
+            "title": "Studied Minutes",
+            "type": "integer"
+          },
+          "studied_points": {
+            "title": "Studied Points",
+            "type": "integer"
+          },
+          "subject_id": {
+            "format": "uuid",
+            "title": "Subject Id",
+            "type": "string"
+          },
+          "subject_name": {
+            "title": "Subject Name",
+            "type": "string"
+          },
+          "target_score": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Score"
+          },
+          "weak_points": {
+            "items": {
+              "$ref": "#/components/schemas/WeakKnowledgePoint"
+            },
+            "title": "Weak Points",
+            "type": "array"
+          },
+          "wrong_count": {
+            "title": "Wrong Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "subject_id",
+          "subject_name",
+          "target_score",
+          "full_score",
+          "knowledge_point_total",
+          "studied_points",
+          "coverage",
+          "mastery",
+          "estimated_score",
+          "studied_minutes",
+          "problem_count",
+          "wrong_count",
+          "weak_points"
+        ],
+        "title": "SubjectMastery",
         "type": "object"
       },
       "SubjectRead": {
@@ -3251,6 +3496,40 @@
           "message"
         ],
         "title": "ValidationIssue",
+        "type": "object"
+      },
+      "WeakKnowledgePoint": {
+        "properties": {
+          "forgot_reviews": {
+            "title": "Forgot Reviews",
+            "type": "integer"
+          },
+          "knowledge_point_id": {
+            "format": "uuid",
+            "title": "Knowledge Point Id",
+            "type": "string"
+          },
+          "knowledge_point_name": {
+            "title": "Knowledge Point Name",
+            "type": "string"
+          },
+          "mastery": {
+            "title": "Mastery",
+            "type": "number"
+          },
+          "problem_count": {
+            "title": "Problem Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "knowledge_point_id",
+          "knowledge_point_name",
+          "mastery",
+          "problem_count",
+          "forgot_reviews"
+        ],
+        "title": "WeakKnowledgePoint",
         "type": "object"
       },
       "WeeklyStatRead": {
@@ -6640,6 +6919,201 @@
         "summary": "Add Solution Endpoint",
         "tags": [
           "problems"
+        ]
+      }
+    },
+    "/api/profile": {
+      "get": {
+        "operationId": "read_study_profile_api_profile_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "as_of",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "As Of"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StudyProfileResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Read Study Profile",
+        "tags": [
+          "profile"
+        ]
+      }
+    },
+    "/api/profile/goals": {
+      "get": {
+        "operationId": "read_goals_api_profile_goals_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GoalsResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Read Goals",
+        "tags": [
+          "profile"
+        ]
+      },
+      "put": {
+        "operationId": "update_goals_api_profile_goals_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GoalsUpdateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GoalsResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Update Goals",
+        "tags": [
+          "profile"
         ]
       }
     },

@@ -625,6 +625,41 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/profile": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read Study Profile */
+        get: operations["read_study_profile_api_profile_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/profile/goals": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read Goals */
+        get: operations["read_goals_api_profile_goals_get"];
+        /** Update Goals */
+        put: operations["update_goals_api_profile_goals_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/stats/insights": {
         parameters: {
             query?: never;
@@ -1136,6 +1171,16 @@ export interface components {
              * @default
              */
             method_tag: string;
+        };
+        /** GoalsResponse */
+        GoalsResponse: {
+            /** Goals */
+            goals: components["schemas"]["SubjectGoalRead"][];
+        };
+        /** GoalsUpdateRequest */
+        GoalsUpdateRequest: {
+            /** Goals */
+            goals: components["schemas"]["SubjectGoalInput"][];
         };
         /** GradeRequest */
         GradeRequest: {
@@ -1839,6 +1884,65 @@ export interface components {
             /** Verified */
             verified: boolean;
         };
+        /** StudyProfileResponse */
+        StudyProfileResponse: {
+            /**
+             * As Of
+             * Format: date
+             */
+            as_of: string;
+            /** Days To Exam */
+            days_to_exam: number;
+            /**
+             * Exam Date
+             * Format: date
+             */
+            exam_date: string;
+            /** Overall Coverage */
+            overall_coverage: number;
+            /** Overall Mastery */
+            overall_mastery: number;
+            /** Subjects */
+            subjects: components["schemas"]["SubjectMastery"][];
+        };
+        /** SubjectGoalInput */
+        SubjectGoalInput: {
+            /** Full Score */
+            full_score: number;
+            /**
+             * Note
+             * @default
+             */
+            note: string;
+            /**
+             * Subject Id
+             * Format: uuid
+             */
+            subject_id: string;
+            /** Target Score */
+            target_score: number;
+        };
+        /** SubjectGoalRead */
+        SubjectGoalRead: {
+            /** Full Score */
+            full_score: number;
+            /** Note */
+            note: string;
+            /**
+             * Subject Id
+             * Format: uuid
+             */
+            subject_id: string;
+            /** Subject Name */
+            subject_name: string;
+            /** Target Score */
+            target_score: number;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
         /** SubjectInsight */
         SubjectInsight: {
             /** Problem Count */
@@ -1847,6 +1951,38 @@ export interface components {
             subject_id: string | null;
             /** Subject Name */
             subject_name: string;
+            /** Wrong Count */
+            wrong_count: number;
+        };
+        /** SubjectMastery */
+        SubjectMastery: {
+            /** Coverage */
+            coverage: number;
+            /** Estimated Score */
+            estimated_score: number | null;
+            /** Full Score */
+            full_score: number | null;
+            /** Knowledge Point Total */
+            knowledge_point_total: number;
+            /** Mastery */
+            mastery: number;
+            /** Problem Count */
+            problem_count: number;
+            /** Studied Minutes */
+            studied_minutes: number;
+            /** Studied Points */
+            studied_points: number;
+            /**
+             * Subject Id
+             * Format: uuid
+             */
+            subject_id: string;
+            /** Subject Name */
+            subject_name: string;
+            /** Target Score */
+            target_score: number | null;
+            /** Weak Points */
+            weak_points: components["schemas"]["WeakKnowledgePoint"][];
             /** Wrong Count */
             wrong_count: number;
         };
@@ -2077,6 +2213,22 @@ export interface components {
             message: string;
             /** Type */
             type: string;
+        };
+        /** WeakKnowledgePoint */
+        WeakKnowledgePoint: {
+            /** Forgot Reviews */
+            forgot_reviews: number;
+            /**
+             * Knowledge Point Id
+             * Format: uuid
+             */
+            knowledge_point_id: string;
+            /** Knowledge Point Name */
+            knowledge_point_name: string;
+            /** Mastery */
+            mastery: number;
+            /** Problem Count */
+            problem_count: number;
         };
         /** WeeklyStatRead */
         WeeklyStatRead: {
@@ -4386,6 +4538,153 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ProblemRead"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    read_study_profile_api_profile_get: {
+        parameters: {
+            query?: {
+                as_of?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StudyProfileResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    read_goals_api_profile_goals_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GoalsResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    update_goals_api_profile_goals_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GoalsUpdateRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GoalsResponse"];
                 };
             };
             /** @description Unauthorized */

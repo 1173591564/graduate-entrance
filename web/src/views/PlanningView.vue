@@ -17,6 +17,7 @@ import {
   type PlanningConfig,
   type TaskType,
 } from '../services/planning'
+import { fetchGoals, saveGoals } from '../services/profile'
 
 const weekdays = ['周一', '周二', '周三', '周四', '周五', '周六', '周日']
 const materialTypes: Array<{ value: MaterialType; label: string }> = [
@@ -70,6 +71,14 @@ const materialForm = reactive({
   source: '',
   description: '',
 })
+const DEFAULT_FULL_SCORES: Record<string, number> = {
+  数学一: 150,
+  408: 150,
+  英语一: 100,
+  政治: 100,
+}
+const goalForms = reactive<Record<string, { target_score: number; full_score: number }>>({})
+
 const templateForm = reactive({
   subject_id: '',
   material_id: '',
@@ -108,10 +117,18 @@ function phaseName(phaseId: string): string {
 }
 
 async function loadConfig(): Promise<void> {
-  config.value = await fetchPlanningConfig()
+  const [planningConfig, goalsResponse] = await Promise.all([fetchPlanningConfig(), fetchGoals()])
+  config.value = planningConfig
   for (const subject of config.value.subjects) {
     if (!(subject.id in phaseRatios)) {
       phaseRatios[subject.id] = 0
+    }
+    if (!(subject.id in goalForms)) {
+      const saved = goalsResponse.goals.find((goal) => goal.subject_id === subject.id)
+      goalForms[subject.id] = {
+        target_score: saved?.target_score ?? 0,
+        full_score: saved?.full_score ?? DEFAULT_FULL_SCORES[subject.name] ?? 100,
+      }
     }
   }
   templateForm.subject_id ||= config.value.subjects[0]?.id ?? ''
@@ -248,6 +265,32 @@ async function submitTemplate(): Promise<void> {
   templateForm.phase_ids = []
 }
 
+const goalTotal = computed(() =>
+  Object.values(goalForms).reduce((total, form) => total + Number(form.target_score || 0), 0),
+)
+
+async function submitGoals(): Promise<void> {
+  const subjects = config.value?.subjects ?? []
+  for (const subject of subjects) {
+    const form = goalForms[subject.id]
+    if (form && Number(form.target_score) > Number(form.full_score)) {
+      error.value = `${subject.name} 的目标分不能超过满分`
+      return
+    }
+  }
+  await runMutation(
+    () =>
+      saveGoals(
+        subjects.map((subject) => ({
+          subject_id: subject.id,
+          target_score: Number(goalForms[subject.id]?.target_score ?? 0),
+          full_score: Number(goalForms[subject.id]?.full_score ?? 100),
+        })),
+      ),
+    '目标分已保存',
+  )
+}
+
 onMounted(async () => {
   try {
     await loadConfig()
@@ -310,11 +353,56 @@ onMounted(async () => {
         class="section-nav"
         aria-label="规划配置分区"
       >
+        <a href="#goals">目标分</a>
         <a href="#phases">阶段配比</a>
         <a href="#availability">可用时段</a>
         <a href="#materials">资料库</a>
         <a href="#templates">任务模板</a>
       </nav>
+
+      <section
+        id="goals"
+        class="config-section"
+      >
+        <div class="section-heading">
+          <div>
+            <span>00</span>
+            <h2>各科目标分</h2>
+          </div>
+          <strong>总目标 {{ goalTotal }} 分</strong>
+        </div>
+        <form
+          class="config-form goals-form"
+          @submit.prevent="submitGoals"
+        >
+          <div class="goals-grid">
+            <label
+              v-for="subject in config.subjects"
+              :key="subject.id"
+              class="goal-row"
+            >
+              {{ subject.name }}
+              <span class="goal-inputs">
+                <input
+                  v-model.number="goalForms[subject.id].target_score"
+                  type="number"
+                  min="0"
+                  :max="goalForms[subject.id].full_score"
+                  :data-testid="`goal-target-${subject.code}`"
+                >
+                / {{ goalForms[subject.id].full_score }} 分
+              </span>
+            </label>
+          </div>
+          <button
+            type="submit"
+            :disabled="busy"
+            data-testid="save-goals"
+          >
+            保存目标分
+          </button>
+        </form>
+      </section>
 
       <section
         id="phases"
@@ -1076,6 +1164,28 @@ h1 {
 
 .config-form h3 {
   margin: 0;
+}
+
+.goals-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px 20px;
+}
+
+.goal-inputs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #5b6880;
+}
+
+.goal-inputs input {
+  width: 90px;
+}
+
+.goals-form button {
+  margin-top: 16px;
+  align-self: flex-start;
 }
 
 .config-form label {

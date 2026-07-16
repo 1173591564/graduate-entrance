@@ -16,6 +16,7 @@ from graduate_entrance.models.problems import (
     ReviewLog,
     Solution,
 )
+from graduate_entrance.models.profile import SubjectGoal
 from graduate_entrance.models.scheduling import AiWeekPlan, ScheduledTask, TaskPoolItem
 from graduate_entrance.models.syllabus import (
     Chapter,
@@ -51,6 +52,7 @@ __all__ = [
     "Section",
     "Solution",
     "Subject",
+    "SubjectGoal",
     "SyllabusModule",
     "SyllabusVersion",
     "TaskTemplate",
