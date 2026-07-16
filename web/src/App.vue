@@ -18,6 +18,9 @@
         <RouterLink to="/stats">
           周统计
         </RouterLink>
+        <RouterLink to="/problems">
+          题库审核
+        </RouterLink>
         <RouterLink to="/syllabus">
           考纲
         </RouterLink>

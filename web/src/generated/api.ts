@@ -349,6 +349,126 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/problems": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read Problems */
+        get: operations["read_problems_api_problems_get"];
+        put?: never;
+        /** Submit Problem */
+        post: operations["submit_problem_api_problems_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/problems/images/{image_name}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read Problem Image */
+        get: operations["read_problem_image_api_problems_images__image_name__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/problems/pending": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read Pending Problems */
+        get: operations["read_pending_problems_api_problems_pending_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/problems/{problem_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read Problem */
+        get: operations["read_problem_api_problems__problem_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/problems/{problem_id}/confirm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Confirm Problem Endpoint */
+        post: operations["confirm_problem_endpoint_api_problems__problem_id__confirm_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/problems/{problem_id}/reopen": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reopen Problem Endpoint */
+        post: operations["reopen_problem_endpoint_api_problems__problem_id__reopen_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/problems/{problem_id}/solutions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Add Solution Endpoint */
+        post: operations["add_solution_endpoint_api_problems__problem_id__solutions_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/stats/weekly": {
         parameters: {
             query?: never;
@@ -515,6 +635,39 @@ export interface components {
             available_minutes: number;
             /** Weekday */
             weekday: number;
+        };
+        /** Body_submit_problem_api_problems_post */
+        Body_submit_problem_api_problems_post: {
+            /**
+             * Content Md
+             * @default
+             */
+            content_md: string;
+            /** Images */
+            images?: string[] | null;
+            /**
+             * Kind
+             * @default wrong
+             * @enum {string}
+             */
+            kind: "wrong" | "hard" | "good";
+            /**
+             * My Answer Md
+             * @default
+             */
+            my_answer_md: string;
+            /**
+             * Note
+             * @default
+             */
+            note: string;
+            /**
+             * Source Ref
+             * @default
+             */
+            source_ref: string;
+            /** Subject Id */
+            subject_id?: string | null;
         };
         /** CalendarDayRead */
         CalendarDayRead: {
@@ -974,6 +1127,137 @@ export interface components {
             /** Order */
             order: number;
         };
+        /** ProblemConfirmRequest */
+        ProblemConfirmRequest: {
+            /**
+             * Cause
+             * @default
+             * @enum {string}
+             */
+            cause: "" | "concept" | "calculation" | "method" | "memory" | "misread" | "other";
+            /** Content Md */
+            content_md: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "wrong" | "hard" | "good";
+            /** Knowledge Points */
+            knowledge_points: components["schemas"]["ProblemKnowledgePointInput"][];
+            /**
+             * My Answer Md
+             * @default
+             */
+            my_answer_md: string;
+            /**
+             * Note
+             * @default
+             */
+            note: string;
+            /**
+             * Source Ref
+             * @default
+             */
+            source_ref: string;
+        };
+        /** ProblemKnowledgePointInput */
+        ProblemKnowledgePointInput: {
+            /**
+             * Knowledge Point Id
+             * Format: uuid
+             */
+            knowledge_point_id: string;
+            /**
+             * Role
+             * @enum {string}
+             */
+            role: "primary" | "secondary";
+            /** Weight */
+            weight: number;
+        };
+        /** ProblemKnowledgePointRead */
+        ProblemKnowledgePointRead: {
+            /**
+             * Knowledge Point Id
+             * Format: uuid
+             */
+            knowledge_point_id: string;
+            /** Knowledge Point Name */
+            knowledge_point_name: string;
+            /**
+             * Role
+             * @enum {string}
+             */
+            role: "primary" | "secondary";
+            /** Weight */
+            weight: number;
+        };
+        /** ProblemListResponse */
+        ProblemListResponse: {
+            /** Problems */
+            problems: components["schemas"]["ProblemRead"][];
+            /** Total */
+            total: number;
+        };
+        /** ProblemPendingResponse */
+        ProblemPendingResponse: {
+            /** Problems */
+            problems: components["schemas"]["ProblemRead"][];
+            /** Total */
+            total: number;
+        };
+        /** ProblemRead */
+        ProblemRead: {
+            /**
+             * Cause
+             * @enum {string}
+             */
+            cause: "" | "concept" | "calculation" | "method" | "memory" | "misread" | "other";
+            /** Confirmed At */
+            confirmed_at: string | null;
+            /** Content Md */
+            content_md: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Due Date */
+            due_date: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Images */
+            images: string[];
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "wrong" | "hard" | "good";
+            /** Knowledge Points */
+            knowledge_points: components["schemas"]["ProblemKnowledgePointRead"][];
+            /** My Answer Md */
+            my_answer_md: string;
+            /** Note */
+            note: string;
+            /** Reps */
+            reps: number;
+            /** Solutions */
+            solutions: components["schemas"]["SolutionRead"][];
+            /** Source Ref */
+            source_ref: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "draft" | "confirmed";
+            /** Subject Id */
+            subject_id: string | null;
+            /** Subject Name */
+            subject_name: string | null;
+        };
         /** SectionRead */
         SectionRead: {
             /** Id */
@@ -996,6 +1280,46 @@ export interface components {
              * @constant
              */
             status: "ok";
+        };
+        /** SolutionCreateRequest */
+        SolutionCreateRequest: {
+            /** Content Md */
+            content_md: string;
+            /**
+             * Method Tag
+             * @default
+             */
+            method_tag: string;
+            /**
+             * Source
+             * @default self
+             * @enum {string}
+             */
+            source: "self" | "answer" | "gpt";
+        };
+        /** SolutionRead */
+        SolutionRead: {
+            /** Content Md */
+            content_md: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Method Tag */
+            method_tag: string;
+            /**
+             * Source
+             * @enum {string}
+             */
+            source: "self" | "answer" | "gpt";
+            /** Verified */
+            verified: boolean;
         };
         /** SubjectRead */
         SubjectRead: {
@@ -2494,6 +2818,408 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    read_problems_api_problems_get: {
+        parameters: {
+            query?: {
+                kp_id?: string | null;
+                subject_id?: string | null;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemListResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    submit_problem_api_problems_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_submit_problem_api_problems_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemRead"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    read_problem_image_api_problems_images__image_name__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                image_name: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    read_pending_problems_api_problems_pending_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemPendingResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    read_problem_api_problems__problem_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                problem_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemRead"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    confirm_problem_endpoint_api_problems__problem_id__confirm_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                problem_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProblemConfirmRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemRead"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    reopen_problem_endpoint_api_problems__problem_id__reopen_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                problem_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemRead"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    add_solution_endpoint_api_problems__problem_id__solutions_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                problem_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SolutionCreateRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemRead"];
+                };
             };
             /** @description Unauthorized */
             401: {

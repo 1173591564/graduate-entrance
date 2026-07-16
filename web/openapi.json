@@ -185,6 +185,69 @@
         "title": "AvailabilityRuleInput",
         "type": "object"
       },
+      "Body_submit_problem_api_problems_post": {
+        "properties": {
+          "content_md": {
+            "default": "",
+            "title": "Content Md",
+            "type": "string"
+          },
+          "images": {
+            "anyOf": [
+              {
+                "items": {
+                  "contentMediaType": "application/octet-stream",
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Images"
+          },
+          "kind": {
+            "default": "wrong",
+            "enum": [
+              "wrong",
+              "hard",
+              "good"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "my_answer_md": {
+            "default": "",
+            "title": "My Answer Md",
+            "type": "string"
+          },
+          "note": {
+            "default": "",
+            "title": "Note",
+            "type": "string"
+          },
+          "source_ref": {
+            "default": "",
+            "title": "Source Ref",
+            "type": "string"
+          },
+          "subject_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subject Id"
+          }
+        },
+        "title": "Body_submit_problem_api_problems_post",
+        "type": "object"
+      },
       "CalendarDayRead": {
         "properties": {
           "completed_minutes": {
@@ -1302,6 +1365,326 @@
         "title": "PlanningSubjectRead",
         "type": "object"
       },
+      "ProblemConfirmRequest": {
+        "properties": {
+          "cause": {
+            "default": "",
+            "enum": [
+              "",
+              "concept",
+              "calculation",
+              "method",
+              "memory",
+              "misread",
+              "other"
+            ],
+            "title": "Cause",
+            "type": "string"
+          },
+          "content_md": {
+            "minLength": 1,
+            "title": "Content Md",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "wrong",
+              "hard",
+              "good"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "knowledge_points": {
+            "items": {
+              "$ref": "#/components/schemas/ProblemKnowledgePointInput"
+            },
+            "minItems": 1,
+            "title": "Knowledge Points",
+            "type": "array"
+          },
+          "my_answer_md": {
+            "default": "",
+            "title": "My Answer Md",
+            "type": "string"
+          },
+          "note": {
+            "default": "",
+            "title": "Note",
+            "type": "string"
+          },
+          "source_ref": {
+            "default": "",
+            "title": "Source Ref",
+            "type": "string"
+          }
+        },
+        "required": [
+          "content_md",
+          "kind",
+          "knowledge_points"
+        ],
+        "title": "ProblemConfirmRequest",
+        "type": "object"
+      },
+      "ProblemKnowledgePointInput": {
+        "properties": {
+          "knowledge_point_id": {
+            "format": "uuid",
+            "title": "Knowledge Point Id",
+            "type": "string"
+          },
+          "role": {
+            "enum": [
+              "primary",
+              "secondary"
+            ],
+            "title": "Role",
+            "type": "string"
+          },
+          "weight": {
+            "exclusiveMinimum": 0.0,
+            "maximum": 1.0,
+            "title": "Weight",
+            "type": "number"
+          }
+        },
+        "required": [
+          "knowledge_point_id",
+          "role",
+          "weight"
+        ],
+        "title": "ProblemKnowledgePointInput",
+        "type": "object"
+      },
+      "ProblemKnowledgePointRead": {
+        "properties": {
+          "knowledge_point_id": {
+            "format": "uuid",
+            "title": "Knowledge Point Id",
+            "type": "string"
+          },
+          "knowledge_point_name": {
+            "title": "Knowledge Point Name",
+            "type": "string"
+          },
+          "role": {
+            "enum": [
+              "primary",
+              "secondary"
+            ],
+            "title": "Role",
+            "type": "string"
+          },
+          "weight": {
+            "title": "Weight",
+            "type": "number"
+          }
+        },
+        "required": [
+          "knowledge_point_id",
+          "knowledge_point_name",
+          "role",
+          "weight"
+        ],
+        "title": "ProblemKnowledgePointRead",
+        "type": "object"
+      },
+      "ProblemListResponse": {
+        "properties": {
+          "problems": {
+            "items": {
+              "$ref": "#/components/schemas/ProblemRead"
+            },
+            "title": "Problems",
+            "type": "array"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "total",
+          "problems"
+        ],
+        "title": "ProblemListResponse",
+        "type": "object"
+      },
+      "ProblemPendingResponse": {
+        "properties": {
+          "problems": {
+            "items": {
+              "$ref": "#/components/schemas/ProblemRead"
+            },
+            "title": "Problems",
+            "type": "array"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "total",
+          "problems"
+        ],
+        "title": "ProblemPendingResponse",
+        "type": "object"
+      },
+      "ProblemRead": {
+        "properties": {
+          "cause": {
+            "enum": [
+              "",
+              "concept",
+              "calculation",
+              "method",
+              "memory",
+              "misread",
+              "other"
+            ],
+            "title": "Cause",
+            "type": "string"
+          },
+          "confirmed_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Confirmed At"
+          },
+          "content_md": {
+            "title": "Content Md",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "due_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Due Date"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "images": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Images",
+            "type": "array"
+          },
+          "kind": {
+            "enum": [
+              "wrong",
+              "hard",
+              "good"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "knowledge_points": {
+            "items": {
+              "$ref": "#/components/schemas/ProblemKnowledgePointRead"
+            },
+            "title": "Knowledge Points",
+            "type": "array"
+          },
+          "my_answer_md": {
+            "title": "My Answer Md",
+            "type": "string"
+          },
+          "note": {
+            "title": "Note",
+            "type": "string"
+          },
+          "reps": {
+            "title": "Reps",
+            "type": "integer"
+          },
+          "solutions": {
+            "items": {
+              "$ref": "#/components/schemas/SolutionRead"
+            },
+            "title": "Solutions",
+            "type": "array"
+          },
+          "source_ref": {
+            "title": "Source Ref",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "draft",
+              "confirmed"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "subject_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subject Id"
+          },
+          "subject_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subject Name"
+          }
+        },
+        "required": [
+          "id",
+          "subject_id",
+          "subject_name",
+          "content_md",
+          "images",
+          "source_ref",
+          "kind",
+          "my_answer_md",
+          "cause",
+          "note",
+          "status",
+          "due_date",
+          "reps",
+          "confirmed_at",
+          "created_at",
+          "knowledge_points",
+          "solutions"
+        ],
+        "title": "ProblemRead",
+        "type": "object"
+      },
       "SectionRead": {
         "properties": {
           "id": {
@@ -1355,6 +1738,80 @@
           "environment"
         ],
         "title": "ServiceStatus",
+        "type": "object"
+      },
+      "SolutionCreateRequest": {
+        "properties": {
+          "content_md": {
+            "minLength": 1,
+            "title": "Content Md",
+            "type": "string"
+          },
+          "method_tag": {
+            "default": "",
+            "title": "Method Tag",
+            "type": "string"
+          },
+          "source": {
+            "default": "self",
+            "enum": [
+              "self",
+              "answer",
+              "gpt"
+            ],
+            "title": "Source",
+            "type": "string"
+          }
+        },
+        "required": [
+          "content_md"
+        ],
+        "title": "SolutionCreateRequest",
+        "type": "object"
+      },
+      "SolutionRead": {
+        "properties": {
+          "content_md": {
+            "title": "Content Md",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "method_tag": {
+            "title": "Method Tag",
+            "type": "string"
+          },
+          "source": {
+            "enum": [
+              "self",
+              "answer",
+              "gpt"
+            ],
+            "title": "Source",
+            "type": "string"
+          },
+          "verified": {
+            "title": "Verified",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "content_md",
+          "method_tag",
+          "source",
+          "verified",
+          "created_at"
+        ],
+        "title": "SolutionRead",
         "type": "object"
       },
       "SubjectRead": {
@@ -3672,6 +4129,586 @@
         "summary": "Replace Task Template",
         "tags": [
           "planning"
+        ]
+      }
+    },
+    "/api/problems": {
+      "get": {
+        "operationId": "read_problems_api_problems_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "kp_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Kp Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "subject_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Subject Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 200,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemListResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Read Problems",
+        "tags": [
+          "problems"
+        ]
+      },
+      "post": {
+        "operationId": "submit_problem_api_problems_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_submit_problem_api_problems_post"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Submit Problem",
+        "tags": [
+          "problems"
+        ]
+      }
+    },
+    "/api/problems/images/{image_name}": {
+      "get": {
+        "operationId": "read_problem_image_api_problems_images__image_name__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "image_name",
+            "required": true,
+            "schema": {
+              "title": "Image Name",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Read Problem Image",
+        "tags": [
+          "problems"
+        ]
+      }
+    },
+    "/api/problems/pending": {
+      "get": {
+        "operationId": "read_pending_problems_api_problems_pending_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemPendingResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Read Pending Problems",
+        "tags": [
+          "problems"
+        ]
+      }
+    },
+    "/api/problems/{problem_id}": {
+      "get": {
+        "operationId": "read_problem_api_problems__problem_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "problem_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Problem Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Read Problem",
+        "tags": [
+          "problems"
+        ]
+      }
+    },
+    "/api/problems/{problem_id}/confirm": {
+      "post": {
+        "operationId": "confirm_problem_endpoint_api_problems__problem_id__confirm_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "problem_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Problem Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProblemConfirmRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Confirm Problem Endpoint",
+        "tags": [
+          "problems"
+        ]
+      }
+    },
+    "/api/problems/{problem_id}/reopen": {
+      "post": {
+        "operationId": "reopen_problem_endpoint_api_problems__problem_id__reopen_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "problem_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Problem Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Reopen Problem Endpoint",
+        "tags": [
+          "problems"
+        ]
+      }
+    },
+    "/api/problems/{problem_id}/solutions": {
+      "post": {
+        "operationId": "add_solution_endpoint_api_problems__problem_id__solutions_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "problem_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Problem Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SolutionCreateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Add Solution Endpoint",
+        "tags": [
+          "problems"
         ]
       }
     },
