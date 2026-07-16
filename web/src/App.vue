@@ -27,6 +27,9 @@
         <RouterLink to="/insights">
           错因分析
         </RouterLink>
+        <RouterLink to="/essay">
+          作文素材
+        </RouterLink>
         <RouterLink to="/syllabus">
           考纲
         </RouterLink>

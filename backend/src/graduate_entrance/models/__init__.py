@@ -1,4 +1,5 @@
 from graduate_entrance.db.base import Base
+from graduate_entrance.models.essay import EssayMaterial
 from graduate_entrance.models.planning import (
     AvailabilityException,
     AvailabilityPeriod,
@@ -35,6 +36,7 @@ __all__ = [
     "AvailabilityRule",
     "Base",
     "Chapter",
+    "EssayMaterial",
     "ExamBlueprint",
     "ExamSection",
     "KnowledgeDependency",
