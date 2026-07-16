@@ -46,6 +46,26 @@ export function fetchToday(date?: string): Promise<TodaySummary> {
   return request<TodaySummary>(`/today${query}`)
 }
 
+export interface RescheduleSummary {
+  start_date: string
+  end_date: string
+  carried_over: number
+  warnings: string[]
+}
+
+export function reschedulePlan(options: {
+  startDate: string
+  leaveDates?: string[]
+}): Promise<RescheduleSummary> {
+  return request<RescheduleSummary>('/plan/reschedule', {
+    method: 'POST',
+    body: JSON.stringify({
+      start_date: options.startDate,
+      leave_dates: options.leaveDates ?? [],
+    }),
+  })
+}
+
 export function completeTodayTask(id: string, actualMinutes: number): Promise<TodayTask> {
   return request<TodayTask>(`/tasks/${id}/done`, {
     method: 'POST',

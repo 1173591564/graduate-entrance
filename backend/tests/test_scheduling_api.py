@@ -318,6 +318,173 @@ async def test_persisted_plan_calendar_and_replan_preserve_completed_tasks(
 
 
 @pytest.mark.asyncio
+async def test_reschedule_carries_overdue_tasks_forward(
+    scheduling_context: SchedulingContext,
+) -> None:
+    await scheduling_context.client.post("/api/planning/task-pool/generate")
+    request = {"start_date": "2026-07-20", "end_date": "2026-07-26"}
+    generated = await scheduling_context.client.post("/api/plan/generate", json=request)
+    assert generated.status_code == 200
+    original_tasks = generated.json()["tasks"]
+    assert len(original_tasks) == 4
+    original_pool_ids = {task["pool_item_id"] for task in original_tasks}
+    overdue_count = sum(
+        1 for task in original_tasks if task["planned_date"] < "2026-07-22"
+    )
+    assert overdue_count > 0
+
+    rescheduled = await scheduling_context.client.post(
+        "/api/plan/reschedule",
+        json={"start_date": "2026-07-22", "end_date": "2026-07-26"},
+    )
+    assert rescheduled.status_code == 200
+    payload = rescheduled.json()
+    assert payload["persisted"] is True
+    assert payload["carried_over"] == overdue_count
+
+    async with scheduling_context.session_factory() as session:
+        tasks = (await session.scalars(select(ScheduledTask))).all()
+    assert {str(task.pool_item_id) for task in tasks} == original_pool_ids
+    assert all(task.planned_date.isoformat() >= "2026-07-22" for task in tasks)
+    assert sum(1 for task in tasks if task.carry_count == 1) == overdue_count
+
+    second = await scheduling_context.client.post(
+        "/api/plan/reschedule",
+        json={"start_date": "2026-07-22", "end_date": "2026-07-26"},
+    )
+    assert second.status_code == 200
+    assert second.json()["carried_over"] == 0
+    async with scheduling_context.session_factory() as session:
+        retained = (await session.scalars(select(ScheduledTask))).all()
+    assert sum(1 for task in retained if task.carry_count == 1) == overdue_count
+
+
+@pytest.mark.asyncio
+async def test_reschedule_preserves_completed_and_unfitted_overdue_tasks(
+    scheduling_context: SchedulingContext,
+) -> None:
+    await scheduling_context.client.post("/api/planning/task-pool/generate")
+    request = {"start_date": "2026-07-20", "end_date": "2026-07-26"}
+    await scheduling_context.client.post("/api/plan/generate", json=request)
+
+    async with scheduling_context.session_factory() as session:
+        ordered = (
+            await session.scalars(
+                select(ScheduledTask).order_by(
+                    ScheduledTask.planned_date,
+                    ScheduledTask.order,
+                )
+            )
+        ).all()
+        completed = ordered[0]
+        completed.status = "completed"
+        completed.actual_minutes = 45
+        completed.done_at = datetime.now(UTC)
+        completed_id = completed.id
+        completed_date = completed.planned_date
+        overdue_ids = [task.id for task in ordered[1:] if task.status == "planned"]
+        await session.commit()
+
+    rescheduled = await scheduling_context.client.post(
+        "/api/plan/reschedule",
+        json={"start_date": "2026-07-26", "end_date": "2026-07-26"},
+    )
+    assert rescheduled.status_code == 200
+
+    async with scheduling_context.session_factory() as session:
+        preserved = await session.get(ScheduledTask, completed_id)
+        assert preserved is not None
+        assert preserved.status == "completed"
+        assert preserved.planned_date == completed_date
+        assert preserved.actual_minutes == 45
+        remaining = (
+            await session.scalars(
+                select(ScheduledTask).where(ScheduledTask.id.in_(overdue_ids))
+            )
+        ).all()
+    assert len(remaining) == len(overdue_ids)
+    fitted = [task for task in remaining if task.planned_date.isoformat() == "2026-07-26"]
+    unfitted = [task for task in remaining if task.planned_date.isoformat() < "2026-07-26"]
+    assert all(task.carry_count == 1 for task in fitted)
+    assert all(task.carry_count == 0 for task in unfitted)
+    assert len(fitted) + len(unfitted) == len(overdue_ids)
+
+
+@pytest.mark.asyncio
+async def test_reschedule_marks_leave_dates_and_moves_tasks_off_them(
+    scheduling_context: SchedulingContext,
+) -> None:
+    await scheduling_context.client.post("/api/planning/task-pool/generate")
+    request = {"start_date": "2026-07-20", "end_date": "2026-07-26"}
+    await scheduling_context.client.post("/api/plan/generate", json=request)
+
+    rescheduled = await scheduling_context.client.post(
+        "/api/plan/reschedule",
+        json={
+            "start_date": "2026-07-20",
+            "end_date": "2026-07-26",
+            "leave_dates": ["2026-07-20"],
+        },
+    )
+    assert rescheduled.status_code == 200
+    payload = rescheduled.json()
+    leave_day = next(day for day in payload["days"] if day["date"] == "2026-07-20")
+    assert leave_day["available_minutes"] == 0
+    assert leave_day["planned_minutes"] == 0
+    assert all(task["planned_date"] != "2026-07-20" for task in payload["tasks"])
+
+    config = await scheduling_context.client.get("/api/planning/config")
+    exceptions = config.json()["availability_exceptions"]
+    assert any(
+        exception["date"] == "2026-07-20" and exception["available_minutes"] == 0
+        for exception in exceptions
+    )
+
+    repeated = await scheduling_context.client.post(
+        "/api/plan/reschedule",
+        json={
+            "start_date": "2026-07-20",
+            "end_date": "2026-07-26",
+            "leave_dates": ["2026-07-20"],
+        },
+    )
+    assert repeated.status_code == 200
+    refreshed = await scheduling_context.client.get("/api/planning/config")
+    assert (
+        len(
+            [
+                exception
+                for exception in refreshed.json()["availability_exceptions"]
+                if exception["date"] == "2026-07-20"
+            ]
+        )
+        == 1
+    )
+
+
+@pytest.mark.asyncio
+async def test_reschedule_defaults_end_date_to_last_phase(
+    scheduling_context: SchedulingContext,
+) -> None:
+    await scheduling_context.client.post("/api/planning/task-pool/generate")
+    request = {"start_date": "2026-07-20", "end_date": "2026-07-26"}
+    await scheduling_context.client.post("/api/plan/generate", json=request)
+
+    rescheduled = await scheduling_context.client.post(
+        "/api/plan/reschedule",
+        json={"start_date": "2026-07-21"},
+    )
+    assert rescheduled.status_code == 200
+    assert rescheduled.json()["end_date"] == "2026-07-26"
+
+    empty_range = await scheduling_context.client.post(
+        "/api/plan/reschedule",
+        json={"start_date": "2026-08-01"},
+    )
+    assert empty_range.status_code == 400
+
+
+@pytest.mark.asyncio
 async def test_today_and_check_in_are_idempotent(
     scheduling_context: SchedulingContext,
 ) -> None:
