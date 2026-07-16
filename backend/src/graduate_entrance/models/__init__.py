@@ -17,6 +17,7 @@ from graduate_entrance.models.problems import (
     Solution,
 )
 from graduate_entrance.models.profile import SubjectGoal
+from graduate_entrance.models.retro import RetroMessage
 from graduate_entrance.models.scheduling import AiWeekPlan, ScheduledTask, TaskPoolItem
 from graduate_entrance.models.syllabus import (
     Chapter,
@@ -47,6 +48,7 @@ __all__ = [
     "PlanPhaseSubjectRatio",
     "Problem",
     "ProblemKnowledgePoint",
+    "RetroMessage",
     "ReviewLog",
     "ScheduledTask",
     "Section",

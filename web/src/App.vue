@@ -35,6 +35,9 @@ const daysLeft = computed(() => {
         <RouterLink to="/reviews">
           复习
         </RouterLink>
+        <RouterLink to="/retro">
+          周复盘
+        </RouterLink>
         <RouterLink to="/insights">
           错因分析
         </RouterLink>

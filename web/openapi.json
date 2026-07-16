@@ -2495,6 +2495,242 @@
         "title": "ReciteResult",
         "type": "string"
       },
+      "RetroChatRequest": {
+        "properties": {
+          "content": {
+            "maxLength": 4000,
+            "minLength": 1,
+            "title": "Content",
+            "type": "string"
+          },
+          "week_start": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Week Start"
+          }
+        },
+        "required": [
+          "content"
+        ],
+        "title": "RetroChatRequest",
+        "type": "object"
+      },
+      "RetroChatResponse": {
+        "properties": {
+          "messages": {
+            "items": {
+              "$ref": "#/components/schemas/RetroMessageRead"
+            },
+            "title": "Messages",
+            "type": "array"
+          }
+        },
+        "required": [
+          "messages"
+        ],
+        "title": "RetroChatResponse",
+        "type": "object"
+      },
+      "RetroConfirmRequest": {
+        "properties": {
+          "week_start": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Week Start"
+          }
+        },
+        "title": "RetroConfirmRequest",
+        "type": "object"
+      },
+      "RetroConfirmResponse": {
+        "properties": {
+          "plan": {
+            "$ref": "#/components/schemas/AiWeekPlanResponse"
+          }
+        },
+        "required": [
+          "plan"
+        ],
+        "title": "RetroConfirmResponse",
+        "type": "object"
+      },
+      "RetroContext": {
+        "properties": {
+          "completed_minutes": {
+            "title": "Completed Minutes",
+            "type": "integer"
+          },
+          "completed_tasks": {
+            "title": "Completed Tasks",
+            "type": "integer"
+          },
+          "days_to_exam": {
+            "title": "Days To Exam",
+            "type": "integer"
+          },
+          "execution_rate": {
+            "title": "Execution Rate",
+            "type": "number"
+          },
+          "planned_minutes": {
+            "title": "Planned Minutes",
+            "type": "integer"
+          },
+          "subjects": {
+            "items": {
+              "$ref": "#/components/schemas/RetroSubjectSnapshot"
+            },
+            "title": "Subjects",
+            "type": "array"
+          },
+          "total_tasks": {
+            "title": "Total Tasks",
+            "type": "integer"
+          },
+          "weak_points": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Weak Points",
+            "type": "array"
+          },
+          "week_end": {
+            "format": "date",
+            "title": "Week End",
+            "type": "string"
+          },
+          "week_start": {
+            "format": "date",
+            "title": "Week Start",
+            "type": "string"
+          }
+        },
+        "required": [
+          "week_start",
+          "week_end",
+          "planned_minutes",
+          "completed_minutes",
+          "total_tasks",
+          "completed_tasks",
+          "execution_rate",
+          "days_to_exam",
+          "subjects",
+          "weak_points"
+        ],
+        "title": "RetroContext",
+        "type": "object"
+      },
+      "RetroMessageRead": {
+        "properties": {
+          "content": {
+            "title": "Content",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "role": {
+            "title": "Role",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "role",
+          "content",
+          "created_at"
+        ],
+        "title": "RetroMessageRead",
+        "type": "object"
+      },
+      "RetroSessionResponse": {
+        "properties": {
+          "context": {
+            "$ref": "#/components/schemas/RetroContext"
+          },
+          "messages": {
+            "items": {
+              "$ref": "#/components/schemas/RetroMessageRead"
+            },
+            "title": "Messages",
+            "type": "array"
+          }
+        },
+        "required": [
+          "context",
+          "messages"
+        ],
+        "title": "RetroSessionResponse",
+        "type": "object"
+      },
+      "RetroSubjectSnapshot": {
+        "properties": {
+          "coverage": {
+            "title": "Coverage",
+            "type": "number"
+          },
+          "estimated_score": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Estimated Score"
+          },
+          "mastery": {
+            "title": "Mastery",
+            "type": "number"
+          },
+          "subject_name": {
+            "title": "Subject Name",
+            "type": "string"
+          },
+          "target_score": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Score"
+          }
+        },
+        "required": [
+          "subject_name",
+          "mastery",
+          "coverage",
+          "target_score",
+          "estimated_score"
+        ],
+        "title": "RetroSubjectSnapshot",
+        "type": "object"
+      },
       "ReviewDueResponse": {
         "properties": {
           "as_of": {
@@ -7114,6 +7350,213 @@
         "summary": "Update Goals",
         "tags": [
           "profile"
+        ]
+      }
+    },
+    "/api/retro": {
+      "get": {
+        "operationId": "read_retro_session_api_retro_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "week_start",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Week Start"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RetroSessionResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Read Retro Session",
+        "tags": [
+          "retro"
+        ]
+      }
+    },
+    "/api/retro/confirm": {
+      "post": {
+        "operationId": "post_retro_confirm_api_retro_confirm_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RetroConfirmRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RetroConfirmResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Post Retro Confirm",
+        "tags": [
+          "retro"
+        ]
+      }
+    },
+    "/api/retro/messages": {
+      "post": {
+        "operationId": "post_retro_message_api_retro_messages_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RetroChatRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RetroChatResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Post Retro Message",
+        "tags": [
+          "retro"
         ]
       }
     },
