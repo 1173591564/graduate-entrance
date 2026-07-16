@@ -1019,7 +1019,7 @@ onMounted(async () => {
 
 .eyebrow {
   margin: 0 0 10px;
-  color: #2764e7;
+  color: var(--deep);
   font-size: 14px;
   font-weight: 800;
   letter-spacing: 0.08em;
@@ -1033,7 +1033,7 @@ h1 {
 
 .planning-hero p:last-child {
   margin: 16px 0 0;
-  color: #647087;
+  color: var(--ink-soft);
   line-height: 1.8;
 }
 
@@ -1047,8 +1047,8 @@ h1 {
 .secondary-link {
   flex: 0 0 auto;
   padding: 10px 16px;
-  color: #174cb7;
-  background: #edf4ff;
+  color: var(--deep);
+  background: var(--paper-warm);
 }
 
 .state-card,
@@ -1057,26 +1057,26 @@ h1 {
 .config-section,
 .config-form,
 .record-list article {
-  border: 1px solid #e1e7f0;
+  border: 1px solid var(--rule);
   background: white;
-  box-shadow: 0 18px 45px rgb(40 55 90 / 8%);
+  box-shadow: var(--shadow-card);
 }
 
 .state-card,
 .feedback {
   padding: 18px 20px;
-  border-radius: 16px;
+  border-radius: 3px;
 }
 
 .feedback.success {
-  color: #166534;
-  background: #f0fdf4;
+  color: var(--ok);
+  background: var(--paper-warm);
 }
 
 .feedback.error,
 .state-card.error {
-  color: #a12626;
-  background: #fff7f7;
+  color: var(--danger);
+  background: var(--paper-warm);
 }
 
 .section-nav {
@@ -1087,17 +1087,17 @@ h1 {
   gap: 8px;
   margin: 24px 0;
   padding: 10px;
-  border-radius: 18px;
+  border-radius: 3px;
 }
 
 .section-nav a {
   padding: 9px 14px;
-  color: #526077;
+  color: var(--ink-soft);
 }
 
 .section-nav a:hover {
-  color: #174cb7;
-  background: #edf4ff;
+  color: var(--deep);
+  background: var(--paper-warm);
 }
 
 .config-section {
@@ -1119,7 +1119,7 @@ h1 {
 }
 
 .section-heading span {
-  color: #2764e7;
+  color: var(--deep);
   font-size: 13px;
   font-weight: 850;
 }
@@ -1129,7 +1129,7 @@ h1 {
 }
 
 .section-heading strong {
-  color: #647087;
+  color: var(--ink-soft);
   font-size: 14px;
 }
 
@@ -1150,12 +1150,12 @@ h1 {
 .config-form,
 .record-list article {
   padding: 20px;
-  border-radius: 18px;
+  border-radius: 3px;
   box-shadow: none;
 }
 
 .config-form {
-  background: #f8faff;
+  background: var(--paper-warm);
 }
 
 .config-form.compact {
@@ -1176,7 +1176,7 @@ h1 {
   display: flex;
   align-items: center;
   gap: 8px;
-  color: #5b6880;
+  color: var(--ink-soft);
 }
 
 .goal-inputs input {
@@ -1191,7 +1191,7 @@ h1 {
 .config-form label {
   display: grid;
   gap: 7px;
-  color: #526077;
+  color: var(--ink-soft);
   font-size: 13px;
   font-weight: 750;
 }
@@ -1201,9 +1201,9 @@ select,
 textarea {
   width: 100%;
   padding: 10px 11px;
-  border: 1px solid #d8e0ec;
-  border-radius: 10px;
-  color: #172033;
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  color: var(--deep);
   background: white;
 }
 
@@ -1214,9 +1214,9 @@ textarea {
 .config-form button {
   padding: 11px 16px;
   border: 0;
-  border-radius: 12px;
+  border-radius: 3px;
   color: white;
-  background: #2764e7;
+  background: var(--deep);
   cursor: pointer;
   font-weight: 800;
 }
@@ -1245,13 +1245,13 @@ button:disabled {
 fieldset {
   margin: 0;
   padding: 14px;
-  border: 1px solid #dce4f0;
-  border-radius: 14px;
+  border: 1px solid var(--rule-soft);
+  border-radius: 3px;
 }
 
 legend {
   padding: 0 6px;
-  color: #526077;
+  color: var(--ink-soft);
   font-size: 13px;
   font-weight: 800;
 }
@@ -1268,7 +1268,7 @@ legend {
 
 .ratio-grid label {
   padding: 10px;
-  border-radius: 10px;
+  border-radius: 3px;
   background: white;
 }
 
@@ -1301,7 +1301,7 @@ legend {
 
 .record-title small,
 .muted {
-  color: #7a879b;
+  color: var(--ink-muted);
 }
 
 .record-title h3 {
@@ -1311,15 +1311,15 @@ legend {
 .record-title button {
   padding: 6px 10px;
   border: 0;
-  border-radius: 8px;
-  color: #a12626;
-  background: #fff1f1;
+  border-radius: 3px;
+  color: var(--danger);
+  background: var(--paper-warm);
   cursor: pointer;
 }
 
 .record-list article > p {
   margin: 12px 0;
-  color: #647087;
+  color: var(--ink-soft);
   line-height: 1.65;
 }
 
@@ -1333,28 +1333,28 @@ legend {
 .tag-row span,
 .week-summary span {
   padding: 5px 9px;
-  color: #174cb7;
-  background: #edf4ff;
+  color: var(--deep);
+  background: var(--paper-warm);
   font-size: 12px;
 }
 
 .week-summary span {
-  border-radius: 8px;
-  color: #526077;
-  background: #f0f3f8;
+  border-radius: 3px;
+  color: var(--ink-soft);
+  background: var(--paper-warm);
 }
 
 .exception-card {
-  border-color: #f0dcae !important;
-  background: #fffbeb !important;
+  border-color: var(--warn) !important;
+  background: var(--paper-warm) !important;
 }
 
 .empty-state {
   margin: 0;
   padding: 20px;
-  border: 1px dashed #ccd6e5;
-  border-radius: 14px;
-  color: #7a879b;
+  border: 1px dashed var(--rule);
+  border-radius: 3px;
+  color: var(--ink-muted);
   text-align: center;
 }
 

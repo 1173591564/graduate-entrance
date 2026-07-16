@@ -259,7 +259,7 @@ onMounted(() => loadDue())
 
 .eyebrow {
   margin: 0 0 8px;
-  color: #2764e7;
+  color: var(--deep);
   font-size: 13px;
   font-weight: 800;
   letter-spacing: 0.08em;
@@ -273,14 +273,14 @@ onMounted(() => loadDue())
 
 .reviews-hero p:last-child {
   margin: 12px 0 0;
-  color: #647087;
+  color: var(--ink-soft);
 }
 
 .due-count {
   padding: 8px 14px;
   border-radius: 999px;
-  color: #174cb7;
-  background: #edf4ff;
+  color: var(--deep);
+  background: var(--paper-warm);
   font-weight: 800;
   white-space: nowrap;
 }
@@ -295,16 +295,16 @@ onMounted(() => loadDue())
   display: flex;
   align-items: center;
   gap: 8px;
-  color: #526077;
+  color: var(--ink-soft);
   font-weight: 750;
 }
 
 .refresh-button {
   padding: 8px 14px;
-  border: 1px solid #c9d4e5;
-  border-radius: 10px;
-  color: #2c3a52;
-  background: #f6f8fc;
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  color: var(--ink);
+  background: var(--paper-warm);
   cursor: pointer;
   font-weight: 750;
 }
@@ -318,8 +318,8 @@ onMounted(() => loadDue())
   display: grid;
   gap: 12px;
   padding: 22px;
-  border: 1px solid #dfe6f0;
-  border-radius: 20px;
+  border: 1px solid var(--rule);
+  border-radius: 3px;
   background: white;
 }
 
@@ -343,18 +343,18 @@ onMounted(() => loadDue())
 }
 
 .status-badge.draft {
-  color: #8a5b12;
-  background: #fff3d6;
+  color: var(--warn);
+  background: var(--paper-warm);
 }
 
 .status-badge.confirmed {
-  color: #17641e;
-  background: #e9f8ec;
+  color: var(--ok);
+  background: var(--paper-warm);
 }
 
 .meta {
   margin: 0;
-  color: #718096;
+  color: var(--ink-soft);
   font-size: 13px;
   font-weight: 700;
 }
@@ -368,15 +368,15 @@ onMounted(() => loadDue())
 .image-strip img {
   max-width: 240px;
   max-height: 180px;
-  border: 1px solid #e0e6f0;
-  border-radius: 12px;
+  border: 1px solid var(--rule);
+  border-radius: 3px;
   object-fit: contain;
 }
 
 .content-body {
   padding: 14px;
-  border-radius: 14px;
-  background: #f6f8fc;
+  border-radius: 3px;
+  background: var(--paper-warm);
   white-space: pre-wrap;
 }
 
@@ -392,24 +392,24 @@ onMounted(() => loadDue())
 .kp-list li {
   padding: 4px 10px;
   border-radius: 999px;
-  background: #eef2f8;
-  color: #526077;
+  background: var(--rule-soft);
+  color: var(--ink-soft);
   font-size: 12px;
   font-weight: 700;
 }
 
 .kp-list li.primary {
-  background: #edf4ff;
-  color: #174cb7;
+  background: var(--paper-warm);
+  color: var(--deep);
 }
 
 .reveal-button {
   justify-self: start;
   padding: 8px 14px;
-  border: 1px dashed #c9d4e5;
-  border-radius: 10px;
-  color: #2c3a52;
-  background: #f6f8fc;
+  border: 1px dashed var(--rule);
+  border-radius: 3px;
+  color: var(--ink);
+  background: var(--paper-warm);
   cursor: pointer;
   font-weight: 750;
 }
@@ -421,13 +421,13 @@ onMounted(() => loadDue())
 
 .solution {
   padding: 12px 14px;
-  border-radius: 12px;
-  border: 1px solid #e0e6f0;
+  border-radius: 3px;
+  border: 1px solid var(--rule);
 }
 
 .solution-tag {
   margin: 0 0 4px;
-  color: #2764e7;
+  color: var(--deep);
   font-size: 12px;
   font-weight: 800;
 }
@@ -445,7 +445,7 @@ onMounted(() => loadDue())
 .grade-button {
   padding: 12px;
   border: 0;
-  border-radius: 12px;
+  border-radius: 3px;
   color: white;
   cursor: pointer;
   font-weight: 800;
@@ -457,15 +457,15 @@ onMounted(() => loadDue())
 }
 
 .grade-button.forgot {
-  background: #e2544a;
+  background: var(--danger);
 }
 
 .grade-button.vague {
-  background: #e0912f;
+  background: var(--warn);
 }
 
 .grade-button.mastered {
-  background: #2f9e57;
+  background: var(--ok);
 }
 
 .feedback,
@@ -473,22 +473,22 @@ onMounted(() => loadDue())
 .empty-state {
   margin: 0;
   padding: 16px 18px;
-  border-radius: 14px;
+  border-radius: 3px;
 }
 
 .feedback.error {
-  color: #8a2424;
-  background: #fff0f0;
+  color: var(--danger);
+  background: var(--paper-warm);
 }
 
 .feedback.success {
-  color: #17641e;
-  background: #e9f8ec;
+  color: var(--ok);
+  background: var(--paper-warm);
 }
 
 .loading-state,
 .empty-state {
-  color: #718096;
+  color: var(--ink-soft);
   background: white;
 }
 

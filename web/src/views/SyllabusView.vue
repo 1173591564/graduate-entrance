@@ -194,19 +194,19 @@ onMounted(async () => {
 .summary-grid article,
 .subject-panel,
 .tree-card {
-  border: 1px solid #e1e7f0;
-  border-radius: 20px;
+  border: 1px solid var(--rule);
+  border-radius: 3px;
   background: white;
-  box-shadow: 0 18px 45px rgb(40 55 90 / 8%);
+  box-shadow: var(--shadow-card);
 }
 
 .state-card {
   padding: 24px;
-  color: #647087;
+  color: var(--ink-soft);
 }
 
 .state-card.error {
-  color: #a12626;
+  color: var(--danger);
 }
 
 .summary-grid {
@@ -222,7 +222,7 @@ onMounted(async () => {
 
 .summary-grid span,
 .subject-panel dt {
-  color: #738097;
+  color: var(--ink-muted);
   font-size: 13px;
   font-weight: 700;
 }
@@ -245,21 +245,21 @@ onMounted(async () => {
   align-items: center;
   justify-content: space-between;
   padding: 14px 16px;
-  border: 1px solid #dbe3ef;
-  border-radius: 16px;
-  color: #465269;
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  color: var(--ink-soft);
   background: white;
   cursor: pointer;
 }
 
 .subject-tabs button.active {
-  border-color: #2764e7;
-  color: #174cb7;
-  background: #edf4ff;
+  border-color: var(--deep);
+  color: var(--deep);
+  background: var(--paper-warm);
 }
 
 .subject-tabs small {
-  color: #7a879b;
+  color: var(--ink-muted);
 }
 
 .tree-layout {
@@ -293,7 +293,7 @@ onMounted(async () => {
   display: flex;
   justify-content: space-between;
   padding-bottom: 12px;
-  border-bottom: 1px solid #edf1f7;
+  border-bottom: 1px solid var(--rule-soft);
 }
 
 .subject-panel dd {
@@ -304,8 +304,8 @@ onMounted(async () => {
 .exam-blueprint {
   margin-top: 18px;
   padding: 14px;
-  border-radius: 14px;
-  background: #f3f6fb;
+  border-radius: 3px;
+  background: var(--paper-warm);
 }
 
 .exam-blueprint h3,
@@ -315,7 +315,7 @@ onMounted(async () => {
 
 .exam-blueprint p {
   margin-top: 8px;
-  color: #647087;
+  color: var(--ink-soft);
   font-size: 13px;
   line-height: 1.6;
 }
@@ -326,11 +326,11 @@ onMounted(async () => {
 
 .module-section > h2 {
   margin: 0 0 12px;
-  color: #2764e7;
+  color: var(--deep);
 }
 
 details {
-  border-top: 1px solid #edf1f7;
+  border-top: 1px solid var(--rule-soft);
 }
 
 summary {
@@ -347,8 +347,8 @@ summary {
 
 .section-block {
   padding: 16px;
-  border-radius: 16px;
-  background: #f8faff;
+  border-radius: 3px;
+  background: var(--paper-warm);
 }
 
 .section-block h3 {
@@ -369,21 +369,21 @@ li {
   gap: 12px;
   justify-content: space-between;
   padding: 10px 12px;
-  border-radius: 12px;
+  border-radius: 3px;
   background: white;
-  color: #28344d;
+  color: var(--ink);
 }
 
 li small {
   flex: 0 0 auto;
-  color: #2764e7;
+  color: var(--deep);
   font-weight: 800;
 }
 
 .chapter-points {
   padding: 16px;
-  border-radius: 16px;
-  background: #f8faff;
+  border-radius: 3px;
+  background: var(--paper-warm);
 }
 
 @media (max-width: 920px) {

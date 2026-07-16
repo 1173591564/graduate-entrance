@@ -180,7 +180,7 @@ onMounted(() => loadStats())
 
 .eyebrow {
   margin: 0 0 8px;
-  color: #2764e7;
+  color: var(--deep);
   font-size: 13px;
   font-weight: 800;
   letter-spacing: 0.08em;
@@ -194,7 +194,7 @@ onMounted(() => loadStats())
 
 .stats-hero p:last-child {
   margin: 12px 0 0;
-  color: #647087;
+  color: var(--ink-soft);
 }
 
 .range-control {
@@ -202,15 +202,15 @@ onMounted(() => loadStats())
   align-items: flex-end;
   gap: 10px;
   padding: 14px;
-  border: 1px solid #dfe6f0;
-  border-radius: 16px;
+  border: 1px solid var(--rule);
+  border-radius: 3px;
   background: white;
 }
 
 .range-control label {
   display: grid;
   gap: 6px;
-  color: #526077;
+  color: var(--ink-soft);
   font-size: 13px;
   font-weight: 750;
 }
@@ -218,9 +218,9 @@ onMounted(() => loadStats())
 .range-control button {
   padding: 10px 16px;
   border: 0;
-  border-radius: 10px;
+  border-radius: 3px;
   color: white;
-  background: #2764e7;
+  background: var(--deep);
   cursor: pointer;
   font-weight: 800;
 }
@@ -235,13 +235,13 @@ onMounted(() => loadStats())
   display: grid;
   gap: 8px;
   padding: 20px;
-  border: 1px solid #e0e6f0;
-  border-radius: 18px;
+  border: 1px solid var(--rule);
+  border-radius: 3px;
   background: white;
 }
 
 .summary-grid span {
-  color: #718096;
+  color: var(--ink-soft);
   font-size: 13px;
   font-weight: 700;
 }
@@ -259,14 +259,14 @@ onMounted(() => loadStats())
   display: grid;
   gap: 12px;
   padding: 22px;
-  border: 1px solid #dfe6f0;
-  border-radius: 20px;
+  border: 1px solid var(--rule);
+  border-radius: 3px;
   background: white;
 }
 
 .week-card.below-target {
-  border-color: #f3d9a4;
-  background: #fffaf0;
+  border-color: var(--warn);
+  background: var(--paper-warm);
 }
 
 .week-heading {
@@ -285,8 +285,8 @@ onMounted(() => loadStats())
 .rate-badge {
   padding: 5px 9px;
   border-radius: 999px;
-  color: #174cb7;
-  background: #edf4ff;
+  color: var(--deep);
+  background: var(--paper-warm);
   font-size: 12px;
   font-weight: 750;
 }
@@ -299,29 +299,29 @@ onMounted(() => loadStats())
 
 .week-meta span {
   padding: 5px 9px;
-  border-radius: 8px;
-  color: #526077;
-  background: #f0f3f8;
+  border-radius: 3px;
+  color: var(--ink-soft);
+  background: var(--paper-warm);
   font-size: 12px;
   font-weight: 750;
 }
 
 .week-meta .warning-badge {
-  color: #8a5b12;
-  background: #fff3d6;
+  color: var(--warn);
+  background: var(--paper-warm);
 }
 
 .progress-track {
   height: 8px;
   overflow: hidden;
   border-radius: 999px;
-  background: #edf0f5;
+  background: var(--rule-soft);
 }
 
 .progress-fill {
   height: 100%;
   border-radius: 999px;
-  background: #2764e7;
+  background: var(--deep);
 }
 
 .feedback,
@@ -329,17 +329,17 @@ onMounted(() => loadStats())
 .empty-state {
   margin: 0;
   padding: 16px 18px;
-  border-radius: 14px;
+  border-radius: 3px;
 }
 
 .feedback.error {
-  color: #8a2424;
-  background: #fff0f0;
+  color: var(--danger);
+  background: var(--paper-warm);
 }
 
 .loading-state,
 .empty-state {
-  color: #718096;
+  color: var(--ink-soft);
   background: white;
 }
 

@@ -249,7 +249,7 @@ onMounted(async () => {
 
 .eyebrow {
   margin: 0 0 8px;
-  color: #2764e7;
+  color: var(--deep);
   font-size: 14px;
   font-weight: 750;
   letter-spacing: 0.08em;
@@ -263,7 +263,7 @@ onMounted(async () => {
 
 .summary {
   margin: 10px 0 0;
-  color: #647087;
+  color: var(--ink-soft);
 }
 
 .confirm-button {
@@ -271,22 +271,22 @@ onMounted(async () => {
   border: none;
   border-radius: 999px;
   color: white;
-  background: linear-gradient(90deg, #2764e7, #6d47d9);
+  background: linear-gradient(90deg, var(--deep), var(--accent-cs));
   font-weight: 800;
   cursor: pointer;
 }
 
 .state-card {
   padding: 28px;
-  border: 1px solid #e1e7f0;
-  border-radius: 18px;
+  border: 1px solid var(--rule);
+  border-radius: 3px;
   background: white;
-  color: #647087;
+  color: var(--ink-soft);
 }
 
 .state-card.error,
 .feedback.error {
-  color: #b3261e;
+  color: var(--danger);
 }
 
 .context-card {
@@ -294,8 +294,8 @@ onMounted(async () => {
   flex-direction: column;
   gap: 16px;
   padding: 22px;
-  border: 1px solid #e1e7f0;
-  border-radius: 18px;
+  border: 1px solid var(--rule);
+  border-radius: 3px;
   background: white;
 }
 
@@ -307,7 +307,7 @@ onMounted(async () => {
 
 .context-metrics span {
   display: block;
-  color: #8b96aa;
+  color: var(--ink-muted);
   font-size: 13px;
   font-weight: 750;
 }
@@ -319,11 +319,11 @@ onMounted(async () => {
 }
 
 .context-metrics small {
-  color: #738097;
+  color: var(--ink-muted);
 }
 
 .weak-points span {
-  color: #8b96aa;
+  color: var(--ink-muted);
   font-size: 13px;
   font-weight: 750;
 }
@@ -340,8 +340,8 @@ onMounted(async () => {
 .weak-points li {
   padding: 4px 10px;
   border-radius: 999px;
-  background: #fdf1f0;
-  color: #b3261e;
+  background: var(--paper-warm);
+  color: var(--danger);
   font-size: 13px;
 }
 
@@ -353,14 +353,14 @@ onMounted(async () => {
   max-height: 440px;
   overflow-y: auto;
   padding: 20px;
-  border: 1px solid #e1e7f0;
-  border-radius: 18px;
+  border: 1px solid var(--rule);
+  border-radius: 3px;
   background: white;
 }
 
 .empty-hint {
   margin: auto;
-  color: #8b96aa;
+  color: var(--ink-muted);
 }
 
 .message {
@@ -370,7 +370,7 @@ onMounted(async () => {
 .message p {
   margin: 0;
   padding: 12px 16px;
-  border-radius: 16px;
+  border-radius: 3px;
   line-height: 1.7;
   white-space: pre-wrap;
 }
@@ -380,19 +380,19 @@ onMounted(async () => {
 }
 
 .message.user p {
-  background: #2764e7;
+  background: var(--deep);
   color: white;
   border-bottom-right-radius: 4px;
 }
 
 .message.assistant p {
-  background: #f0f4fb;
-  color: #16213a;
+  background: var(--paper-warm);
+  color: var(--ink);
   border-bottom-left-radius: 4px;
 }
 
 .message.pending p {
-  color: #8b96aa;
+  color: var(--ink-muted);
 }
 
 .composer {
@@ -404,8 +404,8 @@ onMounted(async () => {
 .composer textarea {
   flex: 1;
   padding: 12px 14px;
-  border: 1px solid #dbe3ef;
-  border-radius: 14px;
+  border: 1px solid var(--rule);
+  border-radius: 3px;
   font: inherit;
   resize: vertical;
 }
@@ -415,7 +415,7 @@ onMounted(async () => {
   border: none;
   border-radius: 999px;
   color: white;
-  background: #2764e7;
+  background: var(--deep);
   font-weight: 800;
   cursor: pointer;
 }
@@ -427,9 +427,9 @@ onMounted(async () => {
 
 .plan-card {
   padding: 22px;
-  border: 1px solid #d5e4ff;
-  border-radius: 18px;
-  background: #f4f8ff;
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  background: var(--paper-warm);
 }
 
 .plan-card h2 {
@@ -444,12 +444,12 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  color: #526077;
+  color: var(--ink-soft);
   font-size: 14px;
 }
 
 .plan-card a {
   font-weight: 700;
-  color: #2764e7;
+  color: var(--deep);
 }
 </style>

@@ -372,7 +372,7 @@ onMounted(async () => {
 
 .eyebrow {
   margin: 0 0 8px;
-  color: #2764e7;
+  color: var(--deep);
   font-size: 13px;
   font-weight: 800;
   letter-spacing: 0.08em;
@@ -386,7 +386,7 @@ onMounted(async () => {
 
 .today-hero p:last-child {
   margin: 12px 0 0;
-  color: #647087;
+  color: var(--ink-soft);
 }
 
 .date-control {
@@ -394,8 +394,8 @@ onMounted(async () => {
   align-items: flex-end;
   gap: 10px;
   padding: 14px;
-  border: 1px solid #dfe6f0;
-  border-radius: 16px;
+  border: 1px solid var(--rule);
+  border-radius: 3px;
   background: white;
 }
 
@@ -403,7 +403,7 @@ onMounted(async () => {
 .check-in-control label {
   display: grid;
   gap: 6px;
-  color: #526077;
+  color: var(--ink-soft);
   font-size: 13px;
   font-weight: 750;
 }
@@ -412,9 +412,9 @@ onMounted(async () => {
 .complete-button {
   padding: 10px 16px;
   border: 0;
-  border-radius: 10px;
+  border-radius: 3px;
   color: white;
-  background: #2764e7;
+  background: var(--deep);
   cursor: pointer;
   font-weight: 800;
 }
@@ -428,25 +428,25 @@ onMounted(async () => {
 .reschedule-button,
 .leave-button {
   padding: 10px 16px;
-  border: 1px solid #2764e7;
-  border-radius: 10px;
-  color: #2764e7;
+  border: 1px solid var(--deep);
+  border-radius: 3px;
+  color: var(--deep);
   background: white;
   cursor: pointer;
   font-weight: 800;
 }
 
 .leave-button {
-  border-color: #b7791f;
-  color: #b7791f;
+  border-color: var(--warn);
+  color: var(--warn);
 }
 
 .ai-week-button {
   padding: 10px 16px;
   border: 0;
-  border-radius: 10px;
+  border-radius: 3px;
   color: white;
-  background: linear-gradient(120deg, #2764e7, #7b3ff2);
+  background: linear-gradient(120deg, var(--deep), var(--accent-cs));
   cursor: pointer;
   font-weight: 800;
 }
@@ -455,9 +455,9 @@ onMounted(async () => {
   display: grid;
   gap: 12px;
   padding: 22px;
-  border: 1px solid #d9d2f5;
-  border-radius: 20px;
-  background: linear-gradient(150deg, #f6f4ff, #fdfcff);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  background: linear-gradient(150deg, var(--paper-warm), var(--card));
 }
 
 .ai-advice-heading {
@@ -475,9 +475,9 @@ onMounted(async () => {
 
 .toggle-button {
   padding: 6px 12px;
-  border: 1px solid #b8a7ee;
+  border: 1px solid var(--accent-cs);
   border-radius: 999px;
-  color: #5b3ec9;
+  color: var(--accent-cs);
   background: white;
   cursor: pointer;
   font-size: 13px;
@@ -486,15 +486,15 @@ onMounted(async () => {
 
 .ai-summary {
   margin: 0;
-  color: #3f3663;
+  color: var(--ink);
 }
 
 .ai-today-focus {
   margin: 0;
   padding: 10px 14px;
-  border-radius: 12px;
-  color: #4527a8;
-  background: #ede8fc;
+  border-radius: 3px;
+  color: var(--accent-cs);
+  background: var(--paper-warm);
   font-weight: 750;
 }
 
@@ -510,20 +510,20 @@ onMounted(async () => {
 .ai-focus-list li {
   display: flex;
   gap: 10px;
-  color: #4a4468;
+  color: var(--ink);
   font-size: 14px;
 }
 
 .focus-date {
   flex-shrink: 0;
-  color: #7a6fb0;
+  color: var(--accent-cs);
   font-weight: 750;
 }
 
 .ai-suggestion-list li {
   padding: 8px 12px;
-  border-radius: 10px;
-  color: #4a4468;
+  border-radius: 3px;
+  color: var(--ink);
   background: white;
   font-size: 14px;
 }
@@ -545,13 +545,13 @@ onMounted(async () => {
   display: grid;
   gap: 8px;
   padding: 20px;
-  border: 1px solid #e0e6f0;
-  border-radius: 18px;
+  border: 1px solid var(--rule);
+  border-radius: 3px;
   background: white;
 }
 
 .summary-grid span {
-  color: #718096;
+  color: var(--ink-soft);
   font-size: 13px;
   font-weight: 700;
 }
@@ -570,14 +570,14 @@ onMounted(async () => {
   grid-template-columns: 1fr auto;
   gap: 24px;
   padding: 22px;
-  border: 1px solid #dfe6f0;
-  border-radius: 20px;
+  border: 1px solid var(--rule);
+  border-radius: 3px;
   background: white;
 }
 
 .task-card.completed {
-  border-color: #cbe9d4;
-  background: #f7fcf8;
+  border-color: var(--ok);
+  background: var(--paper-warm);
 }
 
 .task-heading,
@@ -597,23 +597,23 @@ onMounted(async () => {
 }
 
 .subject-badge {
-  color: #174cb7;
-  background: #edf4ff;
+  color: var(--deep);
+  background: var(--paper-warm);
 }
 
 .status-badge {
-  color: #7b5b11;
-  background: #fff6d8;
+  color: var(--warn);
+  background: var(--paper-warm);
 }
 
 .status-badge.completed {
-  color: #236438;
-  background: #e2f6e8;
+  color: var(--ok);
+  background: var(--paper-warm);
 }
 
 .status-badge.skipped {
-  color: #687386;
-  background: #edf0f4;
+  color: var(--ink-soft);
+  background: var(--rule-soft);
 }
 
 .task-card h2 {
@@ -623,7 +623,7 @@ onMounted(async () => {
 
 .task-card p {
   margin: 0;
-  color: #647087;
+  color: var(--ink-soft);
 }
 
 .task-meta {
@@ -631,9 +631,9 @@ onMounted(async () => {
 }
 
 .task-meta span {
-  border-radius: 8px;
-  color: #526077;
-  background: #f0f3f8;
+  border-radius: 3px;
+  color: var(--ink-soft);
+  background: var(--paper-warm);
 }
 
 .check-in-control {
@@ -652,22 +652,22 @@ onMounted(async () => {
 .empty-state {
   margin: 0;
   padding: 16px 18px;
-  border-radius: 14px;
+  border-radius: 3px;
 }
 
 .feedback.error {
-  color: #8a2424;
-  background: #fff0f0;
+  color: var(--danger);
+  background: var(--paper-warm);
 }
 
 .feedback.notice {
-  color: #236438;
-  background: #e9f8ee;
+  color: var(--ok);
+  background: var(--paper-warm);
 }
 
 .loading-state,
 .empty-state {
-  color: #718096;
+  color: var(--ink-soft);
   background: white;
 }
 
