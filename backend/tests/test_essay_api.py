@@ -1,4 +1,5 @@
 from collections.abc import AsyncIterator
+from typing import Any
 
 import pytest
 import pytest_asyncio
@@ -37,7 +38,7 @@ async def client() -> AsyncIterator[AsyncClient]:
     await engine.dispose()
 
 
-async def create_material(client: AsyncClient, title: str = "环保话题金句") -> dict:
+async def create_material(client: AsyncClient, title: str = "环保话题金句") -> dict[str, Any]:
     response = await client.post(
         "/api/essay/materials?as_of=2026-07-16",
         json={
@@ -50,7 +51,8 @@ async def create_material(client: AsyncClient, title: str = "环保话题金句"
         },
     )
     assert response.status_code == 200
-    return response.json()
+    material: dict[str, Any] = response.json()
+    return material
 
 
 @pytest.mark.asyncio
