@@ -401,6 +401,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/problems/reviews/due": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read Due Reviews */
+        get: operations["read_due_reviews_api_problems_reviews_due_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/problems/{problem_id}": {
         parameters: {
             query?: never;
@@ -446,6 +463,23 @@ export interface paths {
         put?: never;
         /** Reopen Problem Endpoint */
         post: operations["reopen_problem_endpoint_api_problems__problem_id__reopen_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/problems/{problem_id}/review": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Review Problem Endpoint */
+        post: operations["review_problem_endpoint_api_problems__problem_id__review_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1257,6 +1291,46 @@ export interface components {
             subject_id: string | null;
             /** Subject Name */
             subject_name: string | null;
+        };
+        /** ReviewDueResponse */
+        ReviewDueResponse: {
+            /**
+             * As Of
+             * Format: date
+             */
+            as_of: string;
+            /** Problems */
+            problems: components["schemas"]["ProblemRead"][];
+            /** Total */
+            total: number;
+        };
+        /** ReviewRequest */
+        ReviewRequest: {
+            /**
+             * Grade
+             * @enum {string}
+             */
+            grade: "forgot" | "vague" | "mastered";
+        };
+        /** ReviewResult */
+        ReviewResult: {
+            /**
+             * Due Date
+             * Format: date
+             */
+            due_date: string;
+            /** Ef */
+            ef: number;
+            /**
+             * Grade
+             * @enum {string}
+             */
+            grade: "forgot" | "vague" | "mastered";
+            /** Interval Days */
+            interval_days: number;
+            problem: components["schemas"]["ProblemRead"];
+            /** Reps */
+            reps: number;
         };
         /** SectionRead */
         SectionRead: {
@@ -3046,6 +3120,57 @@ export interface operations {
             };
         };
     };
+    read_due_reviews_api_problems_reviews_due_get: {
+        parameters: {
+            query?: {
+                as_of?: string | null;
+                include_drafts?: boolean;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReviewDueResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
     read_problem_api_problems__problem_id__get: {
         parameters: {
             query?: never;
@@ -3166,6 +3291,61 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ProblemRead"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    review_problem_endpoint_api_problems__problem_id__review_post: {
+        parameters: {
+            query?: {
+                as_of?: string | null;
+            };
+            header?: never;
+            path: {
+                problem_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReviewRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReviewResult"];
                 };
             };
             /** @description Unauthorized */

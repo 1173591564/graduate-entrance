@@ -1685,6 +1685,94 @@
         "title": "ProblemRead",
         "type": "object"
       },
+      "ReviewDueResponse": {
+        "properties": {
+          "as_of": {
+            "format": "date",
+            "title": "As Of",
+            "type": "string"
+          },
+          "problems": {
+            "items": {
+              "$ref": "#/components/schemas/ProblemRead"
+            },
+            "title": "Problems",
+            "type": "array"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "total",
+          "as_of",
+          "problems"
+        ],
+        "title": "ReviewDueResponse",
+        "type": "object"
+      },
+      "ReviewRequest": {
+        "properties": {
+          "grade": {
+            "enum": [
+              "forgot",
+              "vague",
+              "mastered"
+            ],
+            "title": "Grade",
+            "type": "string"
+          }
+        },
+        "required": [
+          "grade"
+        ],
+        "title": "ReviewRequest",
+        "type": "object"
+      },
+      "ReviewResult": {
+        "properties": {
+          "due_date": {
+            "format": "date",
+            "title": "Due Date",
+            "type": "string"
+          },
+          "ef": {
+            "title": "Ef",
+            "type": "number"
+          },
+          "grade": {
+            "enum": [
+              "forgot",
+              "vague",
+              "mastered"
+            ],
+            "title": "Grade",
+            "type": "string"
+          },
+          "interval_days": {
+            "title": "Interval Days",
+            "type": "integer"
+          },
+          "problem": {
+            "$ref": "#/components/schemas/ProblemRead"
+          },
+          "reps": {
+            "title": "Reps",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "problem",
+          "grade",
+          "ef",
+          "interval_days",
+          "reps",
+          "due_date"
+        ],
+        "title": "ReviewResult",
+        "type": "object"
+      },
       "SectionRead": {
         "properties": {
           "id": {
@@ -4420,6 +4508,103 @@
         ]
       }
     },
+    "/api/problems/reviews/due": {
+      "get": {
+        "operationId": "read_due_reviews_api_problems_reviews_due_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "as_of",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "As Of"
+            }
+          },
+          {
+            "in": "query",
+            "name": "include_drafts",
+            "required": false,
+            "schema": {
+              "default": true,
+              "title": "Include Drafts",
+              "type": "boolean"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 200,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewDueResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Read Due Reviews",
+        "tags": [
+          "problems"
+        ]
+      }
+    },
     "/api/problems/{problem_id}": {
       "get": {
         "operationId": "read_problem_api_problems__problem_id__get",
@@ -4629,6 +4814,101 @@
           }
         ],
         "summary": "Reopen Problem Endpoint",
+        "tags": [
+          "problems"
+        ]
+      }
+    },
+    "/api/problems/{problem_id}/review": {
+      "post": {
+        "operationId": "review_problem_endpoint_api_problems__problem_id__review_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "problem_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Problem Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "as_of",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "As Of"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReviewRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewResult"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Review Problem Endpoint",
         "tags": [
           "problems"
         ]

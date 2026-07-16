@@ -271,3 +271,88 @@ async def test_problem_lookup_by_knowledge_point_and_solutions(client: AsyncClie
         json={"content_md": "泰勒展开", "source": "gpt"},
     )
     assert gpt_solution.json()["solutions"][1]["verified"] is False
+
+
+@pytest.mark.asyncio
+async def test_due_review_list_includes_drafts_and_respects_flag(client: AsyncClient) -> None:
+    body = await submit_draft(client)
+    problem_id = body["id"]
+
+    due = await client.get("/api/problems/reviews/due")
+    assert due.status_code == 200
+    payload = due.json()
+    assert payload["total"] == 1
+    assert payload["problems"][0]["id"] == problem_id
+
+    confirmed_only = await client.get("/api/problems/reviews/due?include_drafts=false")
+    assert confirmed_only.json()["total"] == 0
+
+    future = await client.get("/api/problems/reviews/due?as_of=2000-01-01")
+    assert future.json()["total"] == 0
+
+
+@pytest.mark.asyncio
+async def test_review_grade_progression_updates_schedule(client: AsyncClient) -> None:
+    body = await submit_draft(client)
+    problem_id = body["id"]
+
+    first = await client.post(
+        f"/api/problems/{problem_id}/review?as_of=2026-07-16",
+        json={"grade": "mastered"},
+    )
+    assert first.status_code == 200
+    first_body = first.json()
+    assert first_body["reps"] == 1
+    assert first_body["interval_days"] == 1
+    assert first_body["due_date"] == "2026-07-17"
+    assert first_body["ef"] > 2.5
+
+    second = await client.post(
+        f"/api/problems/{problem_id}/review?as_of=2026-07-17",
+        json={"grade": "mastered"},
+    )
+    second_body = second.json()
+    assert second_body["reps"] == 2
+    assert second_body["interval_days"] == 6
+    assert second_body["due_date"] == "2026-07-23"
+
+    third = await client.post(
+        f"/api/problems/{problem_id}/review?as_of=2026-07-23",
+        json={"grade": "mastered"},
+    )
+    third_body = third.json()
+    assert third_body["reps"] == 3
+    assert third_body["interval_days"] == round(6 * third_body["ef"])
+
+
+@pytest.mark.asyncio
+async def test_review_forgot_resets_and_floors_ease_factor(client: AsyncClient) -> None:
+    body = await submit_draft(client)
+    problem_id = body["id"]
+
+    await client.post(
+        f"/api/problems/{problem_id}/review?as_of=2026-07-16",
+        json={"grade": "mastered"},
+    )
+    await client.post(
+        f"/api/problems/{problem_id}/review?as_of=2026-07-17",
+        json={"grade": "mastered"},
+    )
+
+    forgot = await client.post(
+        f"/api/problems/{problem_id}/review?as_of=2026-07-23",
+        json={"grade": "forgot"},
+    )
+    forgot_body = forgot.json()
+    assert forgot_body["reps"] == 0
+    assert forgot_body["interval_days"] == 1
+    assert forgot_body["due_date"] == "2026-07-24"
+
+    for _ in range(6):
+        forgot_body = (
+            await client.post(
+                f"/api/problems/{problem_id}/review?as_of=2026-07-24",
+                json={"grade": "forgot"},
+            )
+        ).json()
+    assert forgot_body["ef"] >= 1.3
