@@ -7,6 +7,8 @@ import androidx.lifecycle.viewModelScope
 import com.graduateentrance.app.data.CaptureImage
 import com.graduateentrance.app.data.CaptureRepository
 import com.graduateentrance.app.data.CaptureResult
+import com.graduateentrance.app.data.ExtractionOutcome
+import com.graduateentrance.app.network.ExtractionResultDto
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -18,6 +20,8 @@ data class CaptureUiState(
     val note: String = "",
     val imageUris: List<Uri> = emptyList(),
     val submitting: Boolean = false,
+    val extracting: Boolean = false,
+    val extraction: ExtractionResultDto? = null,
     val notice: String? = null,
 )
 
@@ -36,6 +40,10 @@ class CaptureViewModel(
 
     fun setNote(note: String) {
         _uiState.update { it.copy(note = note) }
+    }
+
+    fun dismissExtraction() {
+        _uiState.update { it.copy(extraction = null) }
     }
 
     fun addImages(uris: List<Uri>) {
@@ -64,11 +72,15 @@ class CaptureViewModel(
                 return@launch
             }
             when (val result = repository.submitProblem(state.kind, state.note, images)) {
-                is CaptureResult.Created -> _uiState.update {
-                    CaptureUiState(
-                        kind = it.kind,
-                        notice = "已上传为草稿（${result.problem.images.size} 张图），请到 Web 审核台定稿",
-                    )
+                is CaptureResult.Created -> {
+                    _uiState.update {
+                        CaptureUiState(
+                            kind = it.kind,
+                            extracting = true,
+                            notice = "已上传为草稿（${result.problem.images.size} 张图），AI 识别中…",
+                        )
+                    }
+                    extract(result.problem.id)
                 }
                 CaptureResult.Offline -> _uiState.update {
                     it.copy(submitting = false, notice = "网络不可用，上传失败")
@@ -77,6 +89,21 @@ class CaptureViewModel(
                     it.copy(submitting = false, notice = "上传失败（HTTP ${result.code}）")
                 }
             }
+        }
+    }
+
+    private fun extract(problemId: String) {
+        viewModelScope.launch {
+            val notice = when (val outcome = repository.extractProblem(problemId)) {
+                is ExtractionOutcome.Extracted -> {
+                    _uiState.update { it.copy(extraction = outcome.result) }
+                    "AI 识别完成，请到 Web 审核台确认定稿"
+                }
+                ExtractionOutcome.Offline -> "草稿已上传，但 AI 识别网络失败，可在 Web 审核台重试"
+                is ExtractionOutcome.Rejected ->
+                    "草稿已上传，但 AI 识别失败（HTTP ${outcome.code}），可在 Web 审核台重试"
+            }
+            _uiState.update { it.copy(extracting = false, notice = notice) }
         }
     }
 

@@ -1,12 +1,16 @@
 package com.graduateentrance.app.network
 
 import com.graduateentrance.app.BuildConfig
+import java.time.Duration
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 object ApiClient {
     private val httpClient = OkHttpClient.Builder()
+        .connectTimeout(Duration.ofSeconds(15))
+        .readTimeout(Duration.ofSeconds(180))
+        .writeTimeout(Duration.ofSeconds(60))
         .addInterceptor { chain ->
             val request = chain.request()
                 .newBuilder()

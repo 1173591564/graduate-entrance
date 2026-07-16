@@ -85,6 +85,26 @@ data class ProblemCreatedDto(
     val images: List<String>,
 )
 
+data class ExtractedKnowledgePointDto(
+    @SerializedName("knowledge_point_id") val knowledgePointId: String,
+    @SerializedName("knowledge_point_name") val knowledgePointName: String,
+    val role: String,
+    val weight: Double,
+)
+
+data class ExtractedSolutionDto(
+    @SerializedName("content_md") val contentMd: String,
+    @SerializedName("method_tag") val methodTag: String,
+)
+
+data class ExtractionResultDto(
+    @SerializedName("problem_id") val problemId: String,
+    val model: String,
+    @SerializedName("content_md") val contentMd: String,
+    @SerializedName("knowledge_points") val knowledgePoints: List<ExtractedKnowledgePointDto>,
+    val solution: ExtractedSolutionDto?,
+)
+
 data class ReviewResultDto(
     val grade: String,
     val ef: Double,
@@ -125,4 +145,7 @@ interface GraduateEntranceApi {
         @Part("note") note: RequestBody,
         @Part images: List<MultipartBody.Part>,
     ): ProblemCreatedDto
+
+    @POST("api/problems/{problemId}/extract")
+    suspend fun extractProblem(@Path("problemId") problemId: String): ExtractionResultDto
 }

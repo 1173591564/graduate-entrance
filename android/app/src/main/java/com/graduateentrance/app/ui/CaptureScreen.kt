@@ -94,6 +94,55 @@ fun CaptureScreen(viewModel: CaptureViewModel) {
             contentPadding = PaddingValues(20.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
+            state.extraction?.let { extraction ->
+                item {
+                    Card(modifier = Modifier.fillMaxWidth()) {
+                        Column(
+                            modifier = Modifier.padding(14.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp),
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Text(
+                                    text = "AI 识别结果预览",
+                                    style = MaterialTheme.typography.titleMedium,
+                                )
+                                TextButton(onClick = { viewModel.dismissExtraction() }) {
+                                    Text("关闭")
+                                }
+                            }
+                            Text(
+                                text = extraction.contentMd,
+                                style = MaterialTheme.typography.bodyMedium,
+                            )
+                            if (extraction.knowledgePoints.isNotEmpty()) {
+                                Text(
+                                    text = "知识点：" + extraction.knowledgePoints.joinToString(" · ") {
+                                        "${it.knowledgePointName}(${if (it.role == "primary") "主" else "次"})"
+                                    },
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                            extraction.solution?.let { solution ->
+                                Text(
+                                    text = "解法草稿：${solution.contentMd}",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                            Text(
+                                text = "以上为 AI 建议，需到 Web 审核台确认后才会定稿",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.tertiary,
+                            )
+                        }
+                    }
+                }
+            }
             state.notice?.let { notice ->
                 item {
                     Card(
@@ -179,10 +228,16 @@ fun CaptureScreen(viewModel: CaptureViewModel) {
             item {
                 Button(
                     onClick = { viewModel.submit() },
-                    enabled = state.imageUris.isNotEmpty() && !state.submitting,
+                    enabled = state.imageUris.isNotEmpty() && !state.submitting && !state.extracting,
                     modifier = Modifier.fillMaxWidth(),
                 ) {
-                    Text(if (state.submitting) "上传中…" else "上传为草稿（${state.imageUris.size} 张图）")
+                    Text(
+                        when {
+                            state.submitting -> "上传中…"
+                            state.extracting -> "AI 识别中…"
+                            else -> "上传并 AI 识别（${state.imageUris.size} 张图）"
+                        },
+                    )
                 }
             }
             item {

@@ -3,7 +3,10 @@ package com.graduateentrance.app
 import com.graduateentrance.app.data.CaptureImage
 import com.graduateentrance.app.data.CaptureRepository
 import com.graduateentrance.app.data.CaptureResult
+import com.graduateentrance.app.data.ExtractionOutcome
 import com.graduateentrance.app.network.DueReviewsDto
+import com.graduateentrance.app.network.ExtractedKnowledgePointDto
+import com.graduateentrance.app.network.ExtractionResultDto
 import com.graduateentrance.app.network.GraduateEntranceApi
 import com.graduateentrance.app.network.ProblemCreatedDto
 import com.graduateentrance.app.network.ReviewRequest
@@ -70,6 +73,27 @@ private class FakeCaptureApi : GraduateEntranceApi {
         lastImageCount = images.size
         return ProblemCreatedDto("p1", "draft", List(images.size) { "img$it.jpg" })
     }
+
+    override suspend fun extractProblem(problemId: String): ExtractionResultDto {
+        if (offline) throw IOException("offline")
+        rejectWith?.let { code ->
+            throw HttpException(
+                Response.error<ExtractionResultDto>(
+                    code,
+                    "{}".toResponseBody("application/json".toMediaType()),
+                ),
+            )
+        }
+        return ExtractionResultDto(
+            problemId = problemId,
+            model = "test-model",
+            contentMd = "求极限",
+            knowledgePoints = listOf(
+                ExtractedKnowledgePointDto("kp1", "两个重要极限", "primary", 0.7),
+            ),
+            solution = null,
+        )
+    }
 }
 
 class CaptureRepositoryTest {
@@ -102,6 +126,30 @@ class CaptureRepositoryTest {
         assertTrue(
             CaptureRepository(api).submitProblem("wrong", "", images) is CaptureResult.Offline,
         )
+    }
+
+    @Test
+    fun extractProblemReturnsResult() = runTest {
+        val api = FakeCaptureApi()
+
+        val outcome = CaptureRepository(api).extractProblem("p1")
+
+        assertTrue(outcome is ExtractionOutcome.Extracted)
+        outcome as ExtractionOutcome.Extracted
+        assertEquals("求极限", outcome.result.contentMd)
+        assertEquals("两个重要极限", outcome.result.knowledgePoints.single().knowledgePointName)
+    }
+
+    @Test
+    fun extractProblemReportsRejection() = runTest {
+        val api = FakeCaptureApi()
+        api.rejectWith = 503
+
+        val outcome = CaptureRepository(api).extractProblem("p1")
+
+        assertTrue(outcome is ExtractionOutcome.Rejected)
+        outcome as ExtractionOutcome.Rejected
+        assertEquals(503, outcome.code)
     }
 
     @Test

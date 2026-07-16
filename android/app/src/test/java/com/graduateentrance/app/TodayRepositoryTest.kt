@@ -6,6 +6,7 @@ import com.graduateentrance.app.data.local.PendingCheckInEntity
 import com.graduateentrance.app.data.local.TodayDao
 import com.graduateentrance.app.data.local.TodayTaskEntity
 import com.graduateentrance.app.network.DueReviewsDto
+import com.graduateentrance.app.network.ExtractionResultDto
 import com.graduateentrance.app.network.GraduateEntranceApi
 import com.graduateentrance.app.network.ProblemCreatedDto
 import com.graduateentrance.app.network.ReviewRequest
@@ -108,6 +109,9 @@ private class FakeApi : GraduateEntranceApi {
         note: RequestBody,
         images: List<MultipartBody.Part>,
     ): ProblemCreatedDto = ProblemCreatedDto("p", "draft", emptyList())
+
+    override suspend fun extractProblem(problemId: String): ExtractionResultDto =
+        ExtractionResultDto(problemId, "test", "", emptyList(), null)
 }
 
 private fun dto(id: String, status: String = "planned", est: Int = 60, order: Int = 0) = TodayTaskDto(

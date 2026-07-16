@@ -4,6 +4,7 @@ import com.graduateentrance.app.data.GradeResult
 import com.graduateentrance.app.data.ReviewsLoadResult
 import com.graduateentrance.app.data.ReviewsRepository
 import com.graduateentrance.app.network.DueReviewsDto
+import com.graduateentrance.app.network.ExtractionResultDto
 import com.graduateentrance.app.network.GraduateEntranceApi
 import com.graduateentrance.app.network.ProblemCreatedDto
 import com.graduateentrance.app.network.ReviewProblemDto
@@ -76,6 +77,9 @@ private class FakeReviewsApi : GraduateEntranceApi {
         note: RequestBody,
         images: List<MultipartBody.Part>,
     ): ProblemCreatedDto = ProblemCreatedDto("p", "draft", emptyList())
+
+    override suspend fun extractProblem(problemId: String): ExtractionResultDto =
+        ExtractionResultDto(problemId, "test", "", emptyList(), null)
 }
 
 class ReviewsRepositoryTest {

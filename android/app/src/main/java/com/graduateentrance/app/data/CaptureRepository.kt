@@ -1,5 +1,6 @@
 package com.graduateentrance.app.data
 
+import com.graduateentrance.app.network.ExtractionResultDto
 import com.graduateentrance.app.network.GraduateEntranceApi
 import com.graduateentrance.app.network.ProblemCreatedDto
 import java.io.IOException
@@ -25,7 +26,22 @@ private val IMAGE_EXTENSIONS = mapOf(
     "image/webp" to "webp",
 )
 
+sealed interface ExtractionOutcome {
+    data class Extracted(val result: ExtractionResultDto) : ExtractionOutcome
+    data object Offline : ExtractionOutcome
+    data class Rejected(val code: Int) : ExtractionOutcome
+}
+
 class CaptureRepository(private val api: GraduateEntranceApi) {
+    suspend fun extractProblem(problemId: String): ExtractionOutcome =
+        try {
+            ExtractionOutcome.Extracted(api.extractProblem(problemId))
+        } catch (_: IOException) {
+            ExtractionOutcome.Offline
+        } catch (error: HttpException) {
+            ExtractionOutcome.Rejected(error.code())
+        }
+
     suspend fun submitProblem(
         kind: String,
         note: String,
