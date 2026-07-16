@@ -438,6 +438,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/problems/batch": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Submit Problem Batch */
+        post: operations["submit_problem_batch_api_problems_batch_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/problems/images/{image_name}": {
         parameters: {
             query?: never;
@@ -534,6 +551,23 @@ export interface paths {
         put?: never;
         /** Extract Problem Endpoint */
         post: operations["extract_problem_endpoint_api_problems__problem_id__extract_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/problems/{problem_id}/grade": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Grade Problem Endpoint */
+        post: operations["grade_problem_endpoint_api_problems__problem_id__grade_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -816,6 +850,22 @@ export interface components {
             /** Weekday */
             weekday: number;
         };
+        /** BatchExtractionItem */
+        BatchExtractionItem: {
+            /** Error */
+            error: string | null;
+            extraction: components["schemas"]["ProblemExtractionResult"] | null;
+            problem: components["schemas"]["ProblemRead"];
+        };
+        /** BatchExtractionResponse */
+        BatchExtractionResponse: {
+            /** Extracted */
+            extracted: number;
+            /** Items */
+            items: components["schemas"]["BatchExtractionItem"][];
+            /** Total */
+            total: number;
+        };
         /** Body_submit_problem_api_problems_post */
         Body_submit_problem_api_problems_post: {
             /**
@@ -841,6 +891,24 @@ export interface components {
              * @default
              */
             note: string;
+            /**
+             * Source Ref
+             * @default
+             */
+            source_ref: string;
+            /** Subject Id */
+            subject_id?: string | null;
+        };
+        /** Body_submit_problem_batch_api_problems_batch_post */
+        Body_submit_problem_batch_api_problems_batch_post: {
+            /** Images */
+            images: string[];
+            /**
+             * Kind
+             * @default wrong
+             * @enum {string}
+             */
+            kind: "wrong" | "hard" | "good";
             /**
              * Source Ref
              * @default
@@ -1068,6 +1136,35 @@ export interface components {
              * @default
              */
             method_tag: string;
+        };
+        /** GradeRequest */
+        GradeRequest: {
+            /**
+             * Answer Md
+             * @default
+             */
+            answer_md: string;
+        };
+        /** GradeResult */
+        GradeResult: {
+            /** Feedback Md */
+            feedback_md: string;
+            /**
+             * Graded At
+             * Format: date-time
+             */
+            graded_at: string;
+            /** Model */
+            model: string;
+            /**
+             * Problem Id
+             * Format: uuid
+             */
+            problem_id: string;
+            /** Score */
+            score: number;
+            /** Suggestions */
+            suggestions: string[];
         };
         /** HealthStatus */
         HealthStatus: {
@@ -1565,6 +1662,12 @@ export interface components {
         };
         /** ProblemRead */
         ProblemRead: {
+            /** Ai Feedback Md */
+            ai_feedback_md: string;
+            /** Ai Graded At */
+            ai_graded_at: string | null;
+            /** Ai Score */
+            ai_score: number | null;
             /**
              * Cause
              * @enum {string}
@@ -3755,6 +3858,57 @@ export interface operations {
             };
         };
     };
+    submit_problem_batch_api_problems_batch_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_submit_problem_batch_api_problems_batch_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BatchExtractionResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
     read_problem_image_api_problems_images__image_name__get: {
         parameters: {
             query?: never;
@@ -4022,6 +4176,59 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ProblemExtractionResult"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    grade_problem_endpoint_api_problems__problem_id__grade_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                problem_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GradeRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GradeResult"];
                 };
             };
             /** @description Unauthorized */

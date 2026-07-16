@@ -49,6 +49,9 @@ export interface Problem {
   due_date: string | null
   reps: number
   confirmed_at: string | null
+  ai_score: number | null
+  ai_feedback_md: string
+  ai_graded_at: string | null
   created_at: string
   knowledge_points: ProblemKnowledgePointRead[]
   solutions: SolutionRead[]
@@ -131,6 +134,59 @@ export async function submitProblem(input: ProblemSubmitInput): Promise<Problem>
     throw new Error(`Problems request failed with status ${response.status}`)
   }
   return (await response.json()) as Problem
+}
+
+export interface BatchExtractionItem {
+  problem: Problem
+  extraction: ProblemExtractionResult | null
+  error: string | null
+}
+
+export interface BatchExtractionResponse {
+  total: number
+  extracted: number
+  items: BatchExtractionItem[]
+}
+
+export interface GradeResult {
+  problem_id: string
+  model: string
+  score: number
+  feedback_md: string
+  suggestions: string[]
+  graded_at: string
+}
+
+export async function submitProblemBatch(input: {
+  subjectId?: string
+  kind: ProblemKind
+  sourceRef: string
+  images: File[]
+}): Promise<BatchExtractionResponse> {
+  const form = new FormData()
+  if (input.subjectId) {
+    form.set('subject_id', input.subjectId)
+  }
+  form.set('kind', input.kind)
+  form.set('source_ref', input.sourceRef)
+  for (const image of input.images) {
+    form.append('images', image)
+  }
+  const response = await apiFetch('/api/problems/batch', {
+    method: 'POST',
+    body: form,
+  })
+  if (!response.ok) {
+    throw new Error(`Problems request failed with status ${response.status}`)
+  }
+  return (await response.json()) as BatchExtractionResponse
+}
+
+export function gradeProblem(id: string, answerMd: string): Promise<GradeResult> {
+  return requestJson<GradeResult>(`/problems/${id}/grade`, {
+    method: 'POST',
+    body: JSON.stringify({ answer_md: answerMd }),
+  })
 }
 
 export function fetchPendingProblems(): Promise<PendingProblems> {

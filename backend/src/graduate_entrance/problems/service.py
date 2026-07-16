@@ -97,6 +97,9 @@ def _to_read(
         due_date=problem.due_date,
         reps=problem.reps,
         confirmed_at=problem.confirmed_at,
+        ai_score=problem.ai_score,
+        ai_feedback_md=problem.ai_feedback_md,
+        ai_graded_at=problem.ai_graded_at,
         created_at=problem.created_at,
         knowledge_points=[
             ProblemKnowledgePointRead(

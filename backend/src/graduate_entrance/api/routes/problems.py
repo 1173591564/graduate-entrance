@@ -11,6 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from graduate_entrance.core.config import get_settings
 from graduate_entrance.db.session import get_session
 from graduate_entrance.problems.extraction import extract_problem
+from graduate_entrance.problems.grading import grade_problem
 from graduate_entrance.problems.service import (
     MAX_IMAGES_PER_PROBLEM,
     add_solution,
@@ -24,6 +25,10 @@ from graduate_entrance.problems.service import (
     review_problem,
 )
 from graduate_entrance.schemas.problems import (
+    BatchExtractionItem,
+    BatchExtractionResponse,
+    GradeRequest,
+    GradeResult,
     ProblemConfirmRequest,
     ProblemExtractionResult,
     ProblemKind,
@@ -46,6 +51,7 @@ ALLOWED_IMAGE_TYPES = {
 }
 IMAGE_NAME_PATTERN = re.compile(r"^[0-9a-f]{32}\.(jpg|png|webp)$")
 MAX_IMAGE_BYTES = 10 * 1024 * 1024
+MAX_BATCH_IMAGES = 12
 
 
 def _images_dir() -> Path:
@@ -109,6 +115,56 @@ async def submit_problem(
     )
 
 
+@router.post(
+    "/problems/batch",
+    response_model=BatchExtractionResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+async def submit_problem_batch(
+    session: Session,
+    images: Annotated[list[UploadFile], File()],
+    subject_id: Annotated[UUID | None, Form()] = None,
+    kind: Annotated[ProblemKind, Form()] = "wrong",
+    source_ref: Annotated[str, Form()] = "",
+) -> BatchExtractionResponse:
+    if not images:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="at least one image is required",
+        )
+    if len(images) > MAX_BATCH_IMAGES:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"at most {MAX_BATCH_IMAGES} images per batch",
+        )
+    image_names: list[str] = []
+    for image in images:
+        image_names.extend(await _save_images([image]))
+    items: list[BatchExtractionItem] = []
+    extracted = 0
+    for image_name in image_names:
+        problem = await create_problem(
+            session,
+            subject_id=subject_id,
+            kind=kind,
+            content_md="",
+            source_ref=source_ref,
+            my_answer_md="",
+            note="",
+            image_names=[image_name],
+        )
+        try:
+            extraction = await extract_problem(session, problem.id)
+        except HTTPException as exc:
+            items.append(
+                BatchExtractionItem(problem=problem, extraction=None, error=str(exc.detail))
+            )
+            continue
+        extracted += 1
+        items.append(BatchExtractionItem(problem=problem, extraction=extraction, error=None))
+    return BatchExtractionResponse(total=len(items), extracted=extracted, items=items)
+
+
 @router.get("/problems/pending", response_model=ProblemPendingResponse)
 async def read_pending_problems(session: Session) -> ProblemPendingResponse:
     return await list_pending(session)
@@ -170,6 +226,15 @@ async def extract_problem_endpoint(
     session: Session,
 ) -> ProblemExtractionResult:
     return await extract_problem(session, problem_id)
+
+
+@router.post("/problems/{problem_id}/grade", response_model=GradeResult)
+async def grade_problem_endpoint(
+    problem_id: UUID,
+    payload: GradeRequest,
+    session: Session,
+) -> GradeResult:
+    return await grade_problem(session, problem_id, payload.answer_md)
 
 
 @router.post("/problems/{problem_id}/reopen", response_model=ProblemRead)
