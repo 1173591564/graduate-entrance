@@ -19,6 +19,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -141,5 +142,35 @@ fun AppEmptyState(
                 Text(actionLabel)
             }
         }
+    }
+}
+
+@Composable
+fun AppStatusChip(
+    label: String,
+    tone: NoticeTone = NoticeTone.INFO,
+    modifier: Modifier = Modifier,
+) {
+    val colors = when (tone) {
+        NoticeTone.INFO -> MaterialTheme.colorScheme.primaryContainer to
+            MaterialTheme.colorScheme.onPrimaryContainer
+        NoticeTone.SUCCESS -> Color(0xFF173F2B) to Color(0xFFC4EED3)
+        NoticeTone.WARNING -> Color(0xFF4A3513) to Color(0xFFFFDDB0)
+        NoticeTone.ERROR -> MaterialTheme.colorScheme.errorContainer to
+            MaterialTheme.colorScheme.onErrorContainer
+        NoticeTone.OFFLINE -> MaterialTheme.colorScheme.surfaceVariant to
+            MaterialTheme.colorScheme.onSurfaceVariant
+    }
+    Surface(
+        modifier = modifier,
+        shape = MaterialTheme.shapes.extraLarge,
+        color = colors.first,
+        contentColor = colors.second,
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelMedium,
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+        )
     }
 }

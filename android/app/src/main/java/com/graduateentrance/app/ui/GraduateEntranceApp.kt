@@ -26,14 +26,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.graduateentrance.app.data.CaptureImage
 import com.graduateentrance.app.data.CaptureRepository
 import com.graduateentrance.app.data.ReviewsRepository
 import com.graduateentrance.app.data.TodayRepository
 import com.graduateentrance.app.data.local.AppDatabase
 import com.graduateentrance.app.network.ApiClient
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 
 @Composable
 fun GraduateEntranceApp() {
@@ -48,15 +45,7 @@ fun GraduateEntranceApp() {
     val captureRepository = remember { CaptureRepository(ApiClient.service) }
     val captureViewModel: CaptureViewModel = viewModel(
         factory = CaptureViewModel.Factory(captureRepository) { uri ->
-            withContext(Dispatchers.IO) {
-                try {
-                    val resolver = context.contentResolver
-                    val bytes = resolver.openInputStream(uri)?.use { it.readBytes() }
-                    bytes?.let { CaptureImage(it, resolver.getType(uri) ?: "image/jpeg") }
-                } catch (_: Exception) {
-                    null
-                }
-            }
+            loadCaptureImage(context, uri)
         },
     )
     var selectedTab by rememberSaveable { mutableIntStateOf(0) }

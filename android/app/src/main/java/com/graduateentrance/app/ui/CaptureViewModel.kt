@@ -59,6 +59,21 @@ class CaptureViewModel(
         }
     }
 
+    fun moveImage(uri: Uri, offset: Int) {
+        _uiState.update { state ->
+            val currentIndex = state.imageUris.indexOf(uri)
+            val targetIndex = currentIndex + offset
+            if (currentIndex < 0 || targetIndex !in state.imageUris.indices) {
+                state
+            } else {
+                val reordered = state.imageUris.toMutableList()
+                val image = reordered.removeAt(currentIndex)
+                reordered.add(targetIndex, image)
+                state.copy(imageUris = reordered)
+            }
+        }
+    }
+
     fun submit() {
         val state = _uiState.value
         if (state.imageUris.isEmpty() || state.submitting) {

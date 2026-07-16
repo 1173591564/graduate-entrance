@@ -18,6 +18,8 @@ data class ReviewsUiState(
     val includeDrafts: Boolean = true,
     val asOf: String = "",
     val total: Int = 0,
+    val sessionTotal: Int = 0,
+    val reviewedCount: Int = 0,
     val problems: List<ReviewProblemDto> = emptyList(),
     val grading: Set<String> = emptySet(),
     val notice: String? = null,
@@ -46,6 +48,8 @@ class ReviewsViewModel(private val repository: ReviewsRepository) : ViewModel() 
                         loading = false,
                         asOf = result.asOf,
                         total = result.total,
+                        sessionTotal = result.problems.size,
+                        reviewedCount = 0,
                         problems = result.problems,
                     )
                 }
@@ -68,6 +72,7 @@ class ReviewsViewModel(private val repository: ReviewsRepository) : ViewModel() 
                         grading = state.grading - problemId,
                         problems = state.problems.filterNot { it.id == problemId },
                         total = (state.total - 1).coerceAtLeast(0),
+                        reviewedCount = state.reviewedCount + 1,
                         notice = "已评级，下次复习 ${result.result.dueDate}" +
                             "（间隔 ${result.result.intervalDays} 天）",
                     )
@@ -83,6 +88,10 @@ class ReviewsViewModel(private val repository: ReviewsRepository) : ViewModel() 
                 }
             }
         }
+    }
+
+    fun consumeNotice() {
+        _uiState.update { it.copy(notice = null) }
     }
 
     class Factory(private val repository: ReviewsRepository) : ViewModelProvider.Factory {
