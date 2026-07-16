@@ -1,3 +1,4 @@
+from datetime import date
 from functools import lru_cache
 from pathlib import Path
 from typing import Literal
@@ -31,6 +32,7 @@ class Settings(BaseSettings):
     ai_api_key: SecretStr = SecretStr("")
     ai_model: str = ""
     ai_timeout_seconds: float = 120.0
+    exam_date: date = date(2026, 12, 26)
 
 
 @lru_cache
