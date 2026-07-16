@@ -339,6 +339,33 @@
         "title": "CalendarWeekRead",
         "type": "object"
       },
+      "CauseInsight": {
+        "properties": {
+          "cause": {
+            "enum": [
+              "",
+              "concept",
+              "calculation",
+              "method",
+              "memory",
+              "misread",
+              "other"
+            ],
+            "title": "Cause",
+            "type": "string"
+          },
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "cause",
+          "count"
+        ],
+        "title": "CauseInsight",
+        "type": "object"
+      },
       "ChapterRead": {
         "properties": {
           "id": {
@@ -600,6 +627,50 @@
           "status"
         ],
         "title": "HealthStatus",
+        "type": "object"
+      },
+      "KnowledgePointInsight": {
+        "properties": {
+          "forgot_reviews": {
+            "title": "Forgot Reviews",
+            "type": "integer"
+          },
+          "knowledge_point_id": {
+            "format": "uuid",
+            "title": "Knowledge Point Id",
+            "type": "string"
+          },
+          "knowledge_point_name": {
+            "title": "Knowledge Point Name",
+            "type": "string"
+          },
+          "problem_count": {
+            "title": "Problem Count",
+            "type": "integer"
+          },
+          "total_reviews": {
+            "title": "Total Reviews",
+            "type": "integer"
+          },
+          "weakness_score": {
+            "title": "Weakness Score",
+            "type": "number"
+          },
+          "weighted_errors": {
+            "title": "Weighted Errors",
+            "type": "number"
+          }
+        },
+        "required": [
+          "knowledge_point_id",
+          "knowledge_point_name",
+          "problem_count",
+          "weighted_errors",
+          "forgot_reviews",
+          "total_reviews",
+          "weakness_score"
+        ],
+        "title": "KnowledgePointInsight",
         "type": "object"
       },
       "KnowledgePointRead": {
@@ -1521,6 +1592,62 @@
         "title": "ProblemExtractionResult",
         "type": "object"
       },
+      "ProblemInsightsResponse": {
+        "properties": {
+          "as_of": {
+            "format": "date",
+            "title": "As Of",
+            "type": "string"
+          },
+          "causes": {
+            "items": {
+              "$ref": "#/components/schemas/CauseInsight"
+            },
+            "title": "Causes",
+            "type": "array"
+          },
+          "confirmed_problems": {
+            "title": "Confirmed Problems",
+            "type": "integer"
+          },
+          "knowledge_points": {
+            "items": {
+              "$ref": "#/components/schemas/KnowledgePointInsight"
+            },
+            "title": "Knowledge Points",
+            "type": "array"
+          },
+          "subjects": {
+            "items": {
+              "$ref": "#/components/schemas/SubjectInsight"
+            },
+            "title": "Subjects",
+            "type": "array"
+          },
+          "total_problems": {
+            "title": "Total Problems",
+            "type": "integer"
+          },
+          "weekly_trend": {
+            "items": {
+              "$ref": "#/components/schemas/WeeklyTrendPoint"
+            },
+            "title": "Weekly Trend",
+            "type": "array"
+          }
+        },
+        "required": [
+          "as_of",
+          "total_problems",
+          "confirmed_problems",
+          "knowledge_points",
+          "causes",
+          "subjects",
+          "weekly_trend"
+        ],
+        "title": "ProblemInsightsResponse",
+        "type": "object"
+      },
       "ProblemKnowledgePointInput": {
         "properties": {
           "knowledge_point_id": {
@@ -1994,6 +2121,42 @@
           "created_at"
         ],
         "title": "SolutionRead",
+        "type": "object"
+      },
+      "SubjectInsight": {
+        "properties": {
+          "problem_count": {
+            "title": "Problem Count",
+            "type": "integer"
+          },
+          "subject_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subject Id"
+          },
+          "subject_name": {
+            "title": "Subject Name",
+            "type": "string"
+          },
+          "wrong_count": {
+            "title": "Wrong Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "subject_id",
+          "subject_name",
+          "problem_count",
+          "wrong_count"
+        ],
+        "title": "SubjectInsight",
         "type": "object"
       },
       "SubjectRead": {
@@ -2632,6 +2795,45 @@
           "overall_execution_rate"
         ],
         "title": "WeeklyStatsResponse",
+        "type": "object"
+      },
+      "WeeklyTrendPoint": {
+        "properties": {
+          "forgot": {
+            "title": "Forgot",
+            "type": "integer"
+          },
+          "mastered": {
+            "title": "Mastered",
+            "type": "integer"
+          },
+          "new_problems": {
+            "title": "New Problems",
+            "type": "integer"
+          },
+          "reviews": {
+            "title": "Reviews",
+            "type": "integer"
+          },
+          "vague": {
+            "title": "Vague",
+            "type": "integer"
+          },
+          "week_start": {
+            "format": "date",
+            "title": "Week Start",
+            "type": "string"
+          }
+        },
+        "required": [
+          "week_start",
+          "new_problems",
+          "reviews",
+          "forgot",
+          "vague",
+          "mastered"
+        ],
+        "title": "WeeklyTrendPoint",
         "type": "object"
       }
     },
@@ -5151,6 +5353,81 @@
         "summary": "Add Solution Endpoint",
         "tags": [
           "problems"
+        ]
+      }
+    },
+    "/api/stats/insights": {
+      "get": {
+        "operationId": "read_problem_insights_api_stats_insights_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "as_of",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "As Of"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemInsightsResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Read Problem Insights",
+        "tags": [
+          "stats"
         ]
       }
     },

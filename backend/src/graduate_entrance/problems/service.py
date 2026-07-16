@@ -7,7 +7,12 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from graduate_entrance.models.problems import Problem, ProblemKnowledgePoint, Solution
+from graduate_entrance.models.problems import (
+    Problem,
+    ProblemKnowledgePoint,
+    ReviewLog,
+    Solution,
+)
 from graduate_entrance.models.syllabus import KnowledgePoint, Subject
 from graduate_entrance.schemas.problems import (
     ProblemConfirmRequest,
@@ -348,6 +353,7 @@ async def review_problem(
     problem.interval_days = next_interval
     problem.reps = next_reps
     problem.due_date = as_of + timedelta(days=next_interval)
+    session.add(ReviewLog(id=uuid4(), problem_id=problem.id, grade=grade, reviewed_on=as_of))
     await session.commit()
     loaded = await _load_problem(session, problem.id)
     read = (await _read_problems(session, [loaded]))[0]

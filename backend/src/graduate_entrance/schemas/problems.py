@@ -109,6 +109,47 @@ class ProblemExtractionResult(BaseModel):
     solution: ExtractedSolution | None
 
 
+class KnowledgePointInsight(BaseModel):
+    knowledge_point_id: UUID
+    knowledge_point_name: str
+    problem_count: int
+    weighted_errors: float
+    forgot_reviews: int
+    total_reviews: int
+    weakness_score: float
+
+
+class CauseInsight(BaseModel):
+    cause: ProblemCause
+    count: int
+
+
+class SubjectInsight(BaseModel):
+    subject_id: UUID | None
+    subject_name: str
+    problem_count: int
+    wrong_count: int
+
+
+class WeeklyTrendPoint(BaseModel):
+    week_start: date
+    new_problems: int
+    reviews: int
+    forgot: int
+    vague: int
+    mastered: int
+
+
+class ProblemInsightsResponse(BaseModel):
+    as_of: date
+    total_problems: int
+    confirmed_problems: int
+    knowledge_points: list[KnowledgePointInsight]
+    causes: list[CauseInsight]
+    subjects: list[SubjectInsight]
+    weekly_trend: list[WeeklyTrendPoint]
+
+
 class ProblemConfirmRequest(BaseModel):
     content_md: str = Field(min_length=1)
     kind: ProblemKind

@@ -9,7 +9,12 @@ from graduate_entrance.models.planning import (
     TaskTemplate,
     TaskTemplatePhase,
 )
-from graduate_entrance.models.problems import Problem, ProblemKnowledgePoint, Solution
+from graduate_entrance.models.problems import (
+    Problem,
+    ProblemKnowledgePoint,
+    ReviewLog,
+    Solution,
+)
 from graduate_entrance.models.scheduling import ScheduledTask, TaskPoolItem
 from graduate_entrance.models.syllabus import (
     Chapter,
@@ -38,6 +43,7 @@ __all__ = [
     "PlanPhaseSubjectRatio",
     "Problem",
     "ProblemKnowledgePoint",
+    "ReviewLog",
     "ScheduledTask",
     "Section",
     "Solution",

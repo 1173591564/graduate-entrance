@@ -427,3 +427,82 @@ async def test_extract_unconfigured_returns_503(client: AsyncClient) -> None:
     body = await submit_draft(client)
     response = await client.post(f"/api/problems/{body['id']}/extract")
     assert response.status_code == 503
+
+
+async def confirm_with_points(client: AsyncClient, problem_id: str, cause: str) -> None:
+    response = await client.post(
+        f"/api/problems/{problem_id}/confirm",
+        json={
+            "content_md": "题面",
+            "kind": "wrong",
+            "cause": cause,
+            "knowledge_points": [
+                {
+                    "knowledge_point_id": str(POINT_IDS[0]),
+                    "role": "primary",
+                    "weight": 0.7,
+                },
+                {
+                    "knowledge_point_id": str(POINT_IDS[1]),
+                    "role": "secondary",
+                    "weight": 0.3,
+                },
+            ],
+        },
+    )
+    assert response.status_code == 200
+
+
+@pytest.mark.asyncio
+async def test_insights_aggregates_weakness_causes_and_trend(client: AsyncClient) -> None:
+    first = await submit_draft(client)
+    second = await submit_draft(client)
+    await confirm_with_points(client, str(first["id"]), cause="concept")
+    await confirm_with_points(client, str(second["id"]), cause="concept")
+
+    forgot = await client.post(
+        f"/api/problems/{first['id']}/review?as_of=2026-07-16",
+        json={"grade": "forgot"},
+    )
+    assert forgot.status_code == 200
+    mastered = await client.post(
+        f"/api/problems/{second['id']}/review?as_of=2026-07-16",
+        json={"grade": "mastered"},
+    )
+    assert mastered.status_code == 200
+
+    response = await client.get("/api/stats/insights?as_of=2026-07-16")
+    assert response.status_code == 200
+    payload = response.json()
+
+    assert payload["total_problems"] == 2
+    assert payload["confirmed_problems"] == 2
+
+    points = payload["knowledge_points"]
+    assert len(points) == 2
+    primary = next(
+        p for p in points if p["knowledge_point_id"] == str(POINT_IDS[0])
+    )
+    assert primary["problem_count"] == 2
+    assert primary["weighted_errors"] == pytest.approx(1.4)
+    assert primary["forgot_reviews"] == 1
+    assert primary["total_reviews"] == 2
+    assert primary["weakness_score"] == pytest.approx(1.4 * 1.5)
+    assert points[0]["knowledge_point_id"] == str(POINT_IDS[0])
+
+    assert payload["causes"] == [{"cause": "concept", "count": 2}]
+
+    subjects = payload["subjects"]
+    assert len(subjects) == 1
+    assert subjects[0]["subject_name"] == "数学一"
+    assert subjects[0]["problem_count"] == 2
+    assert subjects[0]["wrong_count"] == 2
+
+    trend = payload["weekly_trend"]
+    assert len(trend) == 8
+    latest = trend[-1]
+    assert latest["week_start"] == "2026-07-13"
+    assert latest["reviews"] == 2
+    assert latest["forgot"] == 1
+    assert latest["mastered"] == 1
+    assert latest["new_problems"] == 2

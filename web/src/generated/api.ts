@@ -520,6 +520,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/stats/insights": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read Problem Insights */
+        get: operations["read_problem_insights_api_stats_insights_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/stats/weekly": {
         parameters: {
             query?: never;
@@ -760,6 +777,16 @@ export interface components {
              */
             week_start: string;
         };
+        /** CauseInsight */
+        CauseInsight: {
+            /**
+             * Cause
+             * @enum {string}
+             */
+            cause: "" | "concept" | "calculation" | "method" | "memory" | "misread" | "other";
+            /** Count */
+            count: number;
+        };
         /** ChapterRead */
         ChapterRead: {
             /** Id */
@@ -852,6 +879,26 @@ export interface components {
              * @enum {string}
              */
             status: "ok" | "unavailable";
+        };
+        /** KnowledgePointInsight */
+        KnowledgePointInsight: {
+            /** Forgot Reviews */
+            forgot_reviews: number;
+            /**
+             * Knowledge Point Id
+             * Format: uuid
+             */
+            knowledge_point_id: string;
+            /** Knowledge Point Name */
+            knowledge_point_name: string;
+            /** Problem Count */
+            problem_count: number;
+            /** Total Reviews */
+            total_reviews: number;
+            /** Weakness Score */
+            weakness_score: number;
+            /** Weighted Errors */
+            weighted_errors: number;
         };
         /** KnowledgePointRead */
         KnowledgePointRead: {
@@ -1253,6 +1300,26 @@ export interface components {
             problem_id: string;
             solution: components["schemas"]["ExtractedSolution"] | null;
         };
+        /** ProblemInsightsResponse */
+        ProblemInsightsResponse: {
+            /**
+             * As Of
+             * Format: date
+             */
+            as_of: string;
+            /** Causes */
+            causes: components["schemas"]["CauseInsight"][];
+            /** Confirmed Problems */
+            confirmed_problems: number;
+            /** Knowledge Points */
+            knowledge_points: components["schemas"]["KnowledgePointInsight"][];
+            /** Subjects */
+            subjects: components["schemas"]["SubjectInsight"][];
+            /** Total Problems */
+            total_problems: number;
+            /** Weekly Trend */
+            weekly_trend: components["schemas"]["WeeklyTrendPoint"][];
+        };
         /** ProblemKnowledgePointInput */
         ProblemKnowledgePointInput: {
             /**
@@ -1453,6 +1520,17 @@ export interface components {
             source: "self" | "answer" | "gpt";
             /** Verified */
             verified: boolean;
+        };
+        /** SubjectInsight */
+        SubjectInsight: {
+            /** Problem Count */
+            problem_count: number;
+            /** Subject Id */
+            subject_id: string | null;
+            /** Subject Name */
+            subject_name: string;
+            /** Wrong Count */
+            wrong_count: number;
         };
         /** SubjectRead */
         SubjectRead: {
@@ -1727,6 +1805,24 @@ export interface components {
             total_planned_minutes: number;
             /** Weeks */
             weeks: components["schemas"]["WeeklyStatRead"][];
+        };
+        /** WeeklyTrendPoint */
+        WeeklyTrendPoint: {
+            /** Forgot */
+            forgot: number;
+            /** Mastered */
+            mastered: number;
+            /** New Problems */
+            new_problems: number;
+            /** Reviews */
+            reviews: number;
+            /** Vague */
+            vague: number;
+            /**
+             * Week Start
+             * Format: date
+             */
+            week_start: string;
         };
     };
     responses: never;
@@ -3507,6 +3603,55 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ProblemRead"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    read_problem_insights_api_stats_insights_get: {
+        parameters: {
+            query?: {
+                as_of?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemInsightsResponse"];
                 };
             };
             /** @description Unauthorized */

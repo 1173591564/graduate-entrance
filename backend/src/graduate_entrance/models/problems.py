@@ -74,6 +74,25 @@ class Problem(Base):
     )
 
 
+class ReviewLog(Base):
+    __tablename__ = "review_logs"
+    __table_args__ = (
+        CheckConstraint(
+            "grade IN ('forgot', 'vague', 'mastered')",
+            name="ck_review_logs_grade",
+        ),
+    )
+
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    problem_id: Mapped[UUID] = mapped_column(
+        ForeignKey("problems.id", ondelete="CASCADE"),
+        index=True,
+    )
+    grade: Mapped[str] = mapped_column(String(16))
+    reviewed_on: Mapped[date] = mapped_column(Date, index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+
+
 class Solution(Base):
     __tablename__ = "solutions"
     __table_args__ = (
