@@ -72,6 +72,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/plan/ai-week": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read Ai Week */
+        get: operations["read_ai_week_api_plan_ai_week_get"];
+        put?: never;
+        /** Generate Ai Week */
+        post: operations["generate_ai_week_api_plan_ai_week_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/plan/generate": {
         parameters: {
             query?: never;
@@ -609,6 +627,47 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** AiDailyFocus */
+        AiDailyFocus: {
+            /**
+             * Date
+             * Format: date
+             */
+            date: string;
+            /** Focus */
+            focus: string;
+        };
+        /** AiWeekAdvice */
+        AiWeekAdvice: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Daily Focus */
+            daily_focus: components["schemas"]["AiDailyFocus"][];
+            /** Model */
+            model: string;
+            /** Review Suggestions */
+            review_suggestions: string[];
+            /** Summary */
+            summary: string;
+            /**
+             * Week Start
+             * Format: date
+             */
+            week_start: string;
+        };
+        /** AiWeekPlanRequest */
+        AiWeekPlanRequest: {
+            /** Start Date */
+            start_date?: string | null;
+        };
+        /** AiWeekPlanResponse */
+        AiWeekPlanResponse: {
+            advice: components["schemas"]["AiWeekAdvice"];
+            plan: components["schemas"]["PlanResponse"];
+        };
         /** AvailabilityExceptionInput */
         AvailabilityExceptionInput: {
             /** Available Minutes */
@@ -1992,6 +2051,106 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ServiceStatus"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    read_ai_week_api_plan_ai_week_get: {
+        parameters: {
+            query?: {
+                week_start?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AiWeekAdvice"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    generate_ai_week_api_plan_ai_week_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AiWeekPlanRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AiWeekPlanResponse"];
                 };
             };
             /** @description Unauthorized */

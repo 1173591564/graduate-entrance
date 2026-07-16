@@ -28,6 +28,9 @@ describe('TodayView', () => {
   it('renders the daily summary and completes a task', async () => {
     let completed = false
     const fetchMock = vi.fn(async (_input: RequestInfo | URL, init?: RequestInit) => {
+      if (String(_input).startsWith('/api/plan/ai-week')) {
+        return { ok: false, status: 404, json: async () => ({}) }
+      }
       if (init?.method === 'POST') {
         completed = true
         return {
@@ -88,6 +91,9 @@ describe('TodayView', () => {
 
   it('reschedules overdue tasks and marks leave days', async () => {
     const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      if (String(input).startsWith('/api/plan/ai-week')) {
+        return { ok: false, status: 404, json: async () => ({}) }
+      }
       if (String(input) === '/api/plan/reschedule' && init?.method === 'POST') {
         return {
           ok: true,
@@ -143,5 +149,75 @@ describe('TodayView', () => {
       }),
     )
     expect(wrapper.text()).toContain('2026-07-20 已请假，顺延 3 项任务并重排至 2026-11-30')
+  })
+
+  it('generates an AI week plan and shows the advice card', async () => {
+    const advice = {
+      week_start: '2026-07-20',
+      summary: '先补数学薄弱点，再推进 408。',
+      daily_focus: [
+        { date: '2026-07-20', focus: '上午攻克重要极限' },
+        { date: '2026-07-21', focus: '408 数据结构复习' },
+      ],
+      review_suggestions: ['每天 20 分钟复盘错题'],
+      model: 'gpt-test',
+      created_at: '2026-07-16T08:00:00Z',
+    }
+    let generated = false
+    const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input)
+      if (url.startsWith('/api/plan/ai-week') && init?.method === 'POST') {
+        generated = true
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({
+            plan: {
+              start_date: '2026-07-20',
+              end_date: '2026-07-26',
+              persisted: true,
+              tasks: [],
+              days: [],
+              warnings: [],
+            },
+            advice,
+          }),
+        }
+      }
+      if (url.startsWith('/api/plan/ai-week')) {
+        return generated
+          ? { ok: true, status: 200, json: async () => advice }
+          : { ok: false, status: 404, json: async () => ({}) }
+      }
+      return {
+        ok: true,
+        status: 200,
+        json: async () => ({
+          date: '2026-07-20',
+          planned_minutes: 60,
+          completed_minutes: 0,
+          remaining_minutes: 60,
+          tasks: [plannedTask],
+        }),
+      }
+    })
+    vi.stubGlobal('fetch', fetchMock)
+
+    const wrapper = mount(TodayView)
+    await flushPromises()
+
+    expect(wrapper.find('.ai-advice-card').exists()).toBe(false)
+
+    await wrapper.get('.ai-week-button').trigger('click')
+    await flushPromises()
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/plan/ai-week',
+      expect.objectContaining({ method: 'POST' }),
+    )
+    expect(wrapper.find('.ai-advice-card').exists()).toBe(true)
+    expect(wrapper.text()).toContain('先补数学薄弱点，再推进 408。')
+    expect(wrapper.text()).toContain('今日重点：上午攻克重要极限')
+    expect(wrapper.text()).toContain('已生成 2026-07-20 ~ 2026-07-26 计划并排入日历')
   })
 })
