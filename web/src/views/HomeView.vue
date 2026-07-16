@@ -25,14 +25,14 @@ onMounted(async () => {
       </p>
       <h1>让每天的备考任务清晰、可执行、可复盘。</h1>
       <p class="summary">
-        工程骨架已覆盖 Web、API、Android、数据库和部署入口，后续功能将按考纲和阶段计划逐步交付。
+        今日任务、错题复习、AI 识题判卷、作文素材与周计划一站式管理，Web 端规划复盘，Android 端拍题打卡。
       </p>
       <div class="hero-actions">
         <RouterLink
           class="primary-link"
-          to="/planning"
+          to="/today"
         >
-          配置学习计划
+          进入今日任务
         </RouterLink>
         <RouterLink
           class="secondary-link"
@@ -60,8 +60,8 @@ onMounted(async () => {
       </article>
       <article>
         <span>03</span>
-        <h2>学习分析</h2>
-        <p>进度、掌握度、周报与调整建议。</p>
+        <h2>AI 助学</h2>
+        <p>批量识题、参考解析与英语/政治主观题判卷。</p>
       </article>
       <article>
         <span>04</span>

@@ -1,3 +1,14 @@
+<script setup lang="ts">
+import { computed } from 'vue'
+
+const EXAM_DATE = new Date('2026-12-26T00:00:00')
+
+const daysLeft = computed(() => {
+  const diff = EXAM_DATE.getTime() - Date.now()
+  return Math.max(0, Math.ceil(diff / 86_400_000))
+})
+</script>
+
 <template>
   <div class="app-shell">
     <header class="app-header">
@@ -37,7 +48,7 @@
           规划配置
         </RouterLink>
       </nav>
-      <span class="environment-label">P0-D</span>
+      <span class="environment-label">考研倒计时 {{ daysLeft }} 天</span>
     </header>
     <main>
       <RouterView />
