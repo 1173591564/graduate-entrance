@@ -144,6 +144,45 @@ export function confirmProblem(id: string, payload: ProblemConfirmPayload): Prom
   })
 }
 
+export interface ExtractedKnowledgePoint {
+  knowledge_point_id: string
+  knowledge_point_name: string
+  role: KnowledgePointRole
+  weight: number
+}
+
+export interface ExtractedSolution {
+  content_md: string
+  method_tag: string
+}
+
+export interface ProblemExtractionResult {
+  problem_id: string
+  model: string
+  content_md: string
+  knowledge_points: ExtractedKnowledgePoint[]
+  solution: ExtractedSolution | null
+}
+
+export interface SolutionCreatePayload {
+  content_md: string
+  method_tag: string
+  source: 'self' | 'answer' | 'gpt'
+}
+
+export function addSolution(id: string, payload: SolutionCreatePayload): Promise<Problem> {
+  return requestJson<Problem>(`/problems/${id}/solutions`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
+}
+
+export function extractProblem(id: string): Promise<ProblemExtractionResult> {
+  return requestJson<ProblemExtractionResult>(`/problems/${id}/extract`, {
+    method: 'POST',
+  })
+}
+
 export function fetchDueReviews(includeDrafts = true): Promise<DueReviews> {
   const query = includeDrafts ? '' : '?include_drafts=false'
   return requestJson<DueReviews>(`/problems/reviews/due${query}`)

@@ -34,6 +34,9 @@ services:
       APP_CORS_ORIGINS: '["http://localhost:${WEB_PORT:-8080}"]'
       APP_LOG_LEVEL: ${APP_LOG_LEVEL:-INFO}
       APP_SYLLABUS_RAW_DIR: /app/seed/syllabus/raw
+      APP_AI_BASE_URL: ${APP_AI_BASE_URL:-}
+      APP_AI_API_KEY: ${APP_AI_API_KEY:-}
+      APP_AI_MODEL: ${APP_AI_MODEL:-}
     ports:
       - "${API_BIND:-127.0.0.1}:${API_PORT:-8000}:8000"
     depends_on:

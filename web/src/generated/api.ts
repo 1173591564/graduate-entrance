@@ -452,6 +452,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/problems/{problem_id}/extract": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Extract Problem Endpoint */
+        post: operations["extract_problem_endpoint_api_problems__problem_id__extract_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/problems/{problem_id}/reopen": {
         parameters: {
             query?: never;
@@ -800,6 +817,33 @@ export interface components {
             order: number;
             /** Score */
             score: number | null;
+        };
+        /** ExtractedKnowledgePoint */
+        ExtractedKnowledgePoint: {
+            /**
+             * Knowledge Point Id
+             * Format: uuid
+             */
+            knowledge_point_id: string;
+            /** Knowledge Point Name */
+            knowledge_point_name: string;
+            /**
+             * Role
+             * @enum {string}
+             */
+            role: "primary" | "secondary";
+            /** Weight */
+            weight: number;
+        };
+        /** ExtractedSolution */
+        ExtractedSolution: {
+            /** Content Md */
+            content_md: string;
+            /**
+             * Method Tag
+             * @default
+             */
+            method_tag: string;
         };
         /** HealthStatus */
         HealthStatus: {
@@ -1193,6 +1237,21 @@ export interface components {
              * @default
              */
             source_ref: string;
+        };
+        /** ProblemExtractionResult */
+        ProblemExtractionResult: {
+            /** Content Md */
+            content_md: string;
+            /** Knowledge Points */
+            knowledge_points: components["schemas"]["ExtractedKnowledgePoint"][];
+            /** Model */
+            model: string;
+            /**
+             * Problem Id
+             * Format: uuid
+             */
+            problem_id: string;
+            solution: components["schemas"]["ExtractedSolution"] | null;
         };
         /** ProblemKnowledgePointInput */
         ProblemKnowledgePointInput: {
@@ -3242,6 +3301,55 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ProblemRead"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    extract_problem_endpoint_api_problems__problem_id__extract_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                problem_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemExtractionResult"];
                 };
             };
             /** @description Unauthorized */

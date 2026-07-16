@@ -534,6 +534,57 @@
         "title": "ExamSectionRead",
         "type": "object"
       },
+      "ExtractedKnowledgePoint": {
+        "properties": {
+          "knowledge_point_id": {
+            "format": "uuid",
+            "title": "Knowledge Point Id",
+            "type": "string"
+          },
+          "knowledge_point_name": {
+            "title": "Knowledge Point Name",
+            "type": "string"
+          },
+          "role": {
+            "enum": [
+              "primary",
+              "secondary"
+            ],
+            "title": "Role",
+            "type": "string"
+          },
+          "weight": {
+            "title": "Weight",
+            "type": "number"
+          }
+        },
+        "required": [
+          "knowledge_point_id",
+          "knowledge_point_name",
+          "role",
+          "weight"
+        ],
+        "title": "ExtractedKnowledgePoint",
+        "type": "object"
+      },
+      "ExtractedSolution": {
+        "properties": {
+          "content_md": {
+            "title": "Content Md",
+            "type": "string"
+          },
+          "method_tag": {
+            "default": "",
+            "title": "Method Tag",
+            "type": "string"
+          }
+        },
+        "required": [
+          "content_md"
+        ],
+        "title": "ExtractedSolution",
+        "type": "object"
+      },
       "HealthStatus": {
         "properties": {
           "status": {
@@ -1425,6 +1476,49 @@
           "knowledge_points"
         ],
         "title": "ProblemConfirmRequest",
+        "type": "object"
+      },
+      "ProblemExtractionResult": {
+        "properties": {
+          "content_md": {
+            "title": "Content Md",
+            "type": "string"
+          },
+          "knowledge_points": {
+            "items": {
+              "$ref": "#/components/schemas/ExtractedKnowledgePoint"
+            },
+            "title": "Knowledge Points",
+            "type": "array"
+          },
+          "model": {
+            "title": "Model",
+            "type": "string"
+          },
+          "problem_id": {
+            "format": "uuid",
+            "title": "Problem Id",
+            "type": "string"
+          },
+          "solution": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ExtractedSolution"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "problem_id",
+          "model",
+          "content_md",
+          "knowledge_points",
+          "solution"
+        ],
+        "title": "ProblemExtractionResult",
         "type": "object"
       },
       "ProblemKnowledgePointInput": {
@@ -4746,6 +4840,74 @@
           }
         ],
         "summary": "Confirm Problem Endpoint",
+        "tags": [
+          "problems"
+        ]
+      }
+    },
+    "/api/problems/{problem_id}/extract": {
+      "post": {
+        "operationId": "extract_problem_endpoint_api_problems__problem_id__extract_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "problem_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Problem Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemExtractionResult"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Extract Problem Endpoint",
         "tags": [
           "problems"
         ]
