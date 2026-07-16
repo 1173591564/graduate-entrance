@@ -1,6 +1,105 @@
 {
   "components": {
     "schemas": {
+      "AiDailyFocus": {
+        "properties": {
+          "date": {
+            "format": "date",
+            "title": "Date",
+            "type": "string"
+          },
+          "focus": {
+            "title": "Focus",
+            "type": "string"
+          }
+        },
+        "required": [
+          "date",
+          "focus"
+        ],
+        "title": "AiDailyFocus",
+        "type": "object"
+      },
+      "AiWeekAdvice": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "daily_focus": {
+            "items": {
+              "$ref": "#/components/schemas/AiDailyFocus"
+            },
+            "title": "Daily Focus",
+            "type": "array"
+          },
+          "model": {
+            "title": "Model",
+            "type": "string"
+          },
+          "review_suggestions": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Review Suggestions",
+            "type": "array"
+          },
+          "summary": {
+            "title": "Summary",
+            "type": "string"
+          },
+          "week_start": {
+            "format": "date",
+            "title": "Week Start",
+            "type": "string"
+          }
+        },
+        "required": [
+          "week_start",
+          "summary",
+          "daily_focus",
+          "review_suggestions",
+          "model",
+          "created_at"
+        ],
+        "title": "AiWeekAdvice",
+        "type": "object"
+      },
+      "AiWeekPlanRequest": {
+        "properties": {
+          "start_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Start Date"
+          }
+        },
+        "title": "AiWeekPlanRequest",
+        "type": "object"
+      },
+      "AiWeekPlanResponse": {
+        "properties": {
+          "advice": {
+            "$ref": "#/components/schemas/AiWeekAdvice"
+          },
+          "plan": {
+            "$ref": "#/components/schemas/PlanResponse"
+          }
+        },
+        "required": [
+          "plan",
+          "advice"
+        ],
+        "title": "AiWeekPlanResponse",
+        "type": "object"
+      },
       "AvailabilityExceptionInput": {
         "properties": {
           "available_minutes": {
@@ -3073,6 +3172,145 @@
         "summary": "Ping",
         "tags": [
           "health"
+        ]
+      }
+    },
+    "/api/plan/ai-week": {
+      "get": {
+        "operationId": "read_ai_week_api_plan_ai_week_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "week_start",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Week Start"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiWeekAdvice"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Read Ai Week",
+        "tags": [
+          "plan"
+        ]
+      },
+      "post": {
+        "operationId": "generate_ai_week_api_plan_ai_week_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AiWeekPlanRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiWeekPlanResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Generate Ai Week",
+        "tags": [
+          "plan"
         ]
       }
     },

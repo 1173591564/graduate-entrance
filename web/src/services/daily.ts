@@ -107,3 +107,46 @@ export function completeTodayTask(id: string, actualMinutes: number): Promise<To
     body: JSON.stringify({ actual_minutes: actualMinutes }),
   })
 }
+
+export interface AiDailyFocus {
+  date: string
+  focus: string
+}
+
+export interface AiWeekAdvice {
+  week_start: string
+  summary: string
+  daily_focus: AiDailyFocus[]
+  review_suggestions: string[]
+  model: string
+  created_at: string
+}
+
+export interface AiWeekPlan {
+  plan: {
+    start_date: string
+    end_date: string
+    persisted: boolean
+    tasks: unknown[]
+    days: Array<{
+      date: string
+      available_minutes: number
+      planned_minutes: number
+      remaining_minutes: number
+    }>
+    warnings: string[]
+  }
+  advice: AiWeekAdvice
+}
+
+export function generateAiWeekPlan(startDate?: string): Promise<AiWeekPlan> {
+  return request<AiWeekPlan>('/plan/ai-week', {
+    method: 'POST',
+    body: JSON.stringify(startDate ? { start_date: startDate } : {}),
+  })
+}
+
+export function fetchAiWeekAdvice(weekStart?: string): Promise<AiWeekAdvice> {
+  const query = weekStart ? `?week_start=${encodeURIComponent(weekStart)}` : ''
+  return request<AiWeekAdvice>(`/plan/ai-week${query}`)
+}

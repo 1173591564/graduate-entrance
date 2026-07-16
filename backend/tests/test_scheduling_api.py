@@ -625,3 +625,80 @@ async def test_check_in_rejects_unknown_task(
 
     assert response.status_code == 404
     assert response.json()["error"]["message"] == "Scheduled task not found"
+
+
+@pytest.mark.asyncio
+async def test_ai_week_plan_persists_plan_and_advice(
+    scheduling_context: SchedulingContext,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    await scheduling_context.client.post("/api/planning/task-pool/generate")
+    captured: dict[str, object] = {}
+
+    async def fake_complete_chat(messages: list[dict[str, object]], settings: object) -> str:
+        captured["messages"] = messages
+        return (
+            '{"summary": "先补数学薄弱点，再推进 408。",'
+            ' "daily_focus": [{"date": "2026-07-20", "focus": "上午攻克重要极限"},'
+            ' {"date": "2026-07-21", "focus": "408 数据结构复习"},'
+            ' {"date": "bad-date", "focus": "忽略"}],'
+            ' "review_suggestions": ["每天 20 分钟复盘错题", "周末重做遗忘题"]}'
+        )
+
+    monkeypatch.setattr("graduate_entrance.ai.client.complete_chat", fake_complete_chat)
+
+    response = await scheduling_context.client.post(
+        "/api/plan/ai-week", json={"start_date": "2026-07-20"}
+    )
+    assert response.status_code == 200
+    payload = response.json()
+
+    plan = payload["plan"]
+    assert plan["persisted"] is True
+    assert plan["start_date"] == "2026-07-20"
+    assert plan["end_date"] == "2026-07-26"
+    assert len(plan["tasks"]) == 4
+
+    advice = payload["advice"]
+    assert advice["week_start"] == "2026-07-20"
+    assert advice["summary"] == "先补数学薄弱点，再推进 408。"
+    assert len(advice["daily_focus"]) == 7
+    assert advice["daily_focus"][0] == {"date": "2026-07-20", "focus": "上午攻克重要极限"}
+    assert advice["daily_focus"][2]["focus"] == "按计划推进当日任务"
+    assert advice["review_suggestions"] == ["每天 20 分钟复盘错题", "周末重做遗忘题"]
+
+    messages = captured["messages"]
+    assert isinstance(messages, list)
+    user_text = messages[1]["content"]
+    assert isinstance(user_text, str)
+    assert "2026-07-20" in user_text
+
+    stored = await scheduling_context.client.get(
+        "/api/plan/ai-week", params={"week_start": "2026-07-22"}
+    )
+    assert stored.status_code == 200
+    assert stored.json()["summary"] == "先补数学薄弱点，再推进 408。"
+
+    tasks = await scheduling_context.client.get(
+        "/api/today", params={"date": "2026-07-20"}
+    )
+    assert tasks.status_code == 200
+    assert tasks.json()["tasks"]
+
+
+@pytest.mark.asyncio
+async def test_ai_week_plan_missing_advice_returns_404(
+    scheduling_context: SchedulingContext,
+) -> None:
+    response = await scheduling_context.client.get(
+        "/api/plan/ai-week", params={"week_start": "2030-01-07"}
+    )
+    assert response.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_ai_week_plan_unconfigured_returns_503(
+    scheduling_context: SchedulingContext,
+) -> None:
+    response = await scheduling_context.client.post("/api/plan/ai-week", json={})
+    assert response.status_code == 503
