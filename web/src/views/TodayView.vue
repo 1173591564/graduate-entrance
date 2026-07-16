@@ -3,8 +3,11 @@ import { computed, onMounted, reactive, ref } from 'vue'
 
 import {
   completeTodayTask,
+  fetchAiWeekAdvice,
   fetchToday,
+  generateAiWeekPlan,
   reschedulePlan,
+  type AiWeekAdvice,
   type TodaySummary,
   type TodayTask,
 } from '../services/daily'
@@ -17,6 +20,10 @@ const busyTaskId = ref('')
 const rescheduling = ref(false)
 const error = ref('')
 const notice = ref('')
+const aiAdvice = ref<AiWeekAdvice | null>(null)
+const aiGenerating = ref(false)
+const aiError = ref('')
+const aiExpanded = ref(false)
 
 const completedCount = computed(
   () => summary.value?.tasks.filter((task) => task.status === 'completed').length ?? 0,
@@ -99,7 +106,43 @@ async function reschedule(leave: boolean): Promise<void> {
   }
 }
 
-onMounted(() => loadToday())
+const todayFocus = computed(() => {
+  if (!aiAdvice.value || !summary.value) {
+    return null
+  }
+  return (
+    aiAdvice.value.daily_focus.find((entry) => entry.date === summary.value?.date) ?? null
+  )
+})
+
+async function loadAiAdvice(): Promise<void> {
+  try {
+    aiAdvice.value = await fetchAiWeekAdvice(selectedDate.value || undefined)
+  } catch {
+    aiAdvice.value = null
+  }
+}
+
+async function generateWeekPlan(): Promise<void> {
+  aiGenerating.value = true
+  aiError.value = ''
+  try {
+    const result = await generateAiWeekPlan()
+    aiAdvice.value = result.advice
+    aiExpanded.value = true
+    notice.value = `已生成 ${result.plan.start_date} ~ ${result.plan.end_date} 计划并排入日历`
+    await loadToday(selectedDate.value)
+  } catch {
+    aiError.value = 'AI 生成失败，请确认已配置 AI 或稍后重试'
+  } finally {
+    aiGenerating.value = false
+  }
+}
+
+onMounted(async () => {
+  await loadToday()
+  await loadAiAdvice()
+})
 </script>
 
 <template>
@@ -146,7 +189,69 @@ onMounted(() => loadToday())
       >
         请假并重排
       </button>
+      <button
+        class="ai-week-button"
+        type="button"
+        :disabled="aiGenerating"
+        @click="generateWeekPlan()"
+      >
+        {{ aiGenerating ? 'AI 生成中…' : 'AI 一键生成下周计划' }}
+      </button>
     </div>
+
+    <p
+      v-if="aiError"
+      class="feedback error"
+    >
+      {{ aiError }}
+    </p>
+
+    <article
+      v-if="aiAdvice"
+      class="ai-advice-card"
+    >
+      <div class="ai-advice-heading">
+        <h2>AI 周计划建议（{{ aiAdvice.week_start }} 起）</h2>
+        <button
+          type="button"
+          class="toggle-button"
+          @click="aiExpanded = !aiExpanded"
+        >
+          {{ aiExpanded ? '收起' : '展开每日重点' }}
+        </button>
+      </div>
+      <p class="ai-summary">
+        {{ aiAdvice.summary }}
+      </p>
+      <p
+        v-if="todayFocus"
+        class="ai-today-focus"
+      >
+        今日重点：{{ todayFocus.focus }}
+      </p>
+      <template v-if="aiExpanded">
+        <ul class="ai-focus-list">
+          <li
+            v-for="entry in aiAdvice.daily_focus"
+            :key="entry.date"
+          >
+            <span class="focus-date">{{ entry.date }}</span>
+            <span>{{ entry.focus }}</span>
+          </li>
+        </ul>
+        <ul
+          v-if="aiAdvice.review_suggestions.length"
+          class="ai-suggestion-list"
+        >
+          <li
+            v-for="suggestion in aiAdvice.review_suggestions"
+            :key="suggestion"
+          >
+            {{ suggestion }}
+          </li>
+        </ul>
+      </template>
+    </article>
 
     <p
       v-if="error"
@@ -336,8 +441,96 @@ onMounted(() => loadToday())
   color: #b7791f;
 }
 
+.ai-week-button {
+  padding: 10px 16px;
+  border: 0;
+  border-radius: 10px;
+  color: white;
+  background: linear-gradient(120deg, #2764e7, #7b3ff2);
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.ai-advice-card {
+  display: grid;
+  gap: 12px;
+  padding: 22px;
+  border: 1px solid #d9d2f5;
+  border-radius: 20px;
+  background: linear-gradient(150deg, #f6f4ff, #fdfcff);
+}
+
+.ai-advice-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.ai-advice-heading h2 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.toggle-button {
+  padding: 6px 12px;
+  border: 1px solid #b8a7ee;
+  border-radius: 999px;
+  color: #5b3ec9;
+  background: white;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 750;
+}
+
+.ai-summary {
+  margin: 0;
+  color: #3f3663;
+}
+
+.ai-today-focus {
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: 12px;
+  color: #4527a8;
+  background: #ede8fc;
+  font-weight: 750;
+}
+
+.ai-focus-list,
+.ai-suggestion-list {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ai-focus-list li {
+  display: flex;
+  gap: 10px;
+  color: #4a4468;
+  font-size: 14px;
+}
+
+.focus-date {
+  flex-shrink: 0;
+  color: #7a6fb0;
+  font-weight: 750;
+}
+
+.ai-suggestion-list li {
+  padding: 8px 12px;
+  border-radius: 10px;
+  color: #4a4468;
+  background: white;
+  font-size: 14px;
+}
+
 .reschedule-button:disabled,
-.leave-button:disabled {
+.leave-button:disabled,
+.ai-week-button:disabled {
   opacity: 0.6;
   cursor: wait;
 }

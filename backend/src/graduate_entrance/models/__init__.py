@@ -15,7 +15,7 @@ from graduate_entrance.models.problems import (
     ReviewLog,
     Solution,
 )
-from graduate_entrance.models.scheduling import ScheduledTask, TaskPoolItem
+from graduate_entrance.models.scheduling import AiWeekPlan, ScheduledTask, TaskPoolItem
 from graduate_entrance.models.syllabus import (
     Chapter,
     ExamBlueprint,
@@ -29,6 +29,7 @@ from graduate_entrance.models.syllabus import (
 )
 
 __all__ = [
+    "AiWeekPlan",
     "AvailabilityException",
     "AvailabilityPeriod",
     "AvailabilityRule",
