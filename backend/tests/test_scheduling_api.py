@@ -532,6 +532,89 @@ async def test_today_and_check_in_are_idempotent(
 
 
 @pytest.mark.asyncio
+async def test_weekly_stats_aggregate_minutes_and_execution_rate(
+    scheduling_context: SchedulingContext,
+) -> None:
+    await scheduling_context.client.post("/api/planning/task-pool/generate")
+    request = {"start_date": "2026-07-20", "end_date": "2026-07-26"}
+    await scheduling_context.client.post("/api/plan/generate", json=request)
+    today = await scheduling_context.client.get(
+        "/api/today",
+        params={"date": "2026-07-20"},
+    )
+    task_id = today.json()["tasks"][0]["id"]
+    await scheduling_context.client.post(
+        f"/api/tasks/{task_id}/done",
+        json={"actual_minutes": 45},
+    )
+
+    stats = await scheduling_context.client.get(
+        "/api/stats/weekly",
+        params={"start": "2026-07-20", "end": "2026-07-26"},
+    )
+
+    assert stats.status_code == 200
+    body = stats.json()
+    assert body["start_date"] == "2026-07-20"
+    assert body["end_date"] == "2026-07-26"
+    assert len(body["weeks"]) == 1
+    week = body["weeks"][0]
+    assert week["week_start"] == "2026-07-20"
+    assert week["week_end"] == "2026-07-26"
+    assert week["planned_minutes"] == 240
+    assert week["completed_minutes"] == 45
+    assert week["target_minutes"] == 240
+    assert week["total_tasks"] == 4
+    assert week["completed_tasks"] == 1
+    assert week["execution_rate"] == 0.1875
+    assert body["total_planned_minutes"] == 240
+    assert body["total_completed_minutes"] == 45
+    assert body["overall_execution_rate"] == 0.1875
+
+
+@pytest.mark.asyncio
+async def test_weekly_stats_include_empty_weeks_in_explicit_range(
+    scheduling_context: SchedulingContext,
+) -> None:
+    await scheduling_context.client.post("/api/planning/task-pool/generate")
+    request = {"start_date": "2026-07-20", "end_date": "2026-07-26"}
+    await scheduling_context.client.post("/api/plan/generate", json=request)
+
+    stats = await scheduling_context.client.get(
+        "/api/stats/weekly",
+        params={"start": "2026-07-20", "end": "2026-08-02"},
+    )
+
+    assert stats.status_code == 200
+    body = stats.json()
+    assert [week["week_start"] for week in body["weeks"]] == [
+        "2026-07-20",
+        "2026-07-27",
+    ]
+    empty_week = body["weeks"][1]
+    assert empty_week["planned_minutes"] == 0
+    assert empty_week["total_tasks"] == 0
+    assert empty_week["execution_rate"] == 0.0
+    assert empty_week["target_minutes"] is None
+
+
+@pytest.mark.asyncio
+async def test_weekly_stats_handle_empty_database_and_bad_range(
+    scheduling_context: SchedulingContext,
+) -> None:
+    empty = await scheduling_context.client.get("/api/stats/weekly")
+    assert empty.status_code == 200
+    assert empty.json()["weeks"] == []
+    assert empty.json()["overall_execution_rate"] == 0.0
+
+    inverted = await scheduling_context.client.get(
+        "/api/stats/weekly",
+        params={"start": "2026-08-02", "end": "2026-07-20"},
+    )
+    assert inverted.status_code == 400
+
+
+@pytest.mark.asyncio
 async def test_check_in_rejects_unknown_task(
     scheduling_context: SchedulingContext,
 ) -> None:

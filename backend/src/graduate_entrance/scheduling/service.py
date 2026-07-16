@@ -42,6 +42,8 @@ from graduate_entrance.schemas.scheduling import (
     TaskPoolItemRead,
     TaskPoolPage,
     TodayResponse,
+    WeeklyStatRead,
+    WeeklyStatsResponse,
 )
 
 
@@ -972,6 +974,102 @@ async def get_today(session: AsyncSession, target_date: date) -> TodayResponse:
         completed_minutes=completed_minutes,
         remaining_minutes=remaining_minutes,
         tasks=[_task_read(task) for task in tasks],
+    )
+
+
+async def get_weekly_stats(
+    session: AsyncSession,
+    start_date: date | None,
+    end_date: date | None,
+) -> WeeklyStatsResponse:
+    if start_date is None:
+        start_date = await session.scalar(select(func.min(ScheduledTask.planned_date)))
+    if end_date is None:
+        end_date = await session.scalar(select(func.max(ScheduledTask.planned_date)))
+    if start_date is None or end_date is None:
+        today = date.today()
+        return WeeklyStatsResponse(
+            start_date=today,
+            end_date=today,
+            weeks=[],
+            total_planned_minutes=0,
+            total_completed_minutes=0,
+            overall_execution_rate=0.0,
+        )
+    if start_date > end_date:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="start_date must not be after end_date",
+        )
+    if (end_date - start_date).days > 400:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="date range must not exceed 401 days",
+        )
+    tasks = (
+        await session.scalars(
+            select(ScheduledTask).where(
+                ScheduledTask.planned_date >= start_date,
+                ScheduledTask.planned_date <= end_date,
+            )
+        )
+    ).all()
+    periods = (
+        await session.scalars(
+            select(AvailabilityPeriod).order_by(
+                AvailabilityPeriod.order, AvailabilityPeriod.start_date
+            )
+        )
+    ).all()
+
+    def target_for(week_start: date) -> int | None:
+        for period in periods:
+            if period.start_date <= week_start <= period.end_date:
+                return period.weekly_target_minutes
+        return None
+
+    tasks_by_week: dict[date, list[ScheduledTask]] = defaultdict(list)
+    for task in tasks:
+        tasks_by_week[_week_start(task.planned_date)].append(task)
+    weeks: list[WeeklyStatRead] = []
+    week = _week_start(start_date)
+    while week <= end_date:
+        week_tasks = tasks_by_week.get(week, [])
+        counted = [task for task in week_tasks if task.status != "skipped"]
+        completed = [task for task in counted if task.status == "completed"]
+        planned_minutes = sum(task.est_minutes for task in counted)
+        completed_minutes = sum(
+            task.actual_minutes if task.actual_minutes is not None else task.est_minutes
+            for task in completed
+        )
+        weeks.append(
+            WeeklyStatRead(
+                week_start=week,
+                week_end=week + timedelta(days=6),
+                planned_minutes=planned_minutes,
+                completed_minutes=completed_minutes,
+                target_minutes=target_for(week),
+                total_tasks=len(counted),
+                completed_tasks=len(completed),
+                execution_rate=(
+                    round(completed_minutes / planned_minutes, 4)
+                    if planned_minutes
+                    else 0.0
+                ),
+            )
+        )
+        week += timedelta(days=7)
+    total_planned = sum(week_stat.planned_minutes for week_stat in weeks)
+    total_completed = sum(week_stat.completed_minutes for week_stat in weeks)
+    return WeeklyStatsResponse(
+        start_date=start_date,
+        end_date=end_date,
+        weeks=weeks,
+        total_planned_minutes=total_planned,
+        total_completed_minutes=total_completed,
+        overall_execution_rate=(
+            round(total_completed / total_planned, 4) if total_planned else 0.0
+        ),
     )
 
 
