@@ -108,17 +108,35 @@ fun TodayScreen(viewModel: TodayViewModel) {
         ) {
             if (state.fromCache) {
                 item {
-                    NoticeCard("离线模式：显示本地缓存数据")
+                    AppNotice(
+                        text = "离线模式：显示本地缓存数据",
+                        tone = NoticeTone.OFFLINE,
+                    )
                 }
             }
             if (state.pendingCheckIns > 0) {
                 item {
-                    NoticeCard("待同步打卡：${state.pendingCheckIns} 条")
+                    AppNotice(
+                        text = "待同步打卡：${state.pendingCheckIns} 条",
+                        tone = NoticeTone.WARNING,
+                    )
                 }
             }
             state.notice?.let { notice ->
                 item {
-                    NoticeCard(notice)
+                    AppNotice(
+                        text = notice,
+                        tone = if ("成功" in notice || "已同步" in notice) {
+                            NoticeTone.SUCCESS
+                        } else {
+                            NoticeTone.INFO
+                        },
+                    )
+                }
+            }
+            if (state.loading && state.tasks.isEmpty()) {
+                item {
+                    AppLoading("正在加载今日任务")
                 }
             }
             if (pomodoro.phase != PomodoroPhase.IDLE) {
@@ -135,19 +153,20 @@ fun TodayScreen(viewModel: TodayViewModel) {
                     )
                 }
             }
-            item {
-                SummaryRow(
-                    planned = state.plannedMinutes,
-                    completed = state.completedMinutes,
-                    remaining = state.remainingMinutes,
-                )
+            if (!state.loading || state.tasks.isNotEmpty()) {
+                item {
+                    SummaryRow(
+                        planned = state.plannedMinutes,
+                        completed = state.completedMinutes,
+                        remaining = state.remainingMinutes,
+                    )
+                }
             }
             if (!state.loading && state.tasks.isEmpty()) {
                 item {
-                    Text(
-                        text = "${state.date} 暂无已排任务",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    AppEmptyState(
+                        title = "今天暂时没有任务",
+                        body = "${state.date} 尚未安排学习内容",
                     )
                 }
             }
@@ -160,22 +179,6 @@ fun TodayScreen(viewModel: TodayViewModel) {
                 )
             }
         }
-    }
-}
-
-@Composable
-private fun NoticeCard(text: String) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.secondaryContainer,
-        ),
-    ) {
-        Text(
-            text = text,
-            style = MaterialTheme.typography.bodyMedium,
-            modifier = Modifier.padding(14.dp),
-        )
     }
 }
 

@@ -22,7 +22,6 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
@@ -145,18 +144,14 @@ fun CaptureScreen(viewModel: CaptureViewModel) {
             }
             state.notice?.let { notice ->
                 item {
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                        ),
-                    ) {
-                        Text(
-                            text = notice,
-                            style = MaterialTheme.typography.bodyMedium,
-                            modifier = Modifier.padding(14.dp),
-                        )
-                    }
+                    AppNotice(
+                        text = notice,
+                        tone = when {
+                            "失败" in notice || "不可用" in notice -> NoticeTone.ERROR
+                            "完成" in notice || "已上传" in notice -> NoticeTone.SUCCESS
+                            else -> NoticeTone.INFO
+                        },
+                    )
                 }
             }
             item {

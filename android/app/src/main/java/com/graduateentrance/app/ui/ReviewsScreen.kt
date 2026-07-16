@@ -82,17 +82,31 @@ fun ReviewsScreen(viewModel: ReviewsViewModel) {
                 }
             }
             state.notice?.let { notice ->
-                item { ReviewNoticeCard(notice) }
+                item {
+                    AppNotice(
+                        text = notice,
+                        tone = if ("已评级" in notice) NoticeTone.SUCCESS else NoticeTone.INFO,
+                    )
+                }
             }
             state.error?.let { error ->
-                item { ReviewNoticeCard(error) }
+                item {
+                    AppNotice(
+                        text = error,
+                        tone = NoticeTone.ERROR,
+                    )
+                }
+            }
+            if (state.loading && state.problems.isEmpty()) {
+                item {
+                    AppLoading("正在加载复习卡")
+                }
             }
             if (!state.loading && state.problems.isEmpty() && state.error == null) {
                 item {
-                    Text(
-                        text = "今天没有到期的复习，继续保持！",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    AppEmptyState(
+                        title = "今日复习已清空",
+                        body = "没有到期题目，继续保持",
                     )
                 }
             }
@@ -104,22 +118,6 @@ fun ReviewsScreen(viewModel: ReviewsViewModel) {
                 )
             }
         }
-    }
-}
-
-@Composable
-private fun ReviewNoticeCard(text: String) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.secondaryContainer,
-        ),
-    ) {
-        Text(
-            text = text,
-            style = MaterialTheme.typography.bodyMedium,
-            modifier = Modifier.padding(14.dp),
-        )
     }
 }
 
