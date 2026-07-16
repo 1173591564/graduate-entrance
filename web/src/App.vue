@@ -134,9 +134,9 @@ const today = computed(() => {
           节律 · Cadence
         </div>
         <div class="margin-note-body">
-          晨间 · 数学一<br />
-          午后 · 408<br />
-          日暮 · 英语一<br />
+          晨间 · 数学一<br>
+          午后 · 408<br>
+          日暮 · 英语一<br>
           夜读 · 政治
         </div>
       </div>
