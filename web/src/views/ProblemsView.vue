@@ -2,10 +2,13 @@
 import { computed, onMounted, reactive, ref } from 'vue'
 
 import {
+  addSolution,
   confirmProblem,
+  extractProblem,
   fetchPendingProblems,
   fetchProblemImage,
   submitProblem,
+  type ExtractedSolution,
   type Problem,
   type ProblemCause,
   type ProblemKind,
@@ -58,6 +61,9 @@ const loading = ref(true)
 const error = ref('')
 const feedback = ref('')
 const confirmErrors = reactive<Record<string, string>>({})
+const extracting = reactive<Record<string, boolean>>({})
+const extractErrors = reactive<Record<string, string>>({})
+const aiSolutions = reactive<Record<string, ExtractedSolution>>({})
 
 const intake = reactive({
   subjectId: '',
@@ -235,6 +241,51 @@ async function handleConfirm(problem: Problem): Promise<void> {
   }
 }
 
+async function handleExtract(problem: Problem): Promise<void> {
+  const form = ensureForm(problem)
+  extractErrors[problem.id] = ''
+  extracting[problem.id] = true
+  try {
+    const result = await extractProblem(problem.id)
+    if (result.content_md.trim()) {
+      form.content_md = result.content_md
+    }
+    if (result.knowledge_points.length) {
+      form.mappings = result.knowledge_points.map((entry) => ({
+        knowledge_point_id: entry.knowledge_point_id,
+        role: entry.role,
+        weight: entry.weight,
+      }))
+    }
+    if (result.solution) {
+      aiSolutions[problem.id] = result.solution
+    }
+    feedback.value = `AI 识别完成（${result.model}），请人工核对后定稿`
+  } catch {
+    extractErrors[problem.id] = 'AI 识别失败（请确认已配置 AI 服务）'
+  } finally {
+    extracting[problem.id] = false
+  }
+}
+
+async function handleAdoptSolution(problem: Problem): Promise<void> {
+  const solution = aiSolutions[problem.id]
+  if (!solution) {
+    return
+  }
+  try {
+    await addSolution(problem.id, {
+      content_md: solution.content_md,
+      method_tag: solution.method_tag,
+      source: 'gpt',
+    })
+    delete aiSolutions[problem.id]
+    feedback.value = 'AI 解法已保存（待人工核验）'
+  } catch {
+    extractErrors[problem.id] = '解法保存失败，请重试'
+  }
+}
+
 onMounted(() => loadPending())
 </script>
 
@@ -357,8 +408,24 @@ onMounted(() => loadPending())
         >
           <div class="review-heading">
             <h2>{{ KIND_LABELS[problem.kind] }} · {{ problem.subject_name ?? '未指定科目' }}</h2>
-            <span class="draft-badge">草稿</span>
+            <div class="heading-actions">
+              <button
+                type="button"
+                class="ai-button"
+                :disabled="extracting[problem.id]"
+                @click="handleExtract(problem)"
+              >
+                {{ extracting[problem.id] ? 'AI 识别中…' : 'AI 识别' }}
+              </button>
+              <span class="draft-badge">草稿</span>
+            </div>
           </div>
+          <p
+            v-if="extractErrors[problem.id]"
+            class="feedback error"
+          >
+            {{ extractErrors[problem.id] }}
+          </p>
           <div
             v-if="problem.images.length"
             class="image-strip"
@@ -479,6 +546,29 @@ onMounted(() => loadPending())
               @click="addMapping(ensureForm(problem))"
             >
               添加知识点
+            </button>
+          </div>
+
+          <div
+            v-if="aiSolutions[problem.id]"
+            class="ai-solution"
+          >
+            <div class="mapping-heading">
+              <h3>AI 建议解法</h3>
+              <span
+                v-if="aiSolutions[problem.id].method_tag"
+                class="method-tag"
+              >{{ aiSolutions[problem.id].method_tag }}</span>
+            </div>
+            <p class="ai-solution-content">
+              {{ aiSolutions[problem.id].content_md }}
+            </p>
+            <button
+              type="button"
+              class="add-button"
+              @click="handleAdoptSolution(problem)"
+            >
+              采纳为解法
             </button>
           </div>
 
@@ -638,6 +728,51 @@ onMounted(() => loadPending())
   border-radius: 999px;
   color: #8a5b12;
   background: #fff3d6;
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.heading-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ai-button {
+  padding: 6px 14px;
+  border: none;
+  border-radius: 999px;
+  color: white;
+  background: #7048e8;
+  font-size: 13px;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.ai-button:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.ai-solution {
+  display: grid;
+  gap: 8px;
+  padding: 14px;
+  border: 1px solid #d9ccff;
+  border-radius: 14px;
+  background: #f6f2ff;
+}
+
+.ai-solution-content {
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+.method-tag {
+  padding: 4px 10px;
+  border-radius: 999px;
+  color: #5f3dc4;
+  background: #e5dbff;
   font-size: 12px;
   font-weight: 750;
 }

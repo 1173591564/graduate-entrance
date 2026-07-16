@@ -356,3 +356,74 @@ async def test_review_forgot_resets_and_floors_ease_factor(client: AsyncClient) 
             )
         ).json()
     assert forgot_body["ef"] >= 1.3
+
+
+@pytest.mark.asyncio
+async def test_extract_returns_normalized_suggestions(
+    client: AsyncClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    body = await submit_draft(client)
+    problem_id = body["id"]
+
+    captured: dict[str, object] = {}
+
+    async def fake_complete_chat(messages: list[dict[str, object]], settings: object) -> str:
+        captured["messages"] = messages
+        return (
+            "```json\n"
+            "{\"content_md\": \"求 $\\\\lim_{x\\\\to 0} \\\\frac{\\\\sin x}{x}$ 的值。\",\n"
+            " \"knowledge_points\": ["
+            f"{{\"knowledge_point_id\": \"{POINT_IDS[0]}\", \"weight\": 2}},"
+            f"{{\"knowledge_point_id\": \"{uuid4()}\", \"weight\": 5}},"
+            f"{{\"knowledge_point_id\": \"{POINT_IDS[1]}\", \"weight\": 1}}],\n"
+            " \"solution\": {\"content_md\": \"等价无穷小替换，极限为 1。\","
+            " \"method_tag\": \"等价无穷小\"}}\n"
+            "```"
+        )
+
+    monkeypatch.setattr("graduate_entrance.ai.client.complete_chat", fake_complete_chat)
+
+    response = await client.post(f"/api/problems/{problem_id}/extract")
+    assert response.status_code == 200
+    result = response.json()
+    assert result["problem_id"] == problem_id
+    assert result["content_md"].startswith("求 $\\lim")
+    points = result["knowledge_points"]
+    assert [entry["knowledge_point_id"] for entry in points] == [str(p) for p in POINT_IDS]
+    assert points[0]["role"] == "primary"
+    assert points[1]["role"] == "secondary"
+    assert points[0]["knowledge_point_name"].endswith("知识点1")
+    assert abs(sum(entry["weight"] for entry in points) - 1.0) < 1e-6
+    assert points[0]["weight"] == pytest.approx(2 / 3, abs=0.002)
+    assert result["solution"]["method_tag"] == "等价无穷小"
+
+    messages = captured["messages"]
+    assert isinstance(messages, list) and len(messages) == 2
+    user_content = messages[1]["content"]
+    assert isinstance(user_content, list)
+    assert user_content[0]["type"] == "text"
+    assert str(POINT_IDS[0]) in user_content[0]["text"]
+    assert user_content[1]["type"] == "image_url"
+    assert user_content[1]["image_url"]["url"].startswith("data:image/png;base64,")
+
+
+@pytest.mark.asyncio
+async def test_extract_invalid_json_returns_502(
+    client: AsyncClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    body = await submit_draft(client)
+
+    async def fake_complete_chat(messages: list[dict[str, object]], settings: object) -> str:
+        return "这不是 JSON"
+
+    monkeypatch.setattr("graduate_entrance.ai.client.complete_chat", fake_complete_chat)
+
+    response = await client.post(f"/api/problems/{body['id']}/extract")
+    assert response.status_code == 502
+
+
+@pytest.mark.asyncio
+async def test_extract_unconfigured_returns_503(client: AsyncClient) -> None:
+    body = await submit_draft(client)
+    response = await client.post(f"/api/problems/{body['id']}/extract")
+    assert response.status_code == 503

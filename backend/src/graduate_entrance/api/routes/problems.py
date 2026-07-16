@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from graduate_entrance.core.config import get_settings
 from graduate_entrance.db.session import get_session
+from graduate_entrance.problems.extraction import extract_problem
 from graduate_entrance.problems.service import (
     MAX_IMAGES_PER_PROBLEM,
     add_solution,
@@ -24,6 +25,7 @@ from graduate_entrance.problems.service import (
 )
 from graduate_entrance.schemas.problems import (
     ProblemConfirmRequest,
+    ProblemExtractionResult,
     ProblemKind,
     ProblemListResponse,
     ProblemPendingResponse,
@@ -160,6 +162,14 @@ async def confirm_problem_endpoint(
     session: Session,
 ) -> ProblemRead:
     return await confirm_problem(session, problem_id, payload)
+
+
+@router.post("/problems/{problem_id}/extract", response_model=ProblemExtractionResult)
+async def extract_problem_endpoint(
+    problem_id: UUID,
+    session: Session,
+) -> ProblemExtractionResult:
+    return await extract_problem(session, problem_id)
 
 
 @router.post("/problems/{problem_id}/reopen", response_model=ProblemRead)

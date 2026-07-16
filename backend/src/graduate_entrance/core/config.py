@@ -27,6 +27,10 @@ class Settings(BaseSettings):
     log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"] = "INFO"
     syllabus_raw_dir: Path = Path("../seed/syllabus/raw")
     problem_images_dir: Path = Path("./data/problem-images")
+    ai_base_url: str = ""
+    ai_api_key: SecretStr = SecretStr("")
+    ai_model: str = ""
+    ai_timeout_seconds: float = 120.0
 
 
 @lru_cache

@@ -89,6 +89,26 @@ class ReviewResult(BaseModel):
     due_date: date
 
 
+class ExtractedKnowledgePoint(BaseModel):
+    knowledge_point_id: UUID
+    knowledge_point_name: str
+    role: KnowledgePointRole
+    weight: float
+
+
+class ExtractedSolution(BaseModel):
+    content_md: str
+    method_tag: str = ""
+
+
+class ProblemExtractionResult(BaseModel):
+    problem_id: UUID
+    model: str
+    content_md: str
+    knowledge_points: list[ExtractedKnowledgePoint]
+    solution: ExtractedSolution | None
+
+
 class ProblemConfirmRequest(BaseModel):
     content_md: str = Field(min_length=1)
     kind: ProblemKind

@@ -230,6 +230,80 @@ describe('ProblemsView', () => {
     expect(wrapper.text()).toContain('题面文本与图片至少提供一个')
   })
 
+  it('fills the review form from AI extraction and adopts the solution', async () => {
+    let solutionBody: Record<string, unknown> | null = null
+    stubFetch({
+      'GET /api/problems/pending': () => ({ total: 1, problems: [draftProblem()] }),
+      'GET /api/syllabus': () => syllabusPayload,
+      [`POST /api/problems/${PROBLEM_ID}/extract`]: () => ({
+        problem_id: PROBLEM_ID,
+        model: 'gpt-test',
+        content_md: '求 $\\lim_{x\\to 0} \\frac{\\sin x}{x}$ 的值。',
+        knowledge_points: [
+          {
+            knowledge_point_id: POINT_A,
+            knowledge_point_name: '数学一 / 极限 / 重要极限',
+            role: 'primary',
+            weight: 0.7,
+          },
+          {
+            knowledge_point_id: POINT_B,
+            knowledge_point_name: '数学一 / 极限 / 等价无穷小',
+            role: 'secondary',
+            weight: 0.3,
+          },
+        ],
+        solution: { content_md: '等价无穷小替换，极限为 1。', method_tag: '等价无穷小' },
+      }),
+      [`POST /api/problems/${PROBLEM_ID}/solutions`]: (init) => {
+        solutionBody = JSON.parse(String(init?.body)) as Record<string, unknown>
+        return draftProblem()
+      },
+    })
+
+    const wrapper = mount(ProblemsView)
+    await flushPromises()
+
+    await wrapper.get('.ai-button').trigger('click')
+    await flushPromises()
+
+    expect(wrapper.text()).toContain('AI 识别完成（gpt-test）')
+    const textarea = wrapper.get('.review-card label textarea').element as HTMLTextAreaElement
+    expect(textarea.value).toContain('\\sin x')
+    const mappingRows = wrapper.findAll('.mapping-row')
+    expect(mappingRows).toHaveLength(2)
+    expect(
+      (mappingRows[0].findAll('select')[0].element as HTMLSelectElement).value,
+    ).toBe(POINT_A)
+    expect(wrapper.text()).toContain('AI 建议解法')
+
+    await wrapper.get('.ai-solution .add-button').trigger('click')
+    await flushPromises()
+
+    expect(solutionBody).toMatchObject({
+      content_md: '等价无穷小替换，极限为 1。',
+      method_tag: '等价无穷小',
+      source: 'gpt',
+    })
+    expect(wrapper.text()).toContain('AI 解法已保存')
+    expect(wrapper.find('.ai-solution').exists()).toBe(false)
+  })
+
+  it('shows an error when AI extraction fails', async () => {
+    stubFetch({
+      'GET /api/problems/pending': () => ({ total: 1, problems: [draftProblem()] }),
+      'GET /api/syllabus': () => syllabusPayload,
+    })
+
+    const wrapper = mount(ProblemsView)
+    await flushPromises()
+
+    await wrapper.get('.ai-button').trigger('click')
+    await flushPromises()
+
+    expect(wrapper.text()).toContain('AI 识别失败')
+  })
+
   it('shows an error message when loading fails', async () => {
     const fetchMock = vi.fn(async () => ({
       ok: false,
