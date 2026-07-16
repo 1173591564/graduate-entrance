@@ -37,6 +37,8 @@ services:
       APP_AI_BASE_URL: ${APP_AI_BASE_URL:-}
       APP_AI_API_KEY: ${APP_AI_API_KEY:-}
       APP_AI_MODEL: ${APP_AI_MODEL:-}
+    volumes:
+      - problem-images:/app/data/problem-images
     ports:
       - "${API_BIND:-127.0.0.1}:${API_PORT:-8000}:8000"
     depends_on:
@@ -74,3 +76,4 @@ services:
 
 volumes:
   postgres-data:
+  problem-images:
