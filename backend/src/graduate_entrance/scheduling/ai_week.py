@@ -119,6 +119,15 @@ async def generate_ai_week_plan(
     week_end = week_start + timedelta(days=6)
     request = PlanGenerationRequest(start_date=week_start, end_date=week_end)
     plan = await preview_plan(session, request)
+    total_available = sum(day.available_minutes for day in plan.days)
+    if total_available <= 0:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=(
+                f"下周（{week_start} ~ {week_end}）没有任何可用学习时间，"
+                "请先在「规划配置」中设置阶段、每日可用时长和任务模板"
+            ),
+        )
     insights = await get_problem_insights(session, week_start)
     weak_lines = "\n".join(
         f"- {point.knowledge_point_name}：{point.problem_count} 题，"

@@ -700,5 +700,18 @@ async def test_ai_week_plan_missing_advice_returns_404(
 async def test_ai_week_plan_unconfigured_returns_503(
     scheduling_context: SchedulingContext,
 ) -> None:
-    response = await scheduling_context.client.post("/api/plan/ai-week", json={})
+    response = await scheduling_context.client.post(
+        "/api/plan/ai-week", json={"start_date": "2026-07-20"}
+    )
     assert response.status_code == 503
+
+
+@pytest.mark.asyncio
+async def test_ai_week_plan_without_available_time_returns_409(
+    scheduling_context: SchedulingContext,
+) -> None:
+    response = await scheduling_context.client.post(
+        "/api/plan/ai-week", json={"start_date": "2030-01-07"}
+    )
+    assert response.status_code == 409
+    assert "可用学习时间" in response.json()["error"]["message"]
