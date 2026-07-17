@@ -24,6 +24,7 @@ import androidx.compose.material.icons.outlined.PhotoCamera
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.Sync
 import androidx.compose.material.icons.outlined.Today
+import androidx.compose.material.icons.outlined.Translate
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -56,6 +57,7 @@ import com.graduateentrance.app.data.PapersRepository
 import com.graduateentrance.app.data.RecitationRepository
 import com.graduateentrance.app.data.ReviewsRepository
 import com.graduateentrance.app.data.TodayRepository
+import com.graduateentrance.app.data.VocabRepository
 import com.graduateentrance.app.data.local.AppDatabase
 import com.graduateentrance.app.network.ApiClient
 import kotlinx.coroutines.launch
@@ -87,6 +89,9 @@ fun GraduateEntranceApp(
     val recitationRepository = remember { RecitationRepository(ApiClient.service) }
     val recitationViewModel: RecitationViewModel =
         viewModel(factory = RecitationViewModel.Factory(recitationRepository))
+    val vocabRepository = remember { VocabRepository(ApiClient.service) }
+    val vocabViewModel: VocabViewModel =
+        viewModel(factory = VocabViewModel.Factory(vocabRepository))
     var destination by rememberSaveable { mutableStateOf(AppDestination.HOME) }
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
@@ -144,6 +149,9 @@ fun GraduateEntranceApp(
                             if (it == AppDestination.RECITATION) {
                                 recitationViewModel.refresh()
                             }
+                            if (it == AppDestination.VOCAB) {
+                                vocabViewModel.refresh()
+                            }
                         },
                     )
                 }
@@ -164,6 +172,7 @@ fun GraduateEntranceApp(
                     AppDestination.REVIEWS -> ReviewsScreen(viewModel = reviewsViewModel)
                     AppDestination.PAPERS -> PapersScreen(viewModel = papersViewModel)
                     AppDestination.RECITATION -> RecitationScreen(viewModel = recitationViewModel)
+                    AppDestination.VOCAB -> VocabScreen(viewModel = vocabViewModel)
                     AppDestination.CAPTURE -> CaptureScreen(viewModel = captureViewModel)
                     AppDestination.SETTINGS -> SettingsScreen(
                         todayState = todayState,
@@ -210,16 +219,21 @@ private data class NavItem(
 private val bottomItems = listOf(
     NavItem(AppDestination.HOME, "首页", Icons.Outlined.Home),
     NavItem(AppDestination.TODAY, "今日", Icons.Outlined.Today),
-    NavItem(AppDestination.REVIEWS, "复习", Icons.Outlined.AutoStories),
-    NavItem(AppDestination.PAPERS, "阅读", Icons.Outlined.MenuBook),
+    NavItem(AppDestination.VOCAB, "背单词", Icons.Outlined.Translate),
     NavItem(AppDestination.RECITATION, "一背", Icons.Outlined.AutoStories),
+    NavItem(AppDestination.PAPERS, "阅读", Icons.Outlined.MenuBook),
     NavItem(AppDestination.CAPTURE, "拍题", Icons.Outlined.PhotoCamera),
 )
 
-private val drawerItems = bottomItems + NavItem(
-    AppDestination.SETTINGS,
-    "设置",
-    Icons.Outlined.Settings,
+private val drawerItems = listOf(
+    NavItem(AppDestination.HOME, "首页", Icons.Outlined.Home),
+    NavItem(AppDestination.TODAY, "今日", Icons.Outlined.Today),
+    NavItem(AppDestination.VOCAB, "背单词", Icons.Outlined.Translate),
+    NavItem(AppDestination.RECITATION, "一背", Icons.Outlined.AutoStories),
+    NavItem(AppDestination.PAPERS, "阅读", Icons.Outlined.MenuBook),
+    NavItem(AppDestination.REVIEWS, "错题复习", Icons.Outlined.AutoStories),
+    NavItem(AppDestination.CAPTURE, "拍题", Icons.Outlined.PhotoCamera),
+    NavItem(AppDestination.SETTINGS, "设置", Icons.Outlined.Settings),
 )
 
 @Composable

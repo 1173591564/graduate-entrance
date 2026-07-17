@@ -199,6 +199,43 @@ data class ReciteResultDto(
     val item: RecitationItemDto,
 )
 
+data class VocabWordDto(
+    val id: String,
+    val word: String,
+    val meaning: String,
+    @SerializedName("book_page") val bookPage: Int,
+    val ef: Double,
+    @SerializedName("interval_days") val intervalDays: Int,
+    @SerializedName("due_date") val dueDate: String?,
+    val reps: Int,
+)
+
+data class VocabTodayDto(
+    val date: String,
+    @SerializedName("due_words") val dueWords: List<VocabWordDto>,
+    @SerializedName("new_words") val newWords: List<VocabWordDto>,
+    @SerializedName("due_count") val dueCount: Int,
+    @SerializedName("learned_count") val learnedCount: Int,
+    @SerializedName("total_count") val totalCount: Int,
+)
+
+data class VocabGradeRequest(
+    val grade: String,
+)
+
+data class VocabGradeResultDto(
+    val word: VocabWordDto,
+    val grade: String,
+    @SerializedName("due_date") val dueDate: String,
+)
+
+data class VocabStatsDto(
+    @SerializedName("total_count") val totalCount: Int,
+    @SerializedName("learned_count") val learnedCount: Int,
+    @SerializedName("due_count") val dueCount: Int,
+    @SerializedName("mastered_count") val masteredCount: Int,
+)
+
 interface GraduateEntranceApi {
     @GET("api/ping")
     suspend fun ping(): ServiceStatus
@@ -262,4 +299,16 @@ interface GraduateEntranceApi {
         @Path("itemId") itemId: String,
         @Body payload: ReciteRequest,
     ): ReciteResultDto
+
+    @GET("api/vocab/today")
+    suspend fun vocabToday(): VocabTodayDto
+
+    @POST("api/vocab/{wordId}/grade")
+    suspend fun gradeVocabWord(
+        @Path("wordId") wordId: String,
+        @Body payload: VocabGradeRequest,
+    ): VocabGradeResultDto
+
+    @GET("api/vocab/stats")
+    suspend fun vocabStats(): VocabStatsDto
 }

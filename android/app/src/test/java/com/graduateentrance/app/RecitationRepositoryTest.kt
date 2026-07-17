@@ -24,6 +24,10 @@ import com.graduateentrance.app.network.ServiceStatus
 import com.graduateentrance.app.network.TaskCompletionRequest
 import com.graduateentrance.app.network.TodayDto
 import com.graduateentrance.app.network.TodayTaskDto
+import com.graduateentrance.app.network.VocabGradeRequest
+import com.graduateentrance.app.network.VocabGradeResultDto
+import com.graduateentrance.app.network.VocabStatsDto
+import com.graduateentrance.app.network.VocabTodayDto
 import java.io.IOException
 import kotlinx.coroutines.test.runTest
 import okhttp3.MediaType.Companion.toMediaType
@@ -118,6 +122,15 @@ private class FakeRecitationApi : GraduateEntranceApi {
         reciteCalls.add(itemId to payload.undo)
         return ReciteResultDto(item(itemId, recitedToday = !payload.undo))
     }
+
+    override suspend fun vocabToday(): VocabTodayDto = throw UnsupportedOperationException()
+
+    override suspend fun gradeVocabWord(
+        wordId: String,
+        payload: VocabGradeRequest,
+    ): VocabGradeResultDto = throw UnsupportedOperationException()
+
+    override suspend fun vocabStats(): VocabStatsDto = throw UnsupportedOperationException()
 }
 
 class RecitationRepositoryTest {
