@@ -3,6 +3,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import EssayView from '../views/EssayView.vue'
 import HomeView from '../views/HomeView.vue'
 import InsightsView from '../views/InsightsView.vue'
+import PapersView from '../views/PapersView.vue'
 import PlanningView from '../views/PlanningView.vue'
 import ProblemsView from '../views/ProblemsView.vue'
 import RetroView from '../views/RetroView.vue'
@@ -54,6 +55,11 @@ const router = createRouter({
       path: '/vocab',
       name: 'vocab',
       component: VocabView,
+    },
+    {
+      path: '/papers',
+      name: 'papers',
+      component: PapersView,
     },
     {
       path: '/retro',

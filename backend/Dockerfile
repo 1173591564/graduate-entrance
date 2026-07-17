@@ -20,7 +20,7 @@ COPY seed/syllabus/raw ./seed/syllabus/raw
 COPY seed/vocab ./seed/vocab
 RUN uv sync --frozen --no-dev
 
-RUN mkdir -p /app/data/problem-images \
+RUN mkdir -p /app/data/problem-images /app/data/papers \
     && useradd --create-home --uid 10001 app \
     && chown -R app:app /app
 USER app
