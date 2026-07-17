@@ -1,5 +1,7 @@
 package com.graduateentrance.app
 
+import com.graduateentrance.app.data.VocabDictationResult
+import com.graduateentrance.app.data.VocabEnrichResult
 import com.graduateentrance.app.data.VocabGradeActionResult
 import com.graduateentrance.app.data.VocabLoadResult
 import com.graduateentrance.app.data.VocabRepository
@@ -24,6 +26,7 @@ import com.graduateentrance.app.network.ServiceStatus
 import com.graduateentrance.app.network.TaskCompletionRequest
 import com.graduateentrance.app.network.TodayDto
 import com.graduateentrance.app.network.TodayTaskDto
+import com.graduateentrance.app.network.VocabDictationDto
 import com.graduateentrance.app.network.VocabGradeRequest
 import com.graduateentrance.app.network.VocabGradeResultDto
 import com.graduateentrance.app.network.VocabStatsDto
@@ -46,6 +49,9 @@ private fun word(id: String, dueDate: String? = null, reps: Int = 0) = VocabWord
     id = id,
     word = "word-$id",
     meaning = "释义 $id",
+    phonetic = "",
+    exampleEn = "",
+    exampleZh = "",
     bookPage = 1,
     ef = 2.5,
     intervalDays = 1,
@@ -132,6 +138,20 @@ private class FakeVocabApi : GraduateEntranceApi {
         )
     }
 
+    override suspend fun vocabDictation(): VocabDictationDto {
+        maybeFail()
+        return VocabDictationDto("2026-07-17", listOf(word("d1", reps = 1)))
+    }
+
+    override suspend fun enrichVocabWord(wordId: String): VocabWordDto {
+        maybeFail()
+        return word(wordId).copy(
+            phonetic = "/test/",
+            exampleEn = "An example.",
+            exampleZh = "一个例句。",
+        )
+    }
+
     override suspend fun vocabStats(): VocabStatsDto = throw UnsupportedOperationException()
 
     override suspend fun chatConversations(): ChatConversationListDto =
@@ -208,5 +228,33 @@ class VocabRepositoryTest {
         api.offline = true
 
         assertTrue(VocabRepository(api).grade("w1", "forgot") is VocabGradeActionResult.Offline)
+    }
+
+    @Test
+    fun dictationReturnsWords() = runTest {
+        val api = FakeVocabApi()
+
+        val result = VocabRepository(api).dictation()
+
+        assertTrue(result is VocabDictationResult.Loaded)
+        assertEquals(1, (result as VocabDictationResult.Loaded).dictation.words.size)
+    }
+
+    @Test
+    fun dictationReturnsOfflineOnIoError() = runTest {
+        val api = FakeVocabApi()
+        api.offline = true
+
+        assertTrue(VocabRepository(api).dictation() is VocabDictationResult.Offline)
+    }
+
+    @Test
+    fun enrichReturnsEnrichedWord() = runTest {
+        val api = FakeVocabApi()
+
+        val result = VocabRepository(api).enrich("w1")
+
+        assertTrue(result is VocabEnrichResult.Enriched)
+        assertEquals("/test/", (result as VocabEnrichResult.Enriched).word.phonetic)
     }
 }

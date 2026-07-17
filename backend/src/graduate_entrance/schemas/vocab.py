@@ -13,6 +13,9 @@ class VocabWordRead(BaseModel):
     id: UUID
     word: str
     meaning: str
+    phonetic: str
+    example_en: str
+    example_zh: str
     book_page: int
     ef: float
     interval_days: int
@@ -38,6 +41,11 @@ class VocabGradeResult(BaseModel):
     word: VocabWordRead
     grade: VocabGrade
     due_date: date
+
+
+class VocabDictationResponse(BaseModel):
+    date: date
+    words: list[VocabWordRead]
 
 
 class VocabStatsResponse(BaseModel):

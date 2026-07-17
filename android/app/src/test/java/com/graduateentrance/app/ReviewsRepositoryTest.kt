@@ -25,10 +25,12 @@ import com.graduateentrance.app.network.ServiceStatus
 import com.graduateentrance.app.network.TaskCompletionRequest
 import com.graduateentrance.app.network.TodayDto
 import com.graduateentrance.app.network.TodayTaskDto
+import com.graduateentrance.app.network.VocabDictationDto
 import com.graduateentrance.app.network.VocabGradeRequest
 import com.graduateentrance.app.network.VocabGradeResultDto
 import com.graduateentrance.app.network.VocabStatsDto
 import com.graduateentrance.app.network.VocabTodayDto
+import com.graduateentrance.app.network.VocabWordDto
 import java.io.IOException
 import kotlinx.coroutines.test.runTest
 import okhttp3.MediaType.Companion.toMediaType
@@ -124,6 +126,11 @@ private class FakeReviewsApi : GraduateEntranceApi {
         wordId: String,
         payload: VocabGradeRequest,
     ): VocabGradeResultDto = throw UnsupportedOperationException()
+
+    override suspend fun vocabDictation(): VocabDictationDto = throw UnsupportedOperationException()
+
+    override suspend fun enrichVocabWord(wordId: String): VocabWordDto =
+        throw UnsupportedOperationException()
 
     override suspend fun vocabStats(): VocabStatsDto = throw UnsupportedOperationException()
 

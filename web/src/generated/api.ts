@@ -1087,6 +1087,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/vocab/dictation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read Vocab Dictation */
+        get: operations["read_vocab_dictation_api_vocab_dictation_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/vocab/stats": {
         parameters: {
             query?: never;
@@ -1115,6 +1132,23 @@ export interface paths {
         get: operations["read_vocab_today_api_vocab_today_get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/vocab/{word_id}/enrich": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Enrich Vocab Word */
+        post: operations["enrich_vocab_word_api_vocab__word_id__enrich_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2422,7 +2456,7 @@ export interface components {
              * Subject
              * @enum {string}
              */
-            subject: "politics" | "english";
+            subject: "politics" | "english" | "math" | "cs408";
             /** Title */
             title: string;
         };
@@ -2467,7 +2501,7 @@ export interface components {
              * Subject
              * @enum {string}
              */
-            subject: "politics" | "english";
+            subject: "politics" | "english" | "math" | "cs408";
             /** Title */
             title: string;
         };
@@ -3057,6 +3091,16 @@ export interface components {
             /** Type */
             type: string;
         };
+        /** VocabDictationResponse */
+        VocabDictationResponse: {
+            /**
+             * Date
+             * Format: date
+             */
+            date: string;
+            /** Words */
+            words: components["schemas"]["VocabWordRead"][];
+        };
         /** VocabGradeRequest */
         VocabGradeRequest: {
             /** As Of */
@@ -3121,6 +3165,10 @@ export interface components {
             due_date: string | null;
             /** Ef */
             ef: number;
+            /** Example En */
+            example_en: string;
+            /** Example Zh */
+            example_zh: string;
             /**
              * Id
              * Format: uuid
@@ -3130,6 +3178,8 @@ export interface components {
             interval_days: number;
             /** Meaning */
             meaning: string;
+            /** Phonetic */
+            phonetic: string;
             /** Reps */
             reps: number;
             /** Word */
@@ -6343,7 +6393,7 @@ export interface operations {
     read_recitations_api_recitations_get: {
         parameters: {
             query?: {
-                subject?: ("politics" | "english") | null;
+                subject?: ("politics" | "english" | "math" | "cs408") | null;
             };
             header?: never;
             path?: never;
@@ -6443,7 +6493,7 @@ export interface operations {
     read_recitation_stats_api_recitations_stats_get: {
         parameters: {
             query?: {
-                subject?: ("politics" | "english") | null;
+                subject?: ("politics" | "english" | "math" | "cs408") | null;
             };
             header?: never;
             path?: never;
@@ -6492,7 +6542,7 @@ export interface operations {
     read_recitation_today_api_recitations_today_get: {
         parameters: {
             query?: {
-                subject?: ("politics" | "english") | null;
+                subject?: ("politics" | "english" | "math" | "cs408") | null;
                 as_of?: string | null;
             };
             header?: never;
@@ -6991,6 +7041,55 @@ export interface operations {
             };
         };
     };
+    read_vocab_dictation_api_vocab_dictation_get: {
+        parameters: {
+            query?: {
+                as_of?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VocabDictationResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
     read_vocab_stats_api_vocab_stats_get: {
         parameters: {
             query?: {
@@ -7059,6 +7158,55 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["VocabTodayResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    enrich_vocab_word_api_vocab__word_id__enrich_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                word_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VocabWordRead"];
                 };
             };
             /** @description Unauthorized */

@@ -27,7 +27,7 @@
     "subject": "politics",
     "category": "马原·辩证法",
     "title": "否定之否定规律",
-    "content_md": "辩证的否定是事物的自我否定，是发展环节和联系环节的统一，实质是\u201c扬弃\u201d——既克服又保留。\n\n事物发展经过两次否定、三个阶段，呈现螺旋式上升或波浪式前进。\n\n方法论：坚持前途光明与道路曲折的统一，既要有信心，又要准备走曲折的路。"
+    "content_md": "辩证的否定是事物的自我否定，是发展环节和联系环节的统一，实质是“扬弃”——既克服又保留。\n\n事物发展经过两次否定、三个阶段，呈现螺旋式上升或波浪式前进。\n\n方法论：坚持前途光明与道路曲折的统一，既要有信心，又要准备走曲折的路。"
   },
   {
     "subject": "politics",
@@ -94,5 +94,149 @@
     "category": "思修法基",
     "title": "社会主义核心价值观",
     "content_md": "国家层面：富强、民主、文明、和谐；\n社会层面：自由、平等、公正、法治；\n个人层面：爱国、敬业、诚信、友善。\n\n它是当代中国精神的集中体现，凝结着全体人民共同的价值追求。"
+  },
+  {
+    "subject": "english",
+    "category": "大作文·图画作文模板",
+    "title": "首段：描述图画",
+    "content_md": "As is vividly depicted in the picture, ...（图画内容）. Simple as the drawing is, the symbolic meaning behind it is profound: it reveals the significance of ...（主题词）.\n\n要点：一句描图 + 一句点题，不超过三句。"
+  },
+  {
+    "subject": "english",
+    "category": "大作文·图画作文模板",
+    "title": "中段：意义论证",
+    "content_md": "Why does ...（主题词） matter so much? For one thing, it enables us to .... For another, those who ... are more likely to .... A case in point is that ....（举例）\n\n要点：两个分论点 + 一个例证，用 for one thing / for another 组织。"
+  },
+  {
+    "subject": "english",
+    "category": "大作文·图画作文模板",
+    "title": "尾段：归纳建议",
+    "content_md": "From what has been discussed above, we may safely draw the conclusion that .... Therefore, it is high time that we placed great emphasis on ....（建议）\n\n要点：结论句 + it is high time that + 过去式（虚拟语气加分）。"
+  },
+  {
+    "subject": "english",
+    "category": "小作文·书信模板",
+    "title": "建议信框架",
+    "content_md": "Dear ...,\n\nI am writing to offer some suggestions concerning ....\n\nFirst and foremost, it would be beneficial to .... In addition, I strongly recommend that you ....\n\nI hope you will find these suggestions helpful. I would be more than happy to discuss this further.\n\nYours sincerely, Li Ming\n\n要点：写信目的 → 两条建议（recommend that + 原形）→ 客套收尾。"
+  },
+  {
+    "subject": "english",
+    "category": "功能句",
+    "title": "万能让步句",
+    "content_md": "Admittedly, ...（对方观点） has its own merits. Nevertheless, its advantages are greatly outweighed by the disadvantages when it comes to ....\n\n用法：反驳前先让步，argue 类话题通用。"
+  },
+  {
+    "subject": "english",
+    "category": "功能句",
+    "title": "数据/趋势描述句",
+    "content_md": "The past decade has witnessed a dramatic increase in the number of ..., soaring from ... to ....\n\n变体：witness 可换 see；dramatic 可换 steady / modest 表不同幅度。图表作文首段必备。"
+  },
+  {
+    "subject": "english",
+    "category": "语法·长难句",
+    "title": "定语从句嵌套的拆解",
+    "content_md": "拆解步骤：\n1. 先找谓语动词个数，n 个谓语 = n 个分句；\n2. which/that/who 引导的从句先用括号括起，还原先行词；\n3. 剥掉从句后先译主干，再把从句作为修饰补进去。\n\n例：The scientist (who devoted his life to the research [that changed the world]) died. → 主干 The scientist died。"
+  },
+  {
+    "subject": "english",
+    "category": "语法·长难句",
+    "title": "分词结构作状语的判断",
+    "content_md": "现在分词 doing 表主动/伴随，过去分词 done 表被动/完成，位于句首时逻辑主语必须与主句主语一致。\n\n例：Written in haste, the report contains many errors.（report 与 write 是被动关系）\n\n翻译时通常译为原因/时间状语：由于仓促写成，报告错误很多。"
+  },
+  {
+    "subject": "math",
+    "category": "高数·极限与连续",
+    "title": "两个重要极限与等价无穷小",
+    "content_md": "$\\lim_{x\\to 0}\\frac{\\sin x}{x}=1$，$\\lim_{x\\to\\infty}(1+\\frac{1}{x})^x=e$。\n\n常用等价无穷小（$x\\to 0$）：$\\sin x\\sim x$，$\\tan x\\sim x$，$1-\\cos x\\sim \\frac{x^2}{2}$，$e^x-1\\sim x$，$\\ln(1+x)\\sim x$，$(1+x)^a-1\\sim ax$。\n\n注意：等价替换只能用于乘除因子，加减慎用。"
+  },
+  {
+    "subject": "math",
+    "category": "高数·微分学",
+    "title": "泰勒公式（麦克劳林展开）",
+    "content_md": "$e^x=1+x+\\frac{x^2}{2!}+\\cdots+\\frac{x^n}{n!}+o(x^n)$\n\n$\\sin x=x-\\frac{x^3}{3!}+\\frac{x^5}{5!}-\\cdots$，$\\cos x=1-\\frac{x^2}{2!}+\\frac{x^4}{4!}-\\cdots$\n\n$\\ln(1+x)=x-\\frac{x^2}{2}+\\frac{x^3}{3}-\\cdots$，$\\frac{1}{1-x}=1+x+x^2+\\cdots$\n\n用途：求极限、判断无穷小阶数、近似计算。"
+  },
+  {
+    "subject": "math",
+    "category": "高数·微分学",
+    "title": "三大微分中值定理",
+    "content_md": "罗尔：$f$ 在 $[a,b]$ 连续、$(a,b)$ 可导且 $f(a)=f(b)$ ⟹ 存在 $\\xi$ 使 $f'(\\xi)=0$。\n\n拉格朗日：$f'(\\xi)=\\frac{f(b)-f(a)}{b-a}$。\n\n柯西：$\\frac{f'(\\xi)}{g'(\\xi)}=\\frac{f(b)-f(a)}{g(b)-g(a)}$。\n\n证明题信号：见 $f(a)=f(b)$ 想罗尔，见增量比想拉格朗日，见两函数比想柯西。"
+  },
+  {
+    "subject": "math",
+    "category": "高数·积分学",
+    "title": "定积分常用性质与华里士公式",
+    "content_md": "对称性：$\\int_{-a}^{a}f(x)dx=0$（$f$ 为奇函数）；$=2\\int_0^a f(x)dx$（$f$ 为偶函数）。\n\n华里士公式：$\\int_0^{\\pi/2}\\sin^n x\\,dx=\\int_0^{\\pi/2}\\cos^n x\\,dx=\\frac{(n-1)!!}{n!!}\\cdot\\begin{cases}\\frac{\\pi}{2}, & n\\text{ 偶}\\\\ 1, & n\\text{ 奇}\\end{cases}$"
+  },
+  {
+    "subject": "math",
+    "category": "线代·矩阵与秩",
+    "title": "矩阵秩的重要不等式",
+    "content_md": "$r(A+B)\\le r(A)+r(B)$；$r(AB)\\le\\min\\{r(A),r(B)\\}$。\n\n若 $A_{m\\times n}B_{n\\times s}=O$，则 $r(A)+r(B)\\le n$。\n\n$r(A)=r(A^T)=r(A^TA)$。\n\n$Ax=0$ 基础解系含 $n-r(A)$ 个向量。"
+  },
+  {
+    "subject": "math",
+    "category": "线代·特征值",
+    "title": "特征值的性质与相似对角化条件",
+    "content_md": "$\\sum\\lambda_i=\\mathrm{tr}(A)$，$\\prod\\lambda_i=|A|$。\n\n$A$ 可相似对角化 ⟺ $A$ 有 $n$ 个线性无关特征向量 ⟺ 每个 $k$ 重特征值有 $k$ 个线性无关特征向量。\n\n实对称矩阵必可正交对角化，不同特征值的特征向量正交。"
+  },
+  {
+    "subject": "math",
+    "category": "概率·常用分布",
+    "title": "常见分布的期望与方差",
+    "content_md": "二项 $B(n,p)$：$E=np$，$D=np(1-p)$。泊松 $P(\\lambda)$：$E=D=\\lambda$。\n\n均匀 $U(a,b)$：$E=\\frac{a+b}{2}$，$D=\\frac{(b-a)^2}{12}$。指数 $E(\\lambda)$：$E=\\frac{1}{\\lambda}$，$D=\\frac{1}{\\lambda^2}$。\n\n正态 $N(\\mu,\\sigma^2)$：$E=\\mu$，$D=\\sigma^2$。\n\n性质：$D(X)=E(X^2)-[E(X)]^2$。"
+  },
+  {
+    "subject": "math",
+    "category": "概率·极限定理",
+    "title": "大数定律与中心极限定理",
+    "content_md": "切比雪夫不等式：$P\\{|X-EX|\\ge\\varepsilon\\}\\le\\frac{DX}{\\varepsilon^2}$。\n\n大数定律：独立同分布随机变量的均值依概率收敛于期望。\n\n中心极限定理（独立同分布）：$\\frac{\\sum X_i-n\\mu}{\\sqrt{n}\\sigma}\\xrightarrow{d}N(0,1)$，即大样本下和近似正态 $N(n\\mu,n\\sigma^2)$。"
+  },
+  {
+    "subject": "cs408",
+    "category": "数据结构·树",
+    "title": "二叉树重要性质",
+    "content_md": "1. 第 $i$ 层至多 $2^{i-1}$ 个结点；深度为 $k$ 至多 $2^k-1$ 个。\n2. 叶结点数 $n_0$ 与度 2 结点数 $n_2$：$n_0=n_2+1$。\n3. $n$ 个结点的完全二叉树深度为 $\\lfloor\\log_2 n\\rfloor+1$。\n4. $n$ 个结点的二叉树共有 $\\frac{1}{n+1}C_{2n}^{n}$ 种形态（卡特兰数）。"
+  },
+  {
+    "subject": "cs408",
+    "category": "数据结构·排序",
+    "title": "排序算法复杂度与稳定性",
+    "content_md": "O(n²)：冒泡（稳）、选择（不稳）、插入（稳）。\n\nO(nlogn)：快排（不稳，最坏 O(n²)，空间 O(logn)）、归并（稳，空间 O(n)）、堆排（不稳，空间 O(1)）。\n\n希尔不稳；基数排序 O(d(n+r)) 稳定。\n\n记忆：不稳定的是「快些选堆」（快排、希尔、选择、堆）。"
+  },
+  {
+    "subject": "cs408",
+    "category": "组成原理·存储",
+    "title": "Cache 映射方式对比",
+    "content_md": "直接映射：主存块只能放到唯一行，冲突多、硬件简单。\n\n全相联：可放任意行，命中率高、比较电路开销大。\n\n组相联：折中，先定组、组内全相联。\n\n地址划分：直接映射 = 标记+行号+块内地址；组相联 = 标记+组号+块内地址。替换算法常考 LRU。"
+  },
+  {
+    "subject": "cs408",
+    "category": "组成原理·CPU",
+    "title": "流水线冒险与解决",
+    "content_md": "结构冒险：硬件资源冲突 → 资源重复/分开取指访存（哈佛结构）。\n\n数据冒险：后指令用到前指令结果 → 转发（旁路）、插入气泡、编译器调度。\n\n控制冒险：转移指令改变 PC → 分支预测、延迟转移。\n\n流水线吞吐率 $TP=\\frac{n}{(k+n-1)\\Delta t}$。"
+  },
+  {
+    "subject": "cs408",
+    "category": "操作系统·进程",
+    "title": "进程与线程的区别",
+    "content_md": "进程是资源分配的基本单位，线程是 CPU 调度的基本单位。\n\n同一进程内线程共享地址空间和资源，切换开销小；进程切换需切换页表、开销大。\n\n一个线程崩溃可能导致整个进程崩溃；进程间相互隔离。\n\n用户级线程切换不需内核参与；内核级线程可被独立调度到多核。"
+  },
+  {
+    "subject": "cs408",
+    "category": "操作系统·死锁",
+    "title": "死锁四个必要条件与处理",
+    "content_md": "必要条件：互斥、占有并等待（请求保持）、不可剥夺、循环等待。\n\n处理策略：\n- 预防：破坏四条件之一（如资源有序分配破坏循环等待）；\n- 避免：银行家算法（安全序列）；\n- 检测+解除：资源分配图化简，撤销/剥夺进程。"
+  },
+  {
+    "subject": "cs408",
+    "category": "计算机网络·传输层",
+    "title": "TCP 三次握手与四次挥手",
+    "content_md": "握手：SYN → SYN+ACK → ACK。三次是为防止失效连接请求突然到达（两次会让服务器空等）。\n\n挥手：FIN → ACK → FIN → ACK。主动方进入 TIME_WAIT 等 2MSL，保证最后 ACK 可达且旧报文消逝。\n\n序号消耗：SYN/FIN 各占 1 序号，纯 ACK 不占。"
+  },
+  {
+    "subject": "cs408",
+    "category": "计算机网络·网络层",
+    "title": "IP 地址与子网划分",
+    "content_md": "子网掩码：网络位全 1。CIDR a.b.c.d/n，主机数 $2^{32-n}-2$（去网络地址与广播地址）。\n\n例：/26 每子网 62 台主机。\n\n路由聚合取公共前缀；最长前缀匹配优先。\n\n特殊地址：127.0.0.1 环回；192.168/16、10/8、172.16/12 私有。"
   }
 ]

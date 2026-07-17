@@ -3,6 +3,8 @@ package com.graduateentrance.app.ui
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.graduateentrance.app.data.VocabDictationResult
+import com.graduateentrance.app.data.VocabEnrichResult
 import com.graduateentrance.app.data.VocabGradeActionResult
 import com.graduateentrance.app.data.VocabLoadResult
 import com.graduateentrance.app.data.VocabRepository
@@ -23,10 +25,21 @@ data class VocabUiState(
     val totalCount: Int = 0,
     val dueCount: Int = 0,
     val grading: Boolean = false,
+    val enriching: Boolean = false,
+    val dictationActive: Boolean = false,
+    val dictationLoading: Boolean = false,
+    val dictationWords: List<VocabWordDto> = emptyList(),
+    val dictationIndex: Int = 0,
+    val dictationInput: String = "",
+    val dictationChecked: Boolean = false,
+    val dictationCorrectCount: Int = 0,
     val notice: String? = null,
     val error: String? = null,
 ) {
     val current: VocabWordDto? get() = queue.firstOrNull()
+    val dictationCurrent: VocabWordDto? get() = dictationWords.getOrNull(dictationIndex)
+    val dictationDone: Boolean get() =
+        dictationWords.isNotEmpty() && dictationIndex >= dictationWords.size
 }
 
 class VocabViewModel(private val repository: VocabRepository) : ViewModel() {
@@ -68,6 +81,95 @@ class VocabViewModel(private val repository: VocabRepository) : ViewModel() {
 
     fun reveal() {
         _uiState.update { it.copy(revealed = true) }
+        enrichCurrent()
+    }
+
+    private fun enrichCurrent() {
+        val word = _uiState.value.current ?: return
+        if (word.phonetic.isNotBlank() && word.exampleEn.isNotBlank()) return
+        if (_uiState.value.enriching) return
+        viewModelScope.launch {
+            _uiState.update { it.copy(enriching = true) }
+            val result = repository.enrich(word.id)
+            _uiState.update { state ->
+                when (result) {
+                    is VocabEnrichResult.Enriched -> state.copy(
+                        enriching = false,
+                        queue = state.queue.map {
+                            if (it.id == result.word.id) result.word else it
+                        },
+                    )
+                    else -> state.copy(enriching = false)
+                }
+            }
+        }
+    }
+
+    fun startDictation() {
+        viewModelScope.launch {
+            _uiState.update {
+                it.copy(
+                    dictationActive = true,
+                    dictationLoading = true,
+                    dictationWords = emptyList(),
+                    dictationIndex = 0,
+                    dictationInput = "",
+                    dictationChecked = false,
+                    dictationCorrectCount = 0,
+                )
+            }
+            when (val result = repository.dictation()) {
+                is VocabDictationResult.Loaded -> _uiState.update {
+                    it.copy(
+                        dictationLoading = false,
+                        dictationWords = result.dictation.words.shuffled(),
+                    )
+                }
+                VocabDictationResult.Offline -> _uiState.update {
+                    it.copy(
+                        dictationActive = false,
+                        dictationLoading = false,
+                        notice = "网络不可用，无法加载默写",
+                    )
+                }
+                is VocabDictationResult.Rejected -> _uiState.update {
+                    it.copy(
+                        dictationActive = false,
+                        dictationLoading = false,
+                        notice = "默写加载失败（HTTP ${result.code}）",
+                    )
+                }
+            }
+        }
+    }
+
+    fun exitDictation() {
+        _uiState.update { it.copy(dictationActive = false) }
+    }
+
+    fun setDictationInput(value: String) {
+        _uiState.update { it.copy(dictationInput = value) }
+    }
+
+    fun checkDictation() {
+        _uiState.update { state ->
+            val word = state.dictationCurrent ?: return@update state
+            val correct = state.dictationInput.trim().equals(word.word, ignoreCase = true)
+            state.copy(
+                dictationChecked = true,
+                dictationCorrectCount = state.dictationCorrectCount + if (correct) 1 else 0,
+            )
+        }
+    }
+
+    fun nextDictation() {
+        _uiState.update {
+            it.copy(
+                dictationIndex = it.dictationIndex + 1,
+                dictationInput = "",
+                dictationChecked = false,
+            )
+        }
     }
 
     fun grade(wordId: String, grade: String) {

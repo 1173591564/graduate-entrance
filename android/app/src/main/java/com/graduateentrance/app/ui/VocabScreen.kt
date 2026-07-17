@@ -1,5 +1,7 @@
 package com.graduateentrance.app.ui
 
+import android.media.AudioAttributes
+import android.media.MediaPlayer
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -15,7 +17,10 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.automirrored.outlined.VolumeUp
 import androidx.compose.material.icons.outlined.CheckCircle
+import androidx.compose.material.icons.outlined.EditNote
 import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material.icons.outlined.Translate
 import androidx.compose.material3.Button
@@ -28,6 +33,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -48,6 +54,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.graduateentrance.app.network.VocabWordDto
+import java.net.URLEncoder
 
 private data class GradeSpec(
     val grade: String,
@@ -56,11 +63,39 @@ private data class GradeSpec(
     val content: Color,
 )
 
+private fun playPronunciation(word: String) {
+    val encoded = URLEncoder.encode(word, "UTF-8")
+    val player = MediaPlayer()
+    player.setAudioAttributes(
+        AudioAttributes.Builder()
+            .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
+            .setUsage(AudioAttributes.USAGE_MEDIA)
+            .build(),
+    )
+    try {
+        player.setDataSource("https://dict.youdao.com/dictvoice?audio=$encoded&type=2")
+        player.setOnPreparedListener { it.start() }
+        player.setOnCompletionListener { it.release() }
+        player.setOnErrorListener { mp, _, _ ->
+            mp.release()
+            true
+        }
+        player.prepareAsync()
+    } catch (_: Exception) {
+        player.release()
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun VocabScreen(viewModel: VocabViewModel) {
     val state by viewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
+
+    if (state.dictationActive) {
+        DictationScreen(state = state, viewModel = viewModel)
+        return
+    }
 
     LaunchedEffect(state.notice) {
         state.notice?.let {
@@ -85,6 +120,9 @@ fun VocabScreen(viewModel: VocabViewModel) {
                     }
                 },
                 actions = {
+                    IconButton(onClick = viewModel::startDictation) {
+                        Icon(Icons.Outlined.EditNote, contentDescription = "今日默写")
+                    }
                     IconButton(onClick = viewModel::refresh) {
                         Icon(Icons.Outlined.Refresh, contentDescription = "刷新")
                     }
@@ -142,6 +180,7 @@ fun VocabScreen(viewModel: VocabViewModel) {
                             word = current,
                             revealed = state.revealed,
                             grading = state.grading,
+                            enriching = state.enriching,
                             onReveal = viewModel::reveal,
                             onGrade = { grade -> viewModel.grade(current.id, grade) },
                         )
@@ -184,6 +223,7 @@ private fun VocabCard(
     word: VocabWordDto,
     revealed: Boolean,
     grading: Boolean,
+    enriching: Boolean,
     onReveal: () -> Unit,
     onGrade: (String) -> Unit,
 ) {
@@ -211,20 +251,77 @@ private fun VocabCard(
                 }
                 AppStatusChip(label = "P${word.bookPage}", tone = NoticeTone.OFFLINE)
             }
-            Text(
-                text = word.word,
-                style = MaterialTheme.typography.displaySmall,
-                fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center,
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                Text(
+                    text = word.word,
+                    style = MaterialTheme.typography.displaySmall,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center,
+                )
+                IconButton(onClick = { playPronunciation(word.word) }) {
+                    Icon(
+                        Icons.AutoMirrored.Outlined.VolumeUp,
+                        contentDescription = "播放读音",
+                        tint = MaterialTheme.colorScheme.primary,
+                    )
+                }
+            }
+            if (word.phonetic.isNotBlank()) {
+                Text(
+                    text = word.phonetic,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
             Crossfade(targetState = revealed, label = "meaning") { show ->
                 if (show) {
-                    Text(
-                        text = word.meaning,
-                        style = MaterialTheme.typography.titleMedium,
-                        textAlign = TextAlign.Center,
+                    Column(
                         modifier = Modifier.fillMaxWidth(),
-                    )
+                        verticalArrangement = Arrangement.spacedBy(10.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
+                        Text(
+                            text = word.meaning,
+                            style = MaterialTheme.typography.titleMedium,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                        when {
+                            word.exampleEn.isNotBlank() -> Column(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalArrangement = Arrangement.spacedBy(4.dp),
+                            ) {
+                                Text(
+                                    text = word.exampleEn,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                )
+                                if (word.exampleZh.isNotBlank()) {
+                                    Text(
+                                        text = word.exampleZh,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
+                                }
+                            }
+                            enriching -> Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            ) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(14.dp),
+                                    strokeWidth = 2.dp,
+                                )
+                                Text(
+                                    text = "正在生成音标与例句…",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                        }
+                    }
                 } else {
                     Box(
                         modifier = Modifier
@@ -294,3 +391,151 @@ private val gradeSpecs = listOf(
     GradeSpec("vague", "模糊", Color(0xFF4A3513), Color(0xFFFFDDB0)),
     GradeSpec("mastered", "掌握", Color(0xFF173F2B), Color(0xFFC4EED3)),
 )
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun DictationScreen(state: VocabUiState, viewModel: VocabViewModel) {
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = {
+                    Column {
+                        Text("今日默写")
+                        Text(
+                            text = if (state.dictationWords.isEmpty()) {
+                                "根据释义写出单词"
+                            } else {
+                                "第 ${
+                                    (state.dictationIndex + 1)
+                                        .coerceAtMost(state.dictationWords.size)
+                                } / ${state.dictationWords.size} 个 · 对 ${state.dictationCorrectCount}"
+                            },
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                },
+                navigationIcon = {
+                    IconButton(onClick = viewModel::exitDictation) {
+                        Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = "返回")
+                    }
+                },
+            )
+        },
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .padding(horizontal = 16.dp)
+                .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(14.dp),
+        ) {
+            when {
+                state.dictationLoading -> AppLoading(label = "正在加载今日已背单词")
+                state.dictationWords.isEmpty() -> AppEmptyState(
+                    title = "今天还没背单词",
+                    body = "先去背几个单词，再来默写巩固。",
+                    icon = Icons.Outlined.EditNote,
+                )
+                state.dictationDone -> Column(
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    AppEmptyState(
+                        title = "默写完成",
+                        body = "共 ${state.dictationWords.size} 个，写对 ${state.dictationCorrectCount} 个。",
+                        icon = Icons.Outlined.CheckCircle,
+                    )
+                    Button(
+                        onClick = viewModel::exitDictation,
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Text("返回背单词")
+                    }
+                }
+                else -> state.dictationCurrent?.let { word ->
+                    DictationCard(state = state, word = word, viewModel = viewModel)
+                }
+            }
+            Spacer(Modifier.width(1.dp))
+        }
+    }
+}
+
+@Composable
+private fun DictationCard(
+    state: VocabUiState,
+    word: VocabWordDto,
+    viewModel: VocabViewModel,
+) {
+    val correct = state.dictationInput.trim().equals(word.word, ignoreCase = true)
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+        ),
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp),
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                Text(
+                    text = "释义",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                IconButton(onClick = { playPronunciation(word.word) }) {
+                    Icon(
+                        Icons.AutoMirrored.Outlined.VolumeUp,
+                        contentDescription = "播放读音",
+                        tint = MaterialTheme.colorScheme.primary,
+                    )
+                }
+            }
+            Text(
+                text = word.meaning,
+                style = MaterialTheme.typography.titleMedium,
+            )
+            OutlinedTextField(
+                value = state.dictationInput,
+                onValueChange = viewModel::setDictationInput,
+                modifier = Modifier.fillMaxWidth(),
+                label = { Text("写出对应的单词") },
+                singleLine = true,
+                enabled = !state.dictationChecked,
+            )
+            if (state.dictationChecked) {
+                AppNotice(
+                    if (correct) "写对了！" else "不对，正确答案：${word.word}",
+                    if (correct) NoticeTone.SUCCESS else NoticeTone.ERROR,
+                )
+                Button(
+                    onClick = viewModel::nextDictation,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text(
+                        if (state.dictationIndex + 1 >= state.dictationWords.size) {
+                            "查看结果"
+                        } else {
+                            "下一个"
+                        },
+                    )
+                }
+            } else {
+                Button(
+                    onClick = viewModel::checkDictation,
+                    enabled = state.dictationInput.isNotBlank(),
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text("检查")
+                }
+            }
+        }
+    }
+}

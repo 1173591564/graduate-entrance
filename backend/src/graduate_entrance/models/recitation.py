@@ -19,7 +19,7 @@ class RecitationItem(Base):
         UniqueConstraint("subject", "title", name="uq_recitation_subject_title"),
         CheckConstraint("recite_count >= 0", name="ck_recitation_recite_count"),
         CheckConstraint(
-            "subject in ('politics', 'english')",
+            "subject in ('politics', 'english', 'math', 'cs408')",
             name="ck_recitation_subject",
         ),
     )
