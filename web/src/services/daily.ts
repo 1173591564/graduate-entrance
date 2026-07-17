@@ -26,6 +26,7 @@ export interface TodayTask {
   done_at: string | null
   carry_count: number
   order: number
+  priority_score: number
 }
 
 export interface TodaySummary {
@@ -33,6 +34,7 @@ export interface TodaySummary {
   planned_minutes: number
   completed_minutes: number
   remaining_minutes: number
+  due_review_count: number
   tasks: TodayTask[]
 }
 

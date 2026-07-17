@@ -144,6 +144,23 @@ onMounted(async () => {
             </li>
           </ul>
         </div>
+        <div
+          v-if="context.gap_suggestions.length > 0"
+          class="gap-suggestions"
+          data-testid="gap-suggestions"
+        >
+          <span>掌握缺口 Top{{ context.gap_suggestions.length }} · 下周建议</span>
+          <ul>
+            <li
+              v-for="item in context.gap_suggestions"
+              :key="item.knowledge_point_id"
+            >
+              <span class="gap-subject">{{ item.subject_name }}</span>
+              <span class="gap-text">{{ item.suggestion }}</span>
+              <span class="gap-score">缺口 {{ item.gap }}</span>
+            </li>
+          </ul>
+        </div>
       </div>
 
       <div
@@ -343,6 +360,52 @@ onMounted(async () => {
   background: var(--paper-warm);
   color: var(--danger);
   font-size: 13px;
+}
+
+.gap-suggestions {
+  margin-top: 14px;
+}
+
+.gap-suggestions > span {
+  color: var(--ink-muted);
+  font-size: 13px;
+  font-weight: 750;
+}
+
+.gap-suggestions ul {
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 8px;
+}
+
+.gap-suggestions li {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 8px 12px;
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--deep);
+  border-radius: 3px;
+  background: var(--paper-warm);
+  font-size: 13px;
+}
+
+.gap-subject {
+  flex-shrink: 0;
+  font-weight: 800;
+  color: var(--deep);
+}
+
+.gap-text {
+  flex: 1;
+}
+
+.gap-score {
+  flex-shrink: 0;
+  color: var(--danger);
+  font-weight: 750;
 }
 
 .message-list {

@@ -295,6 +295,16 @@ onMounted(async () => {
           <span>完成进度</span>
           <strong>{{ completedCount }} / {{ summary.tasks.length }}</strong>
         </article>
+        <article
+          v-if="summary.due_review_count > 0"
+          class="due-review-card"
+        >
+          <span>到期复习</span>
+          <strong>{{ summary.due_review_count }} 项</strong>
+          <RouterLink to="/reviews">
+            去复习
+          </RouterLink>
+        </article>
       </div>
 
       <div
@@ -323,6 +333,13 @@ onMounted(async () => {
               <span>预计 {{ formatMinutes(task.est_minutes) }}</span>
               <span v-if="task.material_name">{{ task.material_name }}</span>
               <span v-if="task.carry_count">已顺延 {{ task.carry_count }} 次</span>
+              <span
+                v-if="task.status === 'planned' && task.priority_score > 0"
+                class="priority-badge"
+                title="优先级 = 知识点分值权重 × 掌握缺口 × 时间性价比"
+              >
+                优先级 {{ task.priority_score.toFixed(2) }}
+              </span>
             </div>
           </div>
 
@@ -541,8 +558,18 @@ onMounted(async () => {
 
 .summary-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
   gap: 14px;
+}
+
+.due-review-card {
+  border-left: 3px solid var(--deep);
+}
+
+.due-review-card a {
+  color: var(--deep);
+  font-size: 13px;
+  font-weight: 800;
 }
 
 .summary-grid article {
@@ -638,6 +665,13 @@ onMounted(async () => {
   border-radius: 3px;
   color: var(--ink-soft);
   background: var(--paper-warm);
+}
+
+.task-meta .priority-badge {
+  color: var(--deep);
+  background: white;
+  border: 1px solid var(--rule);
+  cursor: help;
 }
 
 .check-in-control {

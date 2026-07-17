@@ -14,6 +14,17 @@ const CONTEXT = {
   days_to_exam: 160,
   subjects: [],
   weak_points: ['等价无穷小（3 题，遗忘 2/4）'],
+  gap_suggestions: [
+    {
+      knowledge_point_id: 'kp-1',
+      knowledge_point_name: '泰勒公式',
+      subject_name: '数学一',
+      mastery: 20,
+      target: 76,
+      gap: 56,
+      suggestion: '+ 下周给「泰勒公式」加一个专项任务（掌握 20 → 目标 76）',
+    },
+  ],
 }
 
 function stubFetch(): ReturnType<typeof vi.fn> {
