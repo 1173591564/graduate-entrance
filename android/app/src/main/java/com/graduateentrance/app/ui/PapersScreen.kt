@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -19,12 +20,14 @@ import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -37,6 +40,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.graduateentrance.app.network.PaperDto
@@ -121,38 +126,45 @@ fun PapersScreen(viewModel: PapersViewModel) {
                 icon = Icons.Outlined.MenuBook,
                 modifier = Modifier.padding(innerPadding),
             )
-            else -> Column(
+            else -> PullToRefreshBox(
+                isRefreshing = state.loading,
+                onRefresh = viewModel::refresh,
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(innerPadding)
-                    .padding(horizontal = 16.dp)
-                    .verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(14.dp),
+                    .padding(innerPadding),
             ) {
-                state.today?.let { today ->
-                    TodayPaperCard(
-                        paper = today,
-                        busy = today.id in state.busy,
-                        onStatus = { viewModel.setStatus(today.id, it) },
-                        onOpen = { viewModel.openPaper(today) },
-                    )
-                }
-                state.groups.forEach { group ->
-                    Text(
-                        text = group.category,
-                        style = MaterialTheme.typography.titleSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                    group.papers.forEach { paper ->
-                        PaperRow(
-                            paper = paper,
-                            busy = paper.id in state.busy,
-                            onStatus = { viewModel.setStatus(paper.id, it) },
-                            onOpen = { viewModel.openPaper(paper) },
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(horizontal = 16.dp)
+                        .verticalScroll(rememberScrollState()),
+                    verticalArrangement = Arrangement.spacedBy(14.dp),
+                ) {
+                    state.today?.let { today ->
+                        TodayPaperCard(
+                            paper = today,
+                            busy = today.id in state.busy,
+                            onStatus = { viewModel.setStatus(today.id, it) },
+                            onOpen = { viewModel.openPaper(today) },
                         )
                     }
+                    state.groups.forEach { group ->
+                        Text(
+                            text = group.category,
+                            style = MaterialTheme.typography.titleSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        group.papers.forEach { paper ->
+                            PaperRow(
+                                paper = paper,
+                                busy = paper.id in state.busy,
+                                onStatus = { viewModel.setStatus(paper.id, it) },
+                                onOpen = { viewModel.openPaper(paper) },
+                            )
+                        }
+                    }
+                    Spacer(Modifier.width(1.dp))
                 }
-                Spacer(Modifier.width(1.dp))
             }
         }
     }
@@ -235,14 +247,27 @@ private fun PaperActions(
     onStatus: (String) -> Unit,
     onOpen: () -> Unit,
 ) {
+    val haptics = LocalHapticFeedback.current
     FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         if (paper.status != "reading") {
-            OutlinedButton(onClick = { onStatus("reading") }, enabled = !busy) {
+            OutlinedButton(
+                onClick = {
+                    haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                    onStatus("reading")
+                },
+                enabled = !busy,
+            ) {
                 Text("在读")
             }
         }
         if (paper.status != "done") {
-            Button(onClick = { onStatus("done") }, enabled = !busy) {
+            Button(
+                onClick = {
+                    haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                    onStatus("done")
+                },
+                enabled = !busy,
+            ) {
                 Text("已读")
             }
         }
@@ -253,7 +278,16 @@ private fun PaperActions(
         }
         if (paper.hasFile) {
             TextButton(onClick = onOpen, enabled = !busy) {
-                Text("打开 PDF")
+                if (busy) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(16.dp),
+                        strokeWidth = 2.dp,
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Text("正在打开…")
+                } else {
+                    Text("打开 PDF")
+                }
             }
         }
     }
