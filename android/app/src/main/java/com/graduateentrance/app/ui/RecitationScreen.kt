@@ -46,7 +46,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.graduateentrance.app.network.RecitationItemDto
 
-private val subjectLabels = listOf("politics" to "政治", "english" to "英语")
+private val subjectLabels = listOf(
+    "politics" to "政治",
+    "english" to "英语",
+    "math" to "数学",
+    "cs408" to "408",
+)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

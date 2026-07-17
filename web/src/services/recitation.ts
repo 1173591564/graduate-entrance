@@ -1,6 +1,6 @@
 import { apiFetch } from './api'
 
-export type RecitationSubject = 'politics' | 'english'
+export type RecitationSubject = 'politics' | 'english' | 'math' | 'cs408'
 
 export interface RecitationItem {
   id: string

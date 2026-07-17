@@ -14,6 +14,8 @@ import {
 const SUBJECT_LABELS: Record<RecitationSubject, string> = {
   politics: '政治',
   english: '英语',
+  math: '数学',
+  cs408: '408',
 }
 
 const subject = ref<RecitationSubject>('politics')

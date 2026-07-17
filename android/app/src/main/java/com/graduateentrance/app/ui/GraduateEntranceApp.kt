@@ -239,7 +239,7 @@ private val bottomItems = listOf(
     NavItem(AppDestination.TODAY, "今日", Icons.Outlined.Today),
     NavItem(AppDestination.VOCAB, "背单词", Icons.Outlined.Translate),
     NavItem(AppDestination.RECITATION, "一背", Icons.Outlined.AutoStories),
-    NavItem(AppDestination.CAPTURE, "拍题", Icons.Outlined.PhotoCamera),
+    NavItem(AppDestination.PAPERS, "阅读", Icons.Outlined.MenuBook),
 )
 
 private val drawerItems = listOf(

@@ -205,6 +205,9 @@ data class VocabWordDto(
     val id: String,
     val word: String,
     val meaning: String,
+    val phonetic: String,
+    @SerializedName("example_en") val exampleEn: String,
+    @SerializedName("example_zh") val exampleZh: String,
     @SerializedName("book_page") val bookPage: Int,
     val ef: Double,
     @SerializedName("interval_days") val intervalDays: Int,
@@ -229,6 +232,11 @@ data class VocabGradeResultDto(
     val word: VocabWordDto,
     val grade: String,
     @SerializedName("due_date") val dueDate: String,
+)
+
+data class VocabDictationDto(
+    val date: String,
+    val words: List<VocabWordDto>,
 )
 
 data class VocabStatsDto(
@@ -343,6 +351,14 @@ interface GraduateEntranceApi {
         @Path("wordId") wordId: String,
         @Body payload: VocabGradeRequest,
     ): VocabGradeResultDto
+
+    @GET("api/vocab/dictation")
+    suspend fun vocabDictation(): VocabDictationDto
+
+    @POST("api/vocab/{wordId}/enrich")
+    suspend fun enrichVocabWord(
+        @Path("wordId") wordId: String,
+    ): VocabWordDto
 
     @GET("api/vocab/stats")
     suspend fun vocabStats(): VocabStatsDto

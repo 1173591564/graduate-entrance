@@ -3075,7 +3075,9 @@
           "subject": {
             "enum": [
               "politics",
-              "english"
+              "english",
+              "math",
+              "cs408"
             ],
             "title": "Subject",
             "type": "string"
@@ -3190,7 +3192,9 @@
           "subject": {
             "enum": [
               "politics",
-              "english"
+              "english",
+              "math",
+              "cs408"
             ],
             "title": "Subject",
             "type": "string"
@@ -4599,6 +4603,28 @@
         "title": "ValidationIssue",
         "type": "object"
       },
+      "VocabDictationResponse": {
+        "properties": {
+          "date": {
+            "format": "date",
+            "title": "Date",
+            "type": "string"
+          },
+          "words": {
+            "items": {
+              "$ref": "#/components/schemas/VocabWordRead"
+            },
+            "title": "Words",
+            "type": "array"
+          }
+        },
+        "required": [
+          "date",
+          "words"
+        ],
+        "title": "VocabDictationResponse",
+        "type": "object"
+      },
       "VocabGradeRequest": {
         "properties": {
           "as_of": {
@@ -4753,6 +4779,14 @@
             "title": "Ef",
             "type": "number"
           },
+          "example_en": {
+            "title": "Example En",
+            "type": "string"
+          },
+          "example_zh": {
+            "title": "Example Zh",
+            "type": "string"
+          },
           "id": {
             "format": "uuid",
             "title": "Id",
@@ -4764,6 +4798,10 @@
           },
           "meaning": {
             "title": "Meaning",
+            "type": "string"
+          },
+          "phonetic": {
+            "title": "Phonetic",
             "type": "string"
           },
           "reps": {
@@ -4779,6 +4817,9 @@
           "id",
           "word",
           "meaning",
+          "phonetic",
+          "example_en",
+          "example_zh",
           "book_page",
           "ef",
           "interval_days",
@@ -9377,7 +9418,9 @@
                 {
                   "enum": [
                     "politics",
-                    "english"
+                    "english",
+                    "math",
+                    "cs408"
                   ],
                   "type": "string"
                 },
@@ -9521,7 +9564,9 @@
                 {
                   "enum": [
                     "politics",
-                    "english"
+                    "english",
+                    "math",
+                    "cs408"
                   ],
                   "type": "string"
                 },
@@ -9599,7 +9644,9 @@
                 {
                   "enum": [
                     "politics",
-                    "english"
+                    "english",
+                    "math",
+                    "cs408"
                   ],
                   "type": "string"
                 },
@@ -10342,6 +10389,81 @@
         ]
       }
     },
+    "/api/vocab/dictation": {
+      "get": {
+        "operationId": "read_vocab_dictation_api_vocab_dictation_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "as_of",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "As Of"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VocabDictationResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Read Vocab Dictation",
+        "tags": [
+          "vocab"
+        ]
+      }
+    },
     "/api/vocab/stats": {
       "get": {
         "operationId": "read_vocab_stats_api_vocab_stats_get",
@@ -10499,6 +10621,74 @@
           }
         ],
         "summary": "Read Vocab Today",
+        "tags": [
+          "vocab"
+        ]
+      }
+    },
+    "/api/vocab/{word_id}/enrich": {
+      "post": {
+        "operationId": "enrich_vocab_word_api_vocab__word_id__enrich_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "word_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Word Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VocabWordRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Enrich Vocab Word",
         "tags": [
           "vocab"
         ]

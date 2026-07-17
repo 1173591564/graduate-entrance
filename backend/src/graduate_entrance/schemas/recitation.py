@@ -6,7 +6,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field
 
-RecitationSubject = Literal["politics", "english"]
+RecitationSubject = Literal["politics", "english", "math", "cs408"]
 
 
 class RecitationImportItem(BaseModel):

@@ -142,3 +142,63 @@ async def test_vocab_stats(client: AsyncClient) -> None:
         "due_count": 0,
         "mastered_count": 0,
     }
+
+
+@pytest.mark.asyncio
+async def test_dictation_lists_words_reviewed_that_day(client: AsyncClient) -> None:
+    today = await client.get("/api/vocab/today", params={"as_of": "2026-07-20"})
+    word_id = today.json()["new_words"][0]["id"]
+    await client.post(
+        f"/api/vocab/{word_id}/grade",
+        json={"grade": "mastered", "as_of": "2026-07-20"},
+    )
+
+    response = await client.get("/api/vocab/dictation", params={"as_of": "2026-07-20"})
+    assert response.status_code == 200
+    body = response.json()
+    assert body["date"] == "2026-07-20"
+    assert [word["id"] for word in body["words"]] == [word_id]
+
+    empty = await client.get("/api/vocab/dictation", params={"as_of": "2026-07-21"})
+    assert empty.json()["words"] == []
+
+
+@pytest.mark.asyncio
+async def test_enrich_generates_and_caches(
+    client: AsyncClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    calls: list[object] = []
+
+    async def fake_complete_chat(
+        messages: list[dict[str, object]], settings: object = None
+    ) -> str:
+        calls.append(messages)
+        return (
+            '{"phonetic": "/ˈreɪdieɪt/", "example_en": "Heat radiates from the sun.",'
+            ' "example_zh": "热量从太阳辐射出来。"}'
+        )
+
+    monkeypatch.setattr("graduate_entrance.ai.client.complete_chat", fake_complete_chat)
+
+    today = await client.get("/api/vocab/today", params={"as_of": "2026-07-20"})
+    word_id = today.json()["new_words"][0]["id"]
+
+    first = await client.post(f"/api/vocab/{word_id}/enrich")
+    assert first.status_code == 200
+    body = first.json()
+    assert body["phonetic"] == "/ˈreɪdieɪt/"
+    assert body["example_en"] == "Heat radiates from the sun."
+    assert body["example_zh"] == "热量从太阳辐射出来。"
+    assert len(calls) == 1
+
+    second = await client.post(f"/api/vocab/{word_id}/enrich")
+    assert second.status_code == 200
+    assert len(calls) == 1
+
+
+@pytest.mark.asyncio
+async def test_enrich_unknown_word_returns_404(client: AsyncClient) -> None:
+    response = await client.post(
+        "/api/vocab/00000000-0000-0000-0000-000000000000/enrich"
+    )
+    assert response.status_code == 404
