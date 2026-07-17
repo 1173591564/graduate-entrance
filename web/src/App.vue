@@ -26,14 +26,14 @@ const today = computed(() => {
         to="/"
       >
         <span class="brand-mark">
-          学
+          习
         </span>
         <span>
           <strong>
-            学人志
+            时习
           </strong>
           <small>
-            Scholar&#39;s Log
+            学而时习之
           </small>
         </span>
       </RouterLink>
