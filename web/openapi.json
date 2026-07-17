@@ -1245,6 +1245,101 @@
         "title": "KnowledgePointRead",
         "type": "object"
       },
+      "MasteryGap": {
+        "properties": {
+          "gap": {
+            "title": "Gap",
+            "type": "number"
+          },
+          "knowledge_point_id": {
+            "format": "uuid",
+            "title": "Knowledge Point Id",
+            "type": "string"
+          },
+          "knowledge_point_name": {
+            "title": "Knowledge Point Name",
+            "type": "string"
+          },
+          "mastery": {
+            "title": "Mastery",
+            "type": "number"
+          },
+          "studied": {
+            "title": "Studied",
+            "type": "boolean"
+          },
+          "subject_id": {
+            "format": "uuid",
+            "title": "Subject Id",
+            "type": "string"
+          },
+          "subject_name": {
+            "title": "Subject Name",
+            "type": "string"
+          },
+          "target": {
+            "title": "Target",
+            "type": "number"
+          }
+        },
+        "required": [
+          "knowledge_point_id",
+          "knowledge_point_name",
+          "subject_id",
+          "subject_name",
+          "mastery",
+          "target",
+          "gap",
+          "studied"
+        ],
+        "title": "MasteryGap",
+        "type": "object"
+      },
+      "MasteryGapResponse": {
+        "properties": {
+          "gap_count": {
+            "title": "Gap Count",
+            "type": "integer"
+          },
+          "generated_at": {
+            "format": "date-time",
+            "title": "Generated At",
+            "type": "string"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/MasteryGap"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "knowledge_point_total": {
+            "title": "Knowledge Point Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "generated_at",
+          "knowledge_point_total",
+          "gap_count",
+          "items"
+        ],
+        "title": "MasteryGapResponse",
+        "type": "object"
+      },
+      "MasteryRecomputeResponse": {
+        "properties": {
+          "recomputed": {
+            "title": "Recomputed",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "recomputed"
+        ],
+        "title": "MasteryRecomputeResponse",
+        "type": "object"
+      },
       "MaterialInput": {
         "properties": {
           "active": {
@@ -4536,6 +4631,142 @@
         "summary": "Readiness",
         "tags": [
           "health"
+        ]
+      }
+    },
+    "/api/mastery/gaps": {
+      "get": {
+        "operationId": "read_mastery_gaps_api_mastery_gaps_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 200,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "recompute",
+            "required": false,
+            "schema": {
+              "default": true,
+              "title": "Recompute",
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MasteryGapResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Read Mastery Gaps",
+        "tags": [
+          "mastery"
+        ]
+      }
+    },
+    "/api/mastery/recompute": {
+      "post": {
+        "operationId": "trigger_recompute_api_mastery_recompute_post",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MasteryRecomputeResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Trigger Recompute",
+        "tags": [
+          "mastery"
         ]
       }
     },
