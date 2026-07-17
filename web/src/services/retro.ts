@@ -15,6 +15,16 @@ export interface RetroSubjectSnapshot {
   estimated_score: number | null
 }
 
+export interface RetroGapSuggestion {
+  knowledge_point_id: string
+  knowledge_point_name: string
+  subject_name: string
+  mastery: number
+  target: number
+  gap: number
+  suggestion: string
+}
+
 export interface RetroContext {
   week_start: string
   week_end: string
@@ -26,6 +36,7 @@ export interface RetroContext {
   days_to_exam: number
   subjects: RetroSubjectSnapshot[]
   weak_points: string[]
+  gap_suggestions: RetroGapSuggestion[]
 }
 
 export interface RetroSession {
