@@ -2,6 +2,7 @@
 import { computed, onMounted, reactive, ref } from 'vue'
 
 import {
+  ApiError,
   completeTodayTask,
   fetchAiWeekAdvice,
   fetchToday,
@@ -132,8 +133,11 @@ async function generateWeekPlan(): Promise<void> {
     aiExpanded.value = true
     notice.value = `已生成 ${result.plan.start_date} ~ ${result.plan.end_date} 计划并排入日历`
     await loadToday(selectedDate.value)
-  } catch {
-    aiError.value = 'AI 生成失败，请确认已配置 AI 或稍后重试'
+  } catch (error) {
+    aiError.value =
+      error instanceof ApiError && error.status === 409
+        ? error.message
+        : 'AI 生成失败，请确认已配置 AI 或稍后重试'
   } finally {
     aiGenerating.value = false
   }

@@ -1,5 +1,14 @@
 import { apiFetch } from './api'
 
+export class ApiError extends Error {
+  constructor(
+    readonly status: number,
+    message: string,
+  ) {
+    super(message)
+  }
+}
+
 export type TaskStatus = 'planned' | 'completed' | 'skipped'
 
 export interface TodayTask {
@@ -36,7 +45,16 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     },
   })
   if (!response.ok) {
-    throw new Error(`Daily request failed with status ${response.status}`)
+    let message = `Daily request failed with status ${response.status}`
+    try {
+      const payload = (await response.json()) as { error?: { message?: string } }
+      if (payload.error?.message) {
+        message = payload.error.message
+      }
+    } catch {
+      // keep the generic message when the body is not JSON
+    }
+    throw new ApiError(response.status, message)
   }
   return (await response.json()) as T
 }
