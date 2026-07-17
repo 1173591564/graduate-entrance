@@ -13,4 +13,4 @@ FROM caddy:2.10.0-alpine
 COPY Caddyfile /etc/caddy/Caddyfile
 COPY --from=build /app/dist /srv
 
-EXPOSE 80
+EXPOSE 80 443
