@@ -830,6 +830,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/vocab/stats": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read Vocab Stats */
+        get: operations["read_vocab_stats_api_vocab_stats_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/vocab/today": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read Vocab Today */
+        get: operations["read_vocab_today_api_vocab_today_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/vocab/{word_id}/grade": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Grade Vocab Word */
+        post: operations["grade_vocab_word_api_vocab__word_id__grade_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -2463,6 +2514,84 @@ export interface components {
             message: string;
             /** Type */
             type: string;
+        };
+        /** VocabGradeRequest */
+        VocabGradeRequest: {
+            /** As Of */
+            as_of?: string | null;
+            /**
+             * Grade
+             * @enum {string}
+             */
+            grade: "forgot" | "vague" | "mastered";
+        };
+        /** VocabGradeResult */
+        VocabGradeResult: {
+            /**
+             * Due Date
+             * Format: date
+             */
+            due_date: string;
+            /**
+             * Grade
+             * @enum {string}
+             */
+            grade: "forgot" | "vague" | "mastered";
+            word: components["schemas"]["VocabWordRead"];
+        };
+        /** VocabStatsResponse */
+        VocabStatsResponse: {
+            /** Due Count */
+            due_count: number;
+            /** Learned Count */
+            learned_count: number;
+            /**
+             * Mastered Count
+             * @description reps >= 3 的词数
+             */
+            mastered_count: number;
+            /** Total Count */
+            total_count: number;
+        };
+        /** VocabTodayResponse */
+        VocabTodayResponse: {
+            /**
+             * Date
+             * Format: date
+             */
+            date: string;
+            /** Due Count */
+            due_count: number;
+            /** Due Words */
+            due_words: components["schemas"]["VocabWordRead"][];
+            /** Learned Count */
+            learned_count: number;
+            /** New Words */
+            new_words: components["schemas"]["VocabWordRead"][];
+            /** Total Count */
+            total_count: number;
+        };
+        /** VocabWordRead */
+        VocabWordRead: {
+            /** Book Page */
+            book_page: number;
+            /** Due Date */
+            due_date: string | null;
+            /** Ef */
+            ef: number;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Interval Days */
+            interval_days: number;
+            /** Meaning */
+            meaning: string;
+            /** Reps */
+            reps: number;
+            /** Word */
+            word: string;
         };
         /** WeakKnowledgePoint */
         WeakKnowledgePoint: {
@@ -5431,6 +5560,158 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["TodayResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    read_vocab_stats_api_vocab_stats_get: {
+        parameters: {
+            query?: {
+                as_of?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VocabStatsResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    read_vocab_today_api_vocab_today_get: {
+        parameters: {
+            query?: {
+                as_of?: string | null;
+                new_limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VocabTodayResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    grade_vocab_word_api_vocab__word_id__grade_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                word_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VocabGradeRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VocabGradeResult"];
                 };
             };
             /** @description Unauthorized */

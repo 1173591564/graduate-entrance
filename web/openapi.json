@@ -3891,6 +3891,195 @@
         "title": "ValidationIssue",
         "type": "object"
       },
+      "VocabGradeRequest": {
+        "properties": {
+          "as_of": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "As Of"
+          },
+          "grade": {
+            "enum": [
+              "forgot",
+              "vague",
+              "mastered"
+            ],
+            "title": "Grade",
+            "type": "string"
+          }
+        },
+        "required": [
+          "grade"
+        ],
+        "title": "VocabGradeRequest",
+        "type": "object"
+      },
+      "VocabGradeResult": {
+        "properties": {
+          "due_date": {
+            "format": "date",
+            "title": "Due Date",
+            "type": "string"
+          },
+          "grade": {
+            "enum": [
+              "forgot",
+              "vague",
+              "mastered"
+            ],
+            "title": "Grade",
+            "type": "string"
+          },
+          "word": {
+            "$ref": "#/components/schemas/VocabWordRead"
+          }
+        },
+        "required": [
+          "word",
+          "grade",
+          "due_date"
+        ],
+        "title": "VocabGradeResult",
+        "type": "object"
+      },
+      "VocabStatsResponse": {
+        "properties": {
+          "due_count": {
+            "title": "Due Count",
+            "type": "integer"
+          },
+          "learned_count": {
+            "title": "Learned Count",
+            "type": "integer"
+          },
+          "mastered_count": {
+            "description": "reps >= 3 的词数",
+            "title": "Mastered Count",
+            "type": "integer"
+          },
+          "total_count": {
+            "title": "Total Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "total_count",
+          "learned_count",
+          "due_count",
+          "mastered_count"
+        ],
+        "title": "VocabStatsResponse",
+        "type": "object"
+      },
+      "VocabTodayResponse": {
+        "properties": {
+          "date": {
+            "format": "date",
+            "title": "Date",
+            "type": "string"
+          },
+          "due_count": {
+            "title": "Due Count",
+            "type": "integer"
+          },
+          "due_words": {
+            "items": {
+              "$ref": "#/components/schemas/VocabWordRead"
+            },
+            "title": "Due Words",
+            "type": "array"
+          },
+          "learned_count": {
+            "title": "Learned Count",
+            "type": "integer"
+          },
+          "new_words": {
+            "items": {
+              "$ref": "#/components/schemas/VocabWordRead"
+            },
+            "title": "New Words",
+            "type": "array"
+          },
+          "total_count": {
+            "title": "Total Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "date",
+          "due_words",
+          "new_words",
+          "due_count",
+          "learned_count",
+          "total_count"
+        ],
+        "title": "VocabTodayResponse",
+        "type": "object"
+      },
+      "VocabWordRead": {
+        "properties": {
+          "book_page": {
+            "title": "Book Page",
+            "type": "integer"
+          },
+          "due_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Due Date"
+          },
+          "ef": {
+            "title": "Ef",
+            "type": "number"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "interval_days": {
+            "title": "Interval Days",
+            "type": "integer"
+          },
+          "meaning": {
+            "title": "Meaning",
+            "type": "string"
+          },
+          "reps": {
+            "title": "Reps",
+            "type": "integer"
+          },
+          "word": {
+            "title": "Word",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "word",
+          "meaning",
+          "book_page",
+          "ef",
+          "interval_days",
+          "due_date",
+          "reps"
+        ],
+        "title": "VocabWordRead",
+        "type": "object"
+      },
       "WeakKnowledgePoint": {
         "properties": {
           "forgot_reviews": {
@@ -8226,6 +8415,246 @@
         "summary": "Read Today",
         "tags": [
           "daily"
+        ]
+      }
+    },
+    "/api/vocab/stats": {
+      "get": {
+        "operationId": "read_vocab_stats_api_vocab_stats_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "as_of",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "As Of"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VocabStatsResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Read Vocab Stats",
+        "tags": [
+          "vocab"
+        ]
+      }
+    },
+    "/api/vocab/today": {
+      "get": {
+        "operationId": "read_vocab_today_api_vocab_today_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "as_of",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "As Of"
+            }
+          },
+          {
+            "in": "query",
+            "name": "new_limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 200,
+              "minimum": 0,
+              "title": "New Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VocabTodayResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Read Vocab Today",
+        "tags": [
+          "vocab"
+        ]
+      }
+    },
+    "/api/vocab/{word_id}/grade": {
+      "post": {
+        "operationId": "grade_vocab_word_api_vocab__word_id__grade_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "word_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Word Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VocabGradeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VocabGradeResult"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Grade Vocab Word",
+        "tags": [
+          "vocab"
         ]
       }
     }

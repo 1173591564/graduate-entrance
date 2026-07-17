@@ -34,7 +34,7 @@ MIN_EASE_FACTOR = 1.3
 GRADE_QUALITY: dict[ReviewGrade, int] = {"forgot": 2, "vague": 3, "mastered": 5}
 
 
-def _apply_sm2(
+def apply_sm2(
     ef: float, interval_days: int, reps: int, grade: ReviewGrade
 ) -> tuple[float, int, int]:
     """Return updated (ef, interval_days, reps) for an SM-2 review response."""
@@ -353,7 +353,7 @@ async def review_problem(
     as_of: date,
 ) -> ReviewResult:
     problem = await _load_problem(session, problem_id)
-    next_ef, next_interval, next_reps = _apply_sm2(
+    next_ef, next_interval, next_reps = apply_sm2(
         problem.ef, problem.interval_days, problem.reps, grade
     )
     problem.ef = next_ef

@@ -13,6 +13,7 @@ from graduate_entrance.api.routes.profile import router as profile_router
 from graduate_entrance.api.routes.retro import router as retro_router
 from graduate_entrance.api.routes.stats import router as stats_router
 from graduate_entrance.api.routes.syllabus import router as syllabus_router
+from graduate_entrance.api.routes.vocab import router as vocab_router
 from graduate_entrance.core.auth import require_api_token
 
 public_api_router = APIRouter()
@@ -31,3 +32,4 @@ protected_api_router.include_router(essay_router)
 protected_api_router.include_router(profile_router)
 protected_api_router.include_router(mastery_router)
 protected_api_router.include_router(retro_router)
+protected_api_router.include_router(vocab_router)
