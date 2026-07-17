@@ -52,7 +52,7 @@ const today = computed(() => {
           背单词
         </RouterLink>
         <RouterLink to="/papers">
-          论文阅读
+          英语阅读训练
         </RouterLink>
       </nav>
 
