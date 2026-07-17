@@ -25,6 +25,10 @@ import com.graduateentrance.app.network.ServiceStatus
 import com.graduateentrance.app.network.TaskCompletionRequest
 import com.graduateentrance.app.network.TodayDto
 import com.graduateentrance.app.network.TodayTaskDto
+import com.graduateentrance.app.network.VocabGradeRequest
+import com.graduateentrance.app.network.VocabGradeResultDto
+import com.graduateentrance.app.network.VocabStatsDto
+import com.graduateentrance.app.network.VocabTodayDto
 import java.io.File
 import java.io.IOException
 import kotlinx.coroutines.test.runTest
@@ -127,6 +131,15 @@ private class FakePapersApi : GraduateEntranceApi {
 
     override suspend fun reciteItem(itemId: String, payload: ReciteRequest): ReciteResultDto =
         throw UnsupportedOperationException()
+
+    override suspend fun vocabToday(): VocabTodayDto = throw UnsupportedOperationException()
+
+    override suspend fun gradeVocabWord(
+        wordId: String,
+        payload: VocabGradeRequest,
+    ): VocabGradeResultDto = throw UnsupportedOperationException()
+
+    override suspend fun vocabStats(): VocabStatsDto = throw UnsupportedOperationException()
 }
 
 class PapersRepositoryTest {

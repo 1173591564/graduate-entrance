@@ -22,6 +22,7 @@ import androidx.compose.material.icons.outlined.Menu
 import androidx.compose.material.icons.outlined.PhotoCamera
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.Today
+import androidx.compose.material.icons.outlined.Translate
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -128,8 +129,10 @@ private data class HomeAction(
 
 private val homeActions = listOf(
     HomeAction("今日任务", AppDestination.TODAY, Icons.Outlined.Today),
+    HomeAction("背单词", AppDestination.VOCAB, Icons.Outlined.Translate),
+    HomeAction("每日一背", AppDestination.RECITATION, Icons.Outlined.AutoStories),
     HomeAction("拍题", AppDestination.CAPTURE, Icons.Outlined.PhotoCamera),
-    HomeAction("复习卡", AppDestination.REVIEWS, Icons.Outlined.AutoStories),
+    HomeAction("错题复习", AppDestination.REVIEWS, Icons.Outlined.AutoStories),
     HomeAction("设置", AppDestination.SETTINGS, Icons.Outlined.Settings),
 )
 

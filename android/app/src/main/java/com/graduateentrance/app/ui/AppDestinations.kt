@@ -6,6 +6,7 @@ enum class AppDestination {
     REVIEWS,
     PAPERS,
     RECITATION,
+    VOCAB,
     CAPTURE,
     SETTINGS,
 }
