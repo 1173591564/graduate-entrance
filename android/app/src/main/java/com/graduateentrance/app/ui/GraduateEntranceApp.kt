@@ -53,6 +53,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.graduateentrance.app.data.CaptureRepository
 import com.graduateentrance.app.data.PapersRepository
+import com.graduateentrance.app.data.RecitationRepository
 import com.graduateentrance.app.data.ReviewsRepository
 import com.graduateentrance.app.data.TodayRepository
 import com.graduateentrance.app.data.local.AppDatabase
@@ -83,6 +84,9 @@ fun GraduateEntranceApp(
     val papersRepository = remember { PapersRepository(ApiClient.service) }
     val papersViewModel: PapersViewModel =
         viewModel(factory = PapersViewModel.Factory(papersRepository, context.cacheDir))
+    val recitationRepository = remember { RecitationRepository(ApiClient.service) }
+    val recitationViewModel: RecitationViewModel =
+        viewModel(factory = RecitationViewModel.Factory(recitationRepository))
     var destination by rememberSaveable { mutableStateOf(AppDestination.HOME) }
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
@@ -137,6 +141,9 @@ fun GraduateEntranceApp(
                             if (it == AppDestination.PAPERS) {
                                 papersViewModel.refresh()
                             }
+                            if (it == AppDestination.RECITATION) {
+                                recitationViewModel.refresh()
+                            }
                         },
                     )
                 }
@@ -156,6 +163,7 @@ fun GraduateEntranceApp(
                     AppDestination.TODAY -> TodayScreen(viewModel = todayViewModel)
                     AppDestination.REVIEWS -> ReviewsScreen(viewModel = reviewsViewModel)
                     AppDestination.PAPERS -> PapersScreen(viewModel = papersViewModel)
+                    AppDestination.RECITATION -> RecitationScreen(viewModel = recitationViewModel)
                     AppDestination.CAPTURE -> CaptureScreen(viewModel = captureViewModel)
                     AppDestination.SETTINGS -> SettingsScreen(
                         todayState = todayState,
@@ -204,6 +212,7 @@ private val bottomItems = listOf(
     NavItem(AppDestination.TODAY, "今日", Icons.Outlined.Today),
     NavItem(AppDestination.REVIEWS, "复习", Icons.Outlined.AutoStories),
     NavItem(AppDestination.PAPERS, "阅读", Icons.Outlined.MenuBook),
+    NavItem(AppDestination.RECITATION, "一背", Icons.Outlined.AutoStories),
     NavItem(AppDestination.CAPTURE, "拍题", Icons.Outlined.PhotoCamera),
 )
 

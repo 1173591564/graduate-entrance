@@ -158,6 +158,47 @@ data class PaperStatusResultDto(
     val paper: PaperDto,
 )
 
+data class RecitationItemDto(
+    val id: String,
+    val subject: String,
+    val category: String,
+    val title: String,
+    @SerializedName("content_md") val contentMd: String,
+    @SerializedName("recite_count") val reciteCount: Int,
+    @SerializedName("last_recited_on") val lastRecitedOn: String?,
+    @SerializedName("recited_today") val recitedToday: Boolean,
+)
+
+data class RecitationStatsDto(
+    @SerializedName("total_count") val totalCount: Int,
+    @SerializedName("recited_today") val recitedToday: Int,
+    @SerializedName("never_recited") val neverRecited: Int,
+)
+
+data class RecitationGroupDto(
+    val category: String,
+    val items: List<RecitationItemDto>,
+)
+
+data class RecitationListDto(
+    val groups: List<RecitationGroupDto>,
+    val stats: RecitationStatsDto,
+)
+
+data class RecitationTodayDto(
+    val date: String,
+    val item: RecitationItemDto?,
+    val stats: RecitationStatsDto,
+)
+
+data class ReciteRequest(
+    val undo: Boolean = false,
+)
+
+data class ReciteResultDto(
+    val item: RecitationItemDto,
+)
+
 interface GraduateEntranceApi {
     @GET("api/ping")
     suspend fun ping(): ServiceStatus
@@ -209,4 +250,16 @@ interface GraduateEntranceApi {
     @Streaming
     @GET("api/papers/{paperId}/file")
     suspend fun downloadPaper(@Path("paperId") paperId: String): ResponseBody
+
+    @GET("api/recitations")
+    suspend fun recitations(@Query("subject") subject: String?): RecitationListDto
+
+    @GET("api/recitations/today")
+    suspend fun recitationToday(@Query("subject") subject: String?): RecitationTodayDto
+
+    @POST("api/recitations/{itemId}/recite")
+    suspend fun reciteItem(
+        @Path("itemId") itemId: String,
+        @Body payload: ReciteRequest,
+    ): ReciteResultDto
 }

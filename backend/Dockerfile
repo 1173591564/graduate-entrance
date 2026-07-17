@@ -18,6 +18,7 @@ COPY backend/migrations ./migrations
 COPY backend/src ./src
 COPY seed/syllabus/raw ./seed/syllabus/raw
 COPY seed/vocab ./seed/vocab
+COPY seed/recitation ./seed/recitation
 RUN uv sync --frozen --no-dev
 
 RUN mkdir -p /app/data/problem-images /app/data/papers \
@@ -27,4 +28,4 @@ USER app
 
 EXPOSE 8000
 
-CMD ["sh", "-c", "uv run --no-sync alembic upgrade head && uv run --no-sync python -m graduate_entrance.syllabus.importer && uv run --no-sync python -m graduate_entrance.vocab.importer && exec uv run --no-sync uvicorn graduate_entrance.main:app --host 0.0.0.0 --port 8000"]
+CMD ["sh", "-c", "uv run --no-sync alembic upgrade head && uv run --no-sync python -m graduate_entrance.syllabus.importer && uv run --no-sync python -m graduate_entrance.vocab.importer && uv run --no-sync python -m graduate_entrance.recitation.importer && exec uv run --no-sync uvicorn graduate_entrance.main:app --host 0.0.0.0 --port 8000"]
