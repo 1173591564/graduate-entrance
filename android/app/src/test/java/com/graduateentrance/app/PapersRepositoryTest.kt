@@ -15,6 +15,10 @@ import com.graduateentrance.app.network.PaperStatusRequest
 import com.graduateentrance.app.network.PaperStatusResultDto
 import com.graduateentrance.app.network.PaperTodayDto
 import com.graduateentrance.app.network.ProblemCreatedDto
+import com.graduateentrance.app.network.RecitationListDto
+import com.graduateentrance.app.network.RecitationTodayDto
+import com.graduateentrance.app.network.ReciteRequest
+import com.graduateentrance.app.network.ReciteResultDto
 import com.graduateentrance.app.network.ReviewRequest
 import com.graduateentrance.app.network.ReviewResultDto
 import com.graduateentrance.app.network.ServiceStatus
@@ -114,6 +118,15 @@ private class FakePapersApi : GraduateEntranceApi {
         maybeFail()
         return pdfBytes.toResponseBody("application/pdf".toMediaType())
     }
+
+    override suspend fun recitations(subject: String?): RecitationListDto =
+        throw UnsupportedOperationException()
+
+    override suspend fun recitationToday(subject: String?): RecitationTodayDto =
+        throw UnsupportedOperationException()
+
+    override suspend fun reciteItem(itemId: String, payload: ReciteRequest): ReciteResultDto =
+        throw UnsupportedOperationException()
 }
 
 class PapersRepositoryTest {

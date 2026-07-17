@@ -2856,16 +2856,230 @@
         "title": "ProblemRead",
         "type": "object"
       },
-      "ReciteRequest": {
+      "RecitationGroup": {
         "properties": {
-          "result": {
-            "$ref": "#/components/schemas/ReciteResult"
+          "category": {
+            "title": "Category",
+            "type": "string"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/RecitationRead"
+            },
+            "title": "Items",
+            "type": "array"
           }
         },
         "required": [
-          "result"
+          "category",
+          "items"
         ],
-        "title": "ReciteRequest",
+        "title": "RecitationGroup",
+        "type": "object"
+      },
+      "RecitationImportItem": {
+        "properties": {
+          "category": {
+            "default": "",
+            "title": "Category",
+            "type": "string"
+          },
+          "content_md": {
+            "default": "",
+            "title": "Content Md",
+            "type": "string"
+          },
+          "subject": {
+            "enum": [
+              "politics",
+              "english"
+            ],
+            "title": "Subject",
+            "type": "string"
+          },
+          "title": {
+            "minLength": 1,
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "subject",
+          "title"
+        ],
+        "title": "RecitationImportItem",
+        "type": "object"
+      },
+      "RecitationImportRequest": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/RecitationImportItem"
+            },
+            "title": "Items",
+            "type": "array"
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "title": "RecitationImportRequest",
+        "type": "object"
+      },
+      "RecitationImportResult": {
+        "properties": {
+          "imported": {
+            "title": "Imported",
+            "type": "integer"
+          },
+          "total_count": {
+            "title": "Total Count",
+            "type": "integer"
+          },
+          "updated": {
+            "title": "Updated",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "imported",
+          "updated",
+          "total_count"
+        ],
+        "title": "RecitationImportResult",
+        "type": "object"
+      },
+      "RecitationListResponse": {
+        "properties": {
+          "groups": {
+            "items": {
+              "$ref": "#/components/schemas/RecitationGroup"
+            },
+            "title": "Groups",
+            "type": "array"
+          },
+          "stats": {
+            "$ref": "#/components/schemas/RecitationStatsResponse"
+          }
+        },
+        "required": [
+          "groups",
+          "stats"
+        ],
+        "title": "RecitationListResponse",
+        "type": "object"
+      },
+      "RecitationRead": {
+        "properties": {
+          "category": {
+            "title": "Category",
+            "type": "string"
+          },
+          "content_md": {
+            "title": "Content Md",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "last_recited_on": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Recited On"
+          },
+          "recite_count": {
+            "title": "Recite Count",
+            "type": "integer"
+          },
+          "recited_today": {
+            "title": "Recited Today",
+            "type": "boolean"
+          },
+          "subject": {
+            "enum": [
+              "politics",
+              "english"
+            ],
+            "title": "Subject",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "subject",
+          "category",
+          "title",
+          "content_md",
+          "recite_count",
+          "last_recited_on",
+          "recited_today"
+        ],
+        "title": "RecitationRead",
+        "type": "object"
+      },
+      "RecitationStatsResponse": {
+        "properties": {
+          "never_recited": {
+            "title": "Never Recited",
+            "type": "integer"
+          },
+          "recited_today": {
+            "title": "Recited Today",
+            "type": "integer"
+          },
+          "total_count": {
+            "title": "Total Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "total_count",
+          "recited_today",
+          "never_recited"
+        ],
+        "title": "RecitationStatsResponse",
+        "type": "object"
+      },
+      "RecitationTodayResponse": {
+        "properties": {
+          "date": {
+            "format": "date",
+            "title": "Date",
+            "type": "string"
+          },
+          "item": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RecitationRead"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "stats": {
+            "$ref": "#/components/schemas/RecitationStatsResponse"
+          }
+        },
+        "required": [
+          "date",
+          "item",
+          "stats"
+        ],
+        "title": "RecitationTodayResponse",
         "type": "object"
       },
       "ReciteResponse": {
@@ -2886,13 +3100,25 @@
         "title": "ReciteResponse",
         "type": "object"
       },
-      "ReciteResult": {
+      "ReciteResult-Input": {
         "enum": [
           "remembered",
           "forgot"
         ],
         "title": "ReciteResult",
         "type": "string"
+      },
+      "ReciteResult-Output": {
+        "properties": {
+          "item": {
+            "$ref": "#/components/schemas/RecitationRead"
+          }
+        },
+        "required": [
+          "item"
+        ],
+        "title": "ReciteResult",
+        "type": "object"
       },
       "RetroChatRequest": {
         "properties": {
@@ -4551,6 +4777,41 @@
         ],
         "title": "WeeklyTrendPoint",
         "type": "object"
+      },
+      "graduate_entrance__schemas__essay__ReciteRequest": {
+        "properties": {
+          "result": {
+            "$ref": "#/components/schemas/ReciteResult-Input"
+          }
+        },
+        "required": [
+          "result"
+        ],
+        "title": "ReciteRequest",
+        "type": "object"
+      },
+      "graduate_entrance__schemas__recitation__ReciteRequest": {
+        "properties": {
+          "as_of": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "As Of"
+          },
+          "undo": {
+            "default": false,
+            "title": "Undo",
+            "type": "boolean"
+          }
+        },
+        "title": "ReciteRequest",
+        "type": "object"
       }
     },
     "securitySchemes": {
@@ -5023,7 +5284,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ReciteRequest"
+                "$ref": "#/components/schemas/graduate_entrance__schemas__essay__ReciteRequest"
               }
             }
           },
@@ -8604,6 +8865,401 @@
         "summary": "Update Goals",
         "tags": [
           "profile"
+        ]
+      }
+    },
+    "/api/recitations": {
+      "get": {
+        "operationId": "read_recitations_api_recitations_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "subject",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "politics",
+                    "english"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Subject"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecitationListResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Read Recitations",
+        "tags": [
+          "recitation"
+        ]
+      }
+    },
+    "/api/recitations/import": {
+      "post": {
+        "operationId": "import_recitations_api_recitations_import_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RecitationImportRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecitationImportResult"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Import Recitations",
+        "tags": [
+          "recitation"
+        ]
+      }
+    },
+    "/api/recitations/stats": {
+      "get": {
+        "operationId": "read_recitation_stats_api_recitations_stats_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "subject",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "politics",
+                    "english"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Subject"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecitationStatsResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Read Recitation Stats",
+        "tags": [
+          "recitation"
+        ]
+      }
+    },
+    "/api/recitations/today": {
+      "get": {
+        "operationId": "read_recitation_today_api_recitations_today_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "subject",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "politics",
+                    "english"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Subject"
+            }
+          },
+          {
+            "in": "query",
+            "name": "as_of",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "As Of"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecitationTodayResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Read Recitation Today",
+        "tags": [
+          "recitation"
+        ]
+      }
+    },
+    "/api/recitations/{item_id}/recite": {
+      "post": {
+        "operationId": "recite_item_api_recitations__item_id__recite_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "item_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Item Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/graduate_entrance__schemas__recitation__ReciteRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReciteResult-Output"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Recite Item",
+        "tags": [
+          "recitation"
         ]
       }
     },

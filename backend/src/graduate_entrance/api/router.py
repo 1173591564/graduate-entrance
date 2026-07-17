@@ -11,6 +11,7 @@ from graduate_entrance.api.routes.plan import router as plan_router
 from graduate_entrance.api.routes.planning import router as planning_router
 from graduate_entrance.api.routes.problems import router as problems_router
 from graduate_entrance.api.routes.profile import router as profile_router
+from graduate_entrance.api.routes.recitation import router as recitation_router
 from graduate_entrance.api.routes.retro import router as retro_router
 from graduate_entrance.api.routes.stats import router as stats_router
 from graduate_entrance.api.routes.syllabus import router as syllabus_router
@@ -35,3 +36,4 @@ protected_api_router.include_router(mastery_router)
 protected_api_router.include_router(papers_router)
 protected_api_router.include_router(retro_router)
 protected_api_router.include_router(vocab_router)
+protected_api_router.include_router(recitation_router)

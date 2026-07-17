@@ -797,6 +797,91 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/recitations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read Recitations */
+        get: operations["read_recitations_api_recitations_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/recitations/import": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Import Recitations */
+        post: operations["import_recitations_api_recitations_import_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/recitations/stats": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read Recitation Stats */
+        get: operations["read_recitation_stats_api_recitations_stats_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/recitations/today": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read Recitation Today */
+        get: operations["read_recitation_today_api_recitations_today_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/recitations/{item_id}/recite": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Recite Item */
+        post: operations["recite_item_api_recitations__item_id__recite_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/retro": {
         parameters: {
             query?: never;
@@ -2165,9 +2250,96 @@ export interface components {
             /** Subject Name */
             subject_name: string | null;
         };
-        /** ReciteRequest */
-        ReciteRequest: {
-            result: components["schemas"]["ReciteResult"];
+        /** RecitationGroup */
+        RecitationGroup: {
+            /** Category */
+            category: string;
+            /** Items */
+            items: components["schemas"]["RecitationRead"][];
+        };
+        /** RecitationImportItem */
+        RecitationImportItem: {
+            /**
+             * Category
+             * @default
+             */
+            category: string;
+            /**
+             * Content Md
+             * @default
+             */
+            content_md: string;
+            /**
+             * Subject
+             * @enum {string}
+             */
+            subject: "politics" | "english";
+            /** Title */
+            title: string;
+        };
+        /** RecitationImportRequest */
+        RecitationImportRequest: {
+            /** Items */
+            items: components["schemas"]["RecitationImportItem"][];
+        };
+        /** RecitationImportResult */
+        RecitationImportResult: {
+            /** Imported */
+            imported: number;
+            /** Total Count */
+            total_count: number;
+            /** Updated */
+            updated: number;
+        };
+        /** RecitationListResponse */
+        RecitationListResponse: {
+            /** Groups */
+            groups: components["schemas"]["RecitationGroup"][];
+            stats: components["schemas"]["RecitationStatsResponse"];
+        };
+        /** RecitationRead */
+        RecitationRead: {
+            /** Category */
+            category: string;
+            /** Content Md */
+            content_md: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Last Recited On */
+            last_recited_on: string | null;
+            /** Recite Count */
+            recite_count: number;
+            /** Recited Today */
+            recited_today: boolean;
+            /**
+             * Subject
+             * @enum {string}
+             */
+            subject: "politics" | "english";
+            /** Title */
+            title: string;
+        };
+        /** RecitationStatsResponse */
+        RecitationStatsResponse: {
+            /** Never Recited */
+            never_recited: number;
+            /** Recited Today */
+            recited_today: number;
+            /** Total Count */
+            total_count: number;
+        };
+        /** RecitationTodayResponse */
+        RecitationTodayResponse: {
+            /**
+             * Date
+             * Format: date
+             */
+            date: string;
+            item: components["schemas"]["RecitationRead"] | null;
+            stats: components["schemas"]["RecitationStatsResponse"];
         };
         /** ReciteResponse */
         ReciteResponse: {
@@ -2182,7 +2354,11 @@ export interface components {
          * ReciteResult
          * @enum {string}
          */
-        ReciteResult: "remembered" | "forgot";
+        "ReciteResult-Input": "remembered" | "forgot";
+        /** ReciteResult */
+        "ReciteResult-Output": {
+            item: components["schemas"]["RecitationRead"];
+        };
         /** RetroChatRequest */
         RetroChatRequest: {
             /** Content */
@@ -2890,6 +3066,20 @@ export interface components {
              */
             week_start: string;
         };
+        /** ReciteRequest */
+        graduate_entrance__schemas__essay__ReciteRequest: {
+            result: components["schemas"]["ReciteResult-Input"];
+        };
+        /** ReciteRequest */
+        graduate_entrance__schemas__recitation__ReciteRequest: {
+            /** As Of */
+            as_of?: string | null;
+            /**
+             * Undo
+             * @default false
+             */
+            undo: boolean;
+        };
     };
     responses: never;
     parameters: never;
@@ -3167,7 +3357,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["ReciteRequest"];
+                "application/json": components["schemas"]["graduate_entrance__schemas__essay__ReciteRequest"];
             };
         };
         responses: {
@@ -5727,6 +5917,258 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["GoalsResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    read_recitations_api_recitations_get: {
+        parameters: {
+            query?: {
+                subject?: ("politics" | "english") | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecitationListResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    import_recitations_api_recitations_import_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RecitationImportRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecitationImportResult"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    read_recitation_stats_api_recitations_stats_get: {
+        parameters: {
+            query?: {
+                subject?: ("politics" | "english") | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecitationStatsResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    read_recitation_today_api_recitations_today_get: {
+        parameters: {
+            query?: {
+                subject?: ("politics" | "english") | null;
+                as_of?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecitationTodayResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    recite_item_api_recitations__item_id__recite_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["graduate_entrance__schemas__recitation__ReciteRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReciteResult-Output"];
                 };
             };
             /** @description Unauthorized */
