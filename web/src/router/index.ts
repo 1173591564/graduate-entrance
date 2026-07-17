@@ -10,6 +10,7 @@ import ReviewsView from '../views/ReviewsView.vue'
 import StatsView from '../views/StatsView.vue'
 import SyllabusView from '../views/SyllabusView.vue'
 import TodayView from '../views/TodayView.vue'
+import VocabView from '../views/VocabView.vue'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -48,6 +49,11 @@ const router = createRouter({
       path: '/reviews',
       name: 'reviews',
       component: ReviewsView,
+    },
+    {
+      path: '/vocab',
+      name: 'vocab',
+      component: VocabView,
     },
     {
       path: '/retro',

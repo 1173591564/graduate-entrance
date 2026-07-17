@@ -31,6 +31,7 @@ from graduate_entrance.models.syllabus import (
     SyllabusModule,
     SyllabusVersion,
 )
+from graduate_entrance.models.vocab import VocabWord
 
 __all__ = [
     "AiWeekPlan",
@@ -62,4 +63,5 @@ __all__ = [
     "TaskTemplate",
     "TaskTemplatePhase",
     "TaskPoolItem",
+    "VocabWord",
 ]

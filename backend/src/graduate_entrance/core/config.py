@@ -27,6 +27,7 @@ class Settings(BaseSettings):
     cors_origins: list[str] = ["http://localhost:5173"]
     log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"] = "INFO"
     syllabus_raw_dir: Path = Path("../seed/syllabus/raw")
+    vocab_seed_path: Path = Path("../seed/vocab/kaoyan_words.json")
     problem_images_dir: Path = Path("./data/problem-images")
     ai_base_url: str = ""
     ai_api_key: SecretStr = SecretStr("")
