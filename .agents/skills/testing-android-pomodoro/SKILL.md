@@ -17,29 +17,43 @@ and host-side API checks go through Caddy at `http://127.0.0.1:8080/api`.
 ## Emulator setup
 
 1. Backend: `docker compose up -d --build` at repo root; wait until all three containers healthy.
-2. Android SDK lives at /home/ubuntu/Android/Sdk (android/local.properties points there). If the
-   emulator is missing: `yes | /home/ubuntu/Android/Sdk/cmdline-tools/latest/bin/sdkmanager "emulator" "system-images;android-35;google_apis;x86_64"`.
-3. KVM: the blueprint now adds `ubuntu` to the `kvm` group so the emulator boots accelerated. In an
-   older snapshot, if the emulator exits with "This user doesn't have permissions to use KVM", run
-   `sudo usermod -aG kvm ubuntu && sudo chmod 666 /dev/kvm` and relaunch via `sg kvm -c "emulator ..."`.
+2. Android SDK location varies by snapshot: check both `/home/ubuntu/Android/Sdk` and
+   `/home/ubuntu/android-sdk`. If `android/local.properties` is absent, `export ANDROID_HOME=<sdk path>`
+   before running gradle. If emulator/system image are missing:
+   `yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "emulator" "system-images;android-35;google_apis;x86_64"`.
+3. KVM: the blueprint may add `ubuntu` to the `kvm` group. If not effective, `sudo chmod 666 /dev/kvm`
+   works without re-login.
 4. Create/start the AVD:
-   - `echo no | /home/ubuntu/Android/Sdk/cmdline-tools/latest/bin/avdmanager create avd -n test35 -k "system-images;android-35;google_apis;x86_64" -d pixel_6`
-   - `/home/ubuntu/Android/Sdk/emulator/emulator -avd test35 -gpu swiftshader_indirect -no-snapshot -no-audio &`
-   - Boot wait: `/home/ubuntu/Android/Sdk/platform-tools/adb wait-for-device; /home/ubuntu/Android/Sdk/platform-tools/adb shell 'while [ "$(getprop sys.boot_completed)" != "1" ]; do sleep 2; done'`
+   - `echo no | $ANDROID_HOME/cmdline-tools/latest/bin/avdmanager create avd -n test35 -k "system-images;android-35;google_apis;x86_64" -d pixel_6`
+   - `$ANDROID_HOME/emulator/emulator -avd test35 -gpu swiftshader_indirect -no-snapshot -no-audio &`
+   - Boot wait: `adb wait-for-device; adb shell 'while [ "$(getprop sys.boot_completed)" != "1" ]; do sleep 2; done'`
+   - A SystemUI ANR dialog may appear right after boot; wait ~30 s and it clears on its own (or tap Wait).
 5. Build & install: `cd android && ./gradlew :app:assembleDebug` then
-   `/home/ubuntu/Android/Sdk/platform-tools/adb install -r app/build/outputs/apk/debug/app-debug.apk`; launch with
-   `/home/ubuntu/Android/Sdk/platform-tools/adb shell monkey -p com.graduateentrance.app 1`.
-6. Seed Today tasks per testing-p0c-scheduling / testing-today-checkin: create phase +
-   availability period covering the host date, task templates (use `default_est_minutes: 1` for a
-   quick pomodoro finish), `POST /api/planning/task-pool/generate`, then `POST /api/plan/generate`
-   for the target date. The emulator picks up the host date automatically.
+   `adb install -r app/build/outputs/apk/debug/app-debug.apk`; launch with
+   `adb shell monkey -p com.graduateentrance.app 1`.
+6. App settings: in-app 设置 (gear on 首页) already defaults to `http://10.0.2.2:8000/` and token
+   `local-development-only`; just tap 保存.
+7. Seed Today tasks per testing-p0c-scheduling / testing-today-checkin when testing pomodoro flows.
+
+## Seeding papers + PDF for the 阅读 tab / PDF viewer
+
+- Sync metadata: `POST /api/papers/sync` with body `{"papers":[{"rel_path":"Agents/x.pdf","title":"...","category":"Agents","size_bytes":1000}]}` (key is `papers`, items need `rel_path`).
+- Upload a PDF: `curl -F "file=@/tmp/test.pdf;type=application/pdf" .../api/papers/{id}/file`.
+  Generate a multi-page PDF with python `reportlab` (`pip install reportlab`).
+- Recitation endpoints are `/api/recitations` (plural), e.g. `/api/recitations/stats`; seed
+  auto-imports on backend start via APP_RECITATION_SEED_PATH in compose.yaml.
+
+## Capturing fast transient UI states (busy spinners)
+
+Inline button spinners for local-backend requests last <100 ms. To prove them, run an adb
+frame-burst in the background before clicking:
+`for i in $(seq 1 40); do adb exec-out screencap -p > /tmp/burst_$i.png; done &`
+then locate the transition frame by sampling mean pixel color of the button crop with PIL.
 
 ## Physical-device fallback
 
-1. Require an authorized device from the absolute SDK path:
-   `/home/ubuntu/Android/Sdk/platform-tools/adb devices -l`. Never clear unrelated device data.
-2. Route a USB device to the local backend with
-   `adb reverse tcp:8000 tcp:8000`, then build with
+1. Require an authorized device: `adb devices -l`. Never clear unrelated device data.
+2. Route a USB device to the local backend with `adb reverse tcp:8000 tcp:8000`, then build with
    `-PAPI_BASE_URL=http://127.0.0.1:8000/`.
 3. Install with `adb install -r`. If Android reports `INSTALL_FAILED_UPDATE_INCOMPATIBLE`, first
    look for the original signing key. Uninstall the existing package only after explicit user
@@ -69,10 +83,5 @@ and host-side API checks go through Caddy at `http://127.0.0.1:8080/api`.
 - Emulator clicks are laggy — a tap may need a retry; verify the resulting UI state, not the click.
 - Notification checks: `adb shell cmd statusbar expand-notifications` / `collapse` show the shade
   reliably in recordings.
-- Dismiss the "nested virtualization" and "compatibility warning" host dialogs (OK button) before
-  recording assertions.
-- Pomodoro specifics: button label is 专注 min(est,25) 分钟; only one pomodoro can run (other
-  buttons grey out); finish auto-checks-in via `/api/tasks/{id}/done` — verify with
-  `GET /api/today?date=...` (`status completed`, `actual_minutes`, `done_at`).
-- Keep device date and backend host date explicit in reports. Review scheduling without an `as_of`
-  query uses the backend date, which can differ from a manually configured phone date.
+- For pull-to-refresh gestures via computer-use, `left_mouse_down` requires a prior `mouse_move`
+  to the start coordinate; drag slowly in 4–5 steps and screenshot while the button is held.
