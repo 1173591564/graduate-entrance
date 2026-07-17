@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from graduate_entrance.core.config import Settings, get_settings
+from graduate_entrance.mastery.service import GRADE_SCORES, knowledge_point_mastery
 from graduate_entrance.models.problems import Problem, ReviewLog
 from graduate_entrance.models.profile import SubjectGoal
 from graduate_entrance.models.scheduling import ScheduledTask
@@ -21,7 +22,6 @@ from graduate_entrance.schemas.profile import (
     WeakKnowledgePoint,
 )
 
-GRADE_SCORES = {"forgot": 0.0, "vague": 0.5, "mastered": 1.0}
 WEAK_POINT_LIMIT = 5
 WEAK_MASTERY_THRESHOLD = 60.0
 
@@ -70,23 +70,6 @@ async def upsert_goals(session: AsyncSession, inputs: list[SubjectGoalInput]) ->
             goal.note = entry.note
     await session.commit()
     return await list_goals(session)
-
-
-def _knowledge_point_mastery(
-    studied: bool,
-    review_scores: list[float],
-    weighted_errors: float,
-) -> float:
-    score = 0.5 if studied else 0.0
-    if review_scores:
-        grade_ratio = sum(review_scores) / len(review_scores)
-        score += 0.5 * grade_ratio
-        score -= 0.3 * min(weighted_errors, 2.0) / 2.0 * (1.0 - grade_ratio)
-    elif weighted_errors > 0:
-        score -= 0.3 * min(weighted_errors, 2.0) / 2.0
-    elif studied:
-        score += 0.25
-    return round(max(0.0, min(1.0, score)) * 100, 1)
 
 
 async def get_study_profile(
@@ -174,7 +157,7 @@ async def get_study_profile(
                 (
                     kp_id,
                     kp_name,
-                    _knowledge_point_mastery(
+                    knowledge_point_mastery(
                         studied,
                         kp_review_scores.get(kp_id, []),
                         kp_weighted_errors.get(kp_id, 0.0),
