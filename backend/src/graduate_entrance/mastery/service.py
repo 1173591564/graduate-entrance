@@ -72,23 +72,50 @@ def derive_target(requirement_level: str, goal_ratio: float) -> float:
     return round(base * ratio * 100, 1)
 
 
-async def recompute_kp_mastery(session: AsyncSession) -> int:
-    """Recompute mastery + target for every knowledge point and persist it.
+def task_priority(
+    weight: float | None,
+    mastery: float,
+    target: float,
+    est_minutes: int,
+) -> float:
+    """Cost-effectiveness score for scheduling a knowledge point today.
 
+    ``priority = importance x gap x time_factor``: the bigger the
+    ``target - mastery`` gap and the cheaper (shorter) the task, the more worth
+    doing it now. A point already at/above target scores 0.
+    """
+    importance = float(weight) if weight else 1.0
+    gap = max(0.0, target - mastery) / 100.0
+    time_factor = 60.0 / max(1, est_minutes)
+    return round(importance * gap * time_factor, 4)
+
+
+async def recompute_kp_mastery(
+    session: AsyncSession,
+    kp_ids: set[UUID] | None = None,
+) -> int:
+    """Recompute mastery + target for knowledge points and persist it.
+
+    When ``kp_ids`` is given only those points are rewritten (a targeted
+    write-back after a single signal); otherwise every point is recomputed.
     Returns the number of knowledge points written. Idempotent: running it twice
     with the same underlying signals yields the same rows.
     """
-    kp_rows = (
-        await session.execute(
-            select(
-                KnowledgePoint.id,
-                KnowledgePoint.requirement_level,
-                SyllabusModule.subject_id,
-            )
-            .join(Chapter, KnowledgePoint.chapter_id == Chapter.id)
-            .join(SyllabusModule, Chapter.module_id == SyllabusModule.id)
+    if kp_ids is not None and not kp_ids:
+        return 0
+
+    kp_query = (
+        select(
+            KnowledgePoint.id,
+            KnowledgePoint.requirement_level,
+            SyllabusModule.subject_id,
         )
-    ).all()
+        .join(Chapter, KnowledgePoint.chapter_id == Chapter.id)
+        .join(SyllabusModule, Chapter.module_id == SyllabusModule.id)
+    )
+    if kp_ids is not None:
+        kp_query = kp_query.where(KnowledgePoint.id.in_(kp_ids))
+    kp_rows = (await session.execute(kp_query)).all()
 
     goals = {
         goal.subject_id: goal for goal in (await session.scalars(select(SubjectGoal))).all()

@@ -1955,6 +1955,11 @@
             ],
             "title": "Pool Item Id"
           },
+          "priority_score": {
+            "default": 0.0,
+            "title": "Priority Score",
+            "type": "number"
+          },
           "status": {
             "enum": [
               "planned",
@@ -2681,6 +2686,14 @@
             "title": "Execution Rate",
             "type": "number"
           },
+          "gap_suggestions": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/RetroGapSuggestion"
+            },
+            "title": "Gap Suggestions",
+            "type": "array"
+          },
           "planned_minutes": {
             "title": "Planned Minutes",
             "type": "integer"
@@ -2727,6 +2740,50 @@
           "weak_points"
         ],
         "title": "RetroContext",
+        "type": "object"
+      },
+      "RetroGapSuggestion": {
+        "properties": {
+          "gap": {
+            "title": "Gap",
+            "type": "number"
+          },
+          "knowledge_point_id": {
+            "format": "uuid",
+            "title": "Knowledge Point Id",
+            "type": "string"
+          },
+          "knowledge_point_name": {
+            "title": "Knowledge Point Name",
+            "type": "string"
+          },
+          "mastery": {
+            "title": "Mastery",
+            "type": "number"
+          },
+          "subject_name": {
+            "title": "Subject Name",
+            "type": "string"
+          },
+          "suggestion": {
+            "title": "Suggestion",
+            "type": "string"
+          },
+          "target": {
+            "title": "Target",
+            "type": "number"
+          }
+        },
+        "required": [
+          "knowledge_point_id",
+          "knowledge_point_name",
+          "subject_name",
+          "mastery",
+          "target",
+          "gap",
+          "suggestion"
+        ],
+        "title": "RetroGapSuggestion",
         "type": "object"
       },
       "RetroMessageRead": {
@@ -3779,6 +3836,11 @@
             "format": "date",
             "title": "Date",
             "type": "string"
+          },
+          "due_review_count": {
+            "default": 0,
+            "title": "Due Review Count",
+            "type": "integer"
           },
           "planned_minutes": {
             "title": "Planned Minutes",

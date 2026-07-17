@@ -90,6 +90,7 @@ class PlanTaskRead(BaseModel):
     done_at: datetime | None = None
     carry_count: int = 0
     order: int
+    priority_score: float = 0.0
 
 
 class PlanDaySummary(BaseModel):
@@ -144,6 +145,7 @@ class TodayResponse(BaseModel):
     planned_minutes: int
     completed_minutes: int
     remaining_minutes: int
+    due_review_count: int = 0
     tasks: list[PlanTaskRead]
 
 

@@ -1675,6 +1675,11 @@ export interface components {
             /** Pool Item Id */
             pool_item_id: string | null;
             /**
+             * Priority Score
+             * @default 0
+             */
+            priority_score: number;
+            /**
              * Status
              * @enum {string}
              */
@@ -1941,6 +1946,11 @@ export interface components {
             days_to_exam: number;
             /** Execution Rate */
             execution_rate: number;
+            /**
+             * Gap Suggestions
+             * @default []
+             */
+            gap_suggestions: components["schemas"]["RetroGapSuggestion"][];
             /** Planned Minutes */
             planned_minutes: number;
             /** Subjects */
@@ -1959,6 +1969,26 @@ export interface components {
              * Format: date
              */
             week_start: string;
+        };
+        /** RetroGapSuggestion */
+        RetroGapSuggestion: {
+            /** Gap */
+            gap: number;
+            /**
+             * Knowledge Point Id
+             * Format: uuid
+             */
+            knowledge_point_id: string;
+            /** Knowledge Point Name */
+            knowledge_point_name: string;
+            /** Mastery */
+            mastery: number;
+            /** Subject Name */
+            subject_name: string;
+            /** Suggestion */
+            suggestion: string;
+            /** Target */
+            target: number;
         };
         /** RetroMessageRead */
         RetroMessageRead: {
@@ -2413,6 +2443,11 @@ export interface components {
              * Format: date
              */
             date: string;
+            /**
+             * Due Review Count
+             * @default 0
+             */
+            due_review_count: number;
             /** Planned Minutes */
             planned_minutes: number;
             /** Remaining Minutes */
