@@ -25,8 +25,10 @@ data class PapersUiState(
     val busy: Set<String> = emptySet(),
     val notice: String? = null,
     val error: String? = null,
-    val pendingOpenFile: File? = null,
+    val viewer: PdfViewerTarget? = null,
 )
+
+data class PdfViewerTarget(val file: File, val title: String)
 
 class PapersViewModel(
     private val repository: PapersRepository,
@@ -85,7 +87,10 @@ class PapersViewModel(
             val target = File(File(cacheDir, "papers"), "${paper.id}.pdf")
             when (val result = repository.download(paper.id, target)) {
                 is PaperDownloadResult.Ready -> _uiState.update {
-                    it.copy(busy = it.busy - paper.id, pendingOpenFile = result.file)
+                    it.copy(
+                        busy = it.busy - paper.id,
+                        viewer = PdfViewerTarget(result.file, paper.title),
+                    )
                 }
                 PaperDownloadResult.Offline -> _uiState.update {
                     it.copy(busy = it.busy - paper.id, notice = "网络不可用，无法打开 PDF")
@@ -100,8 +105,8 @@ class PapersViewModel(
         }
     }
 
-    fun consumeOpen() {
-        _uiState.update { it.copy(pendingOpenFile = null) }
+    fun closeViewer() {
+        _uiState.update { it.copy(viewer = null) }
     }
 
     fun consumeNotice() {

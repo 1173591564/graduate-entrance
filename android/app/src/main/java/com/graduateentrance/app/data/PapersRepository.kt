@@ -7,6 +7,9 @@ import com.graduateentrance.app.network.PaperStatsDto
 import com.graduateentrance.app.network.PaperStatusRequest
 import java.io.File
 import java.io.IOException
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import retrofit2.HttpException
 
 sealed interface PapersLoadResult {
@@ -31,7 +34,10 @@ sealed interface PaperDownloadResult {
     data class Rejected(val code: Int) : PaperDownloadResult
 }
 
-class PapersRepository(private val api: GraduateEntranceApi) {
+class PapersRepository(
+    private val api: GraduateEntranceApi,
+    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
+) {
     suspend fun load(): PapersLoadResult =
         try {
             val today = api.papersToday()
@@ -55,17 +61,19 @@ class PapersRepository(private val api: GraduateEntranceApi) {
         }
 
     suspend fun download(paperId: String, target: File): PaperDownloadResult =
-        try {
-            api.downloadPaper(paperId).use { body ->
-                target.parentFile?.mkdirs()
-                body.byteStream().use { input ->
-                    target.outputStream().use { output -> input.copyTo(output) }
+        withContext(ioDispatcher) {
+            try {
+                api.downloadPaper(paperId).use { body ->
+                    target.parentFile?.mkdirs()
+                    body.byteStream().use { input ->
+                        target.outputStream().use { output -> input.copyTo(output) }
+                    }
                 }
+                PaperDownloadResult.Ready(target)
+            } catch (_: IOException) {
+                PaperDownloadResult.Offline
+            } catch (error: HttpException) {
+                PaperDownloadResult.Rejected(error.code())
             }
-            PaperDownloadResult.Ready(target)
-        } catch (_: IOException) {
-            PaperDownloadResult.Offline
-        } catch (error: HttpException) {
-            PaperDownloadResult.Rejected(error.code())
         }
 }

@@ -1,5 +1,6 @@
 package com.graduateentrance.app.ui
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -39,7 +40,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.graduateentrance.app.network.PaperDto
-import java.io.File
 
 private val statusLabels = mapOf("unread" to "未读", "reading" to "在读", "done" to "已读")
 
@@ -51,10 +51,7 @@ private fun statusTone(status: String): NoticeTone = when (status) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PapersScreen(
-    viewModel: PapersViewModel,
-    onOpenPdf: (File) -> Unit,
-) {
+fun PapersScreen(viewModel: PapersViewModel) {
     val state by viewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -64,11 +61,15 @@ fun PapersScreen(
             viewModel.consumeNotice()
         }
     }
-    LaunchedEffect(state.pendingOpenFile) {
-        state.pendingOpenFile?.let {
-            onOpenPdf(it)
-            viewModel.consumeOpen()
-        }
+
+    state.viewer?.let { viewer ->
+        BackHandler(onBack = viewModel::closeViewer)
+        PdfViewerScreen(
+            file = viewer.file,
+            title = viewer.title,
+            onClose = viewModel::closeViewer,
+        )
+        return
     }
 
     Scaffold(
