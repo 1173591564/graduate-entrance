@@ -211,8 +211,8 @@ private fun TodayRecitationCard(
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.SemiBold,
             )
-            Text(
-                text = item.contentMd,
+            MarkdownText(
+                markdown = item.contentMd,
                 style = MaterialTheme.typography.bodyLarge,
             )
             ReciteButton(
@@ -297,8 +297,8 @@ private fun RecitationRow(
                 }
             }
             if (expanded) {
-                Text(
-                    text = item.contentMd,
+                MarkdownText(
+                    markdown = item.contentMd,
                     style = MaterialTheme.typography.bodyMedium,
                 )
             }
