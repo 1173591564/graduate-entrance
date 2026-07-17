@@ -72,6 +72,24 @@ def derive_target(requirement_level: str, goal_ratio: float) -> float:
     return round(base * ratio * 100, 1)
 
 
+def task_priority(
+    weight: float | None,
+    mastery: float,
+    target: float,
+    est_minutes: int,
+) -> float:
+    """Cost-effectiveness score for scheduling a knowledge point today.
+
+    ``priority = importance x gap x time_factor``: the bigger the
+    ``target - mastery`` gap and the cheaper (shorter) the task, the more worth
+    doing it now. A point already at/above target scores 0.
+    """
+    importance = float(weight) if weight else 1.0
+    gap = max(0.0, target - mastery) / 100.0
+    time_factor = 60.0 / max(1, est_minutes)
+    return round(importance * gap * time_factor, 4)
+
+
 async def recompute_kp_mastery(
     session: AsyncSession,
     kp_ids: set[UUID] | None = None,

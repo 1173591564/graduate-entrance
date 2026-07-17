@@ -1675,6 +1675,11 @@ export interface components {
             /** Pool Item Id */
             pool_item_id: string | null;
             /**
+             * Priority Score
+             * @default 0
+             */
+            priority_score: number;
+            /**
              * Status
              * @enum {string}
              */
@@ -2413,6 +2418,11 @@ export interface components {
              * Format: date
              */
             date: string;
+            /**
+             * Due Review Count
+             * @default 0
+             */
+            due_review_count: number;
             /** Planned Minutes */
             planned_minutes: number;
             /** Remaining Minutes */

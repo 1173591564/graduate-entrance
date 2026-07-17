@@ -1955,6 +1955,11 @@
             ],
             "title": "Pool Item Id"
           },
+          "priority_score": {
+            "default": 0.0,
+            "title": "Priority Score",
+            "type": "number"
+          },
           "status": {
             "enum": [
               "planned",
@@ -3779,6 +3784,11 @@
             "format": "date",
             "title": "Date",
             "type": "string"
+          },
+          "due_review_count": {
+            "default": 0,
+            "title": "Due Review Count",
+            "type": "integer"
           },
           "planned_minutes": {
             "title": "Planned Minutes",

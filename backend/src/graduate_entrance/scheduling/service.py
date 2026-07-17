@@ -12,7 +12,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 from sqlalchemy.sql import Select
 
-from graduate_entrance.mastery.service import recompute_kp_mastery
+from graduate_entrance.mastery.service import (
+    DEFAULT_GOAL_RATIO,
+    derive_target,
+    recompute_kp_mastery,
+    task_priority,
+)
+from graduate_entrance.models.mastery import KpMastery
 from graduate_entrance.models.planning import (
     AvailabilityException,
     AvailabilityPeriod,
@@ -21,6 +27,8 @@ from graduate_entrance.models.planning import (
     TaskTemplate,
     TaskTemplatePhase,
 )
+from graduate_entrance.models.problems import Problem
+from graduate_entrance.models.profile import SubjectGoal
 from graduate_entrance.models.scheduling import ScheduledTask, TaskPoolItem
 from graduate_entrance.models.syllabus import (
     Chapter,
@@ -952,6 +960,74 @@ async def get_calendar(
     return CalendarResponse(month=month, days=days, weeks=weeks)
 
 
+async def _today_priorities(
+    session: AsyncSession, tasks: Sequence[ScheduledTask]
+) -> dict[UUID, float]:
+    """Score each task by the mastery gap of its knowledge point.
+
+    Uses the persisted kp_mastery row when present; otherwise falls back to a
+    freshly derived target with mastery 0 so a brand-new plan still ranks
+    sensibly before any signal has landed.
+    """
+    kp_ids = {task.knowledge_point_id for task in tasks if task.knowledge_point_id}
+    if not kp_ids:
+        return {}
+
+    kp_rows = (
+        await session.execute(
+            select(
+                KnowledgePoint.id,
+                KnowledgePoint.requirement_level,
+                KnowledgePoint.weight,
+                SyllabusModule.subject_id,
+            )
+            .join(Chapter, KnowledgePoint.chapter_id == Chapter.id)
+            .join(SyllabusModule, Chapter.module_id == SyllabusModule.id)
+            .where(KnowledgePoint.id.in_(kp_ids))
+        )
+    ).all()
+    kp_info = {row[0]: (row[1], row[2], row[3]) for row in kp_rows}
+
+    mastery_rows = {
+        row.knowledge_point_id: row
+        for row in (
+            await session.scalars(
+                select(KpMastery).where(KpMastery.knowledge_point_id.in_(kp_ids))
+            )
+        ).all()
+    }
+    goals = {
+        goal.subject_id: goal for goal in (await session.scalars(select(SubjectGoal))).all()
+    }
+
+    scores: dict[UUID, float] = {}
+    for task in tasks:
+        kp_id = task.knowledge_point_id
+        if kp_id is None or kp_id not in kp_info:
+            continue
+        requirement_level, weight, subject_id = kp_info[kp_id]
+        row = mastery_rows.get(kp_id)
+        if row is not None:
+            mastery = float(row.mastery)
+            target = float(row.target)
+        else:
+            goal = goals.get(subject_id)
+            goal_ratio = (
+                goal.target_score / goal.full_score
+                if goal and goal.full_score
+                else DEFAULT_GOAL_RATIO
+            )
+            mastery = 0.0
+            target = derive_target(requirement_level, goal_ratio)
+        scores[task.id] = task_priority(
+            float(weight) if weight is not None else None,
+            mastery,
+            target,
+            task.est_minutes,
+        )
+    return scores
+
+
 async def get_today(session: AsyncSession, target_date: date) -> TodayResponse:
     tasks = (
         await session.scalars(
@@ -969,12 +1045,38 @@ async def get_today(session: AsyncSession, target_date: date) -> TodayResponse:
     remaining_minutes = sum(
         task.est_minutes for task in tasks if task.status == "planned"
     )
+    due_review_count = (
+        await session.scalar(
+            select(func.count())
+            .select_from(Problem)
+            .where(Problem.status == "confirmed")
+            .where(Problem.due_date.is_not(None))
+            .where(Problem.due_date <= target_date)
+        )
+    ) or 0
+
+    scores = await _today_priorities(session, tasks)
+    reads = [_task_read(task) for task in tasks]
+    for read in reads:
+        read.priority_score = scores.get(read.id, 0.0)
+
+    status_rank = {"planned": 0, "completed": 1, "skipped": 2}
+    reads.sort(
+        key=lambda read: (
+            status_rank.get(read.status, 3),
+            -read.priority_score,
+            read.order,
+            str(read.id),
+        )
+    )
+
     return TodayResponse(
         date=target_date,
         planned_minutes=planned_minutes,
         completed_minutes=completed_minutes,
         remaining_minutes=remaining_minutes,
-        tasks=[_task_read(task) for task in tasks],
+        due_review_count=int(due_review_count),
+        tasks=reads,
     )
 
 
