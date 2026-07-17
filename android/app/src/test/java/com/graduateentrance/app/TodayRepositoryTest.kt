@@ -5,6 +5,9 @@ import com.graduateentrance.app.data.TodayRepository
 import com.graduateentrance.app.data.local.PendingCheckInEntity
 import com.graduateentrance.app.data.local.TodayDao
 import com.graduateentrance.app.data.local.TodayTaskEntity
+import com.graduateentrance.app.network.ChatConversationListDto
+import com.graduateentrance.app.network.ChatHistoryDto
+import com.graduateentrance.app.network.ChatSendResultDto
 import com.graduateentrance.app.network.DueReviewsDto
 import com.graduateentrance.app.network.ExtractionResultDto
 import com.graduateentrance.app.network.GraduateEntranceApi
@@ -155,6 +158,21 @@ private class FakeApi : GraduateEntranceApi {
     ): VocabGradeResultDto = throw UnsupportedOperationException()
 
     override suspend fun vocabStats(): VocabStatsDto = throw UnsupportedOperationException()
+
+    override suspend fun chatConversations(): ChatConversationListDto =
+        throw UnsupportedOperationException()
+
+    override suspend fun chatHistory(conversationId: String): ChatHistoryDto =
+        throw UnsupportedOperationException()
+
+    override suspend fun deleteChatConversation(conversationId: String): Response<Unit> =
+        throw UnsupportedOperationException()
+
+    override suspend fun sendChatMessage(
+        conversationId: RequestBody?,
+        content: RequestBody,
+        images: List<MultipartBody.Part>,
+    ): ChatSendResultDto = throw UnsupportedOperationException()
 }
 
 private fun dto(id: String, status: String = "planned", est: Int = 60, order: Int = 0) = TodayTaskDto(

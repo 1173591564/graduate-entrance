@@ -30,6 +30,7 @@ class Settings(BaseSettings):
     vocab_seed_path: Path = Path("../seed/vocab/kaoyan_words.json")
     recitation_seed_path: Path = Path("../seed/recitation/politics.json")
     problem_images_dir: Path = Path("./data/problem-images")
+    chat_images_dir: Path = Path("./data/chat-images")
     papers_dir: Path = Path("./data/papers")
     ai_base_url: str = ""
     ai_api_key: SecretStr = SecretStr("")

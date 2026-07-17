@@ -50,6 +50,7 @@ fun HomeScreen(
     state: TodayUiState,
     onOpenDrawer: () -> Unit,
     onNavigate: (AppDestination) -> Unit,
+    onAskChat: (String) -> Unit,
 ) {
     var questionDraft by rememberSaveable { mutableStateOf("") }
     val nextTask = state.tasks.firstOrNull { it.status != "completed" && it.status != "skipped" }
@@ -115,6 +116,10 @@ fun HomeScreen(
                     value = questionDraft,
                     onValueChange = { questionDraft = it },
                     onCapture = { onNavigate(AppDestination.CAPTURE) },
+                    onAsk = {
+                        onAskChat(questionDraft)
+                        questionDraft = ""
+                    },
                 )
             }
         }
@@ -226,6 +231,7 @@ private fun ChatEntryCard(
     value: String,
     onValueChange: (String) -> Unit,
     onCapture: () -> Unit,
+    onAsk: () -> Unit,
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -237,31 +243,33 @@ private fun ChatEntryCard(
             modifier = Modifier.padding(14.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            Text("随手记录疑问", style = MaterialTheme.typography.titleMedium)
+            Text("问 ChatLearning", style = MaterialTheme.typography.titleMedium)
             OutlinedTextField(
                 value = value,
                 onValueChange = onValueChange,
-                placeholder = { Text("这道题为什么这样转化？") },
+                placeholder = { Text("尽管问，带图也行") },
                 leadingIcon = {
                     IconButton(onClick = onCapture) {
                         Icon(Icons.Outlined.Add, contentDescription = "拍题")
                     }
                 },
                 trailingIcon = {
-                    Icon(
-                        imageVector = if (value.isBlank()) {
-                            Icons.Outlined.ChatBubbleOutline
-                        } else {
-                            Icons.AutoMirrored.Outlined.Send
-                        },
-                        contentDescription = null,
-                    )
+                    IconButton(onClick = onAsk) {
+                        Icon(
+                            imageVector = if (value.isBlank()) {
+                                Icons.Outlined.ChatBubbleOutline
+                            } else {
+                                Icons.AutoMirrored.Outlined.Send
+                            },
+                            contentDescription = "去提问",
+                        )
+                    }
                 },
                 modifier = Modifier.fillMaxWidth(),
                 minLines = 2,
             )
             Text(
-                text = "当前版本先作为本地草稿入口；拍题可直接进入上传流程。",
+                text = "点击发送进入 ChatLearning 问答；「+」可直接拍题上传。",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )

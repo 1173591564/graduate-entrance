@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends
 
 from graduate_entrance.api.routes.calendar import router as calendar_router
+from graduate_entrance.api.routes.chat import router as chat_router
 from graduate_entrance.api.routes.daily import router as daily_router
 from graduate_entrance.api.routes.essay import router as essay_router
 from graduate_entrance.api.routes.health import public_router as public_health_router
@@ -37,3 +38,4 @@ protected_api_router.include_router(papers_router)
 protected_api_router.include_router(retro_router)
 protected_api_router.include_router(vocab_router)
 protected_api_router.include_router(recitation_router)
+protected_api_router.include_router(chat_router)

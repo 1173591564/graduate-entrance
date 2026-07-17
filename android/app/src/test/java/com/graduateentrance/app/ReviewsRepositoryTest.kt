@@ -3,6 +3,9 @@ package com.graduateentrance.app
 import com.graduateentrance.app.data.GradeResult
 import com.graduateentrance.app.data.ReviewsLoadResult
 import com.graduateentrance.app.data.ReviewsRepository
+import com.graduateentrance.app.network.ChatConversationListDto
+import com.graduateentrance.app.network.ChatHistoryDto
+import com.graduateentrance.app.network.ChatSendResultDto
 import com.graduateentrance.app.network.DueReviewsDto
 import com.graduateentrance.app.network.ExtractionResultDto
 import com.graduateentrance.app.network.GraduateEntranceApi
@@ -123,6 +126,21 @@ private class FakeReviewsApi : GraduateEntranceApi {
     ): VocabGradeResultDto = throw UnsupportedOperationException()
 
     override suspend fun vocabStats(): VocabStatsDto = throw UnsupportedOperationException()
+
+    override suspend fun chatConversations(): ChatConversationListDto =
+        throw UnsupportedOperationException()
+
+    override suspend fun chatHistory(conversationId: String): ChatHistoryDto =
+        throw UnsupportedOperationException()
+
+    override suspend fun deleteChatConversation(conversationId: String): Response<Unit> =
+        throw UnsupportedOperationException()
+
+    override suspend fun sendChatMessage(
+        conversationId: RequestBody?,
+        content: RequestBody,
+        images: List<MultipartBody.Part>,
+    ): ChatSendResultDto = throw UnsupportedOperationException()
 }
 
 class ReviewsRepositoryTest {
