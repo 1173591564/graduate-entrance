@@ -1,5 +1,7 @@
 package com.graduateentrance.app.ui
 
+import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -7,6 +9,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -16,6 +19,7 @@ import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
@@ -23,6 +27,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -35,6 +40,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.graduateentrance.app.network.RecitationItemDto
@@ -97,55 +104,70 @@ fun RecitationScreen(viewModel: RecitationViewModel) {
                     Text("重新加载")
                 }
             }
-            else -> Column(
+            else -> PullToRefreshBox(
+                isRefreshing = state.loading,
+                onRefresh = viewModel::refresh,
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(innerPadding)
-                    .padding(horizontal = 16.dp)
-                    .verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(14.dp),
+                    .padding(innerPadding),
             ) {
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    subjectLabels.forEach { (subject, label) ->
-                        FilterChip(
-                            selected = state.subject == subject,
-                            onClick = { viewModel.switchSubject(subject) },
-                            label = { Text(label) },
-                        )
-                    }
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(horizontal = 16.dp)
+                        .verticalScroll(rememberScrollState()),
+                    verticalArrangement = Arrangement.spacedBy(14.dp),
+                ) {
+                    RecitationContent(state = state, viewModel = viewModel)
+                    Spacer(Modifier.width(1.dp))
                 }
-                if ((state.stats?.totalCount ?: 0) == 0) {
-                    AppEmptyState(
-                        title = "背诵池是空的",
-                        body = "重启后端会自动导入种子材料，或在 Web 后台导入。",
-                        icon = Icons.Outlined.AutoStories,
-                    )
-                } else {
-                    state.today?.let { today ->
-                        TodayRecitationCard(
-                            item = today,
-                            busy = today.id in state.busy,
-                            onRecite = { undo -> viewModel.recite(today.id, undo) },
-                        )
-                    }
-                    state.groups.forEach { group ->
-                        Text(
-                            text = group.category,
-                            style = MaterialTheme.typography.titleSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                        group.items.forEach { item ->
-                            RecitationRow(
-                                item = item,
-                                busy = item.id in state.busy,
-                                expanded = item.id in state.expanded,
-                                onToggle = { viewModel.toggleExpanded(item.id) },
-                                onRecite = { undo -> viewModel.recite(item.id, undo) },
-                            )
-                        }
-                    }
-                }
-                Spacer(Modifier.width(1.dp))
+            }
+        }
+    }
+}
+
+@Composable
+private fun RecitationContent(
+    state: RecitationUiState,
+    viewModel: RecitationViewModel,
+) {
+    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        subjectLabels.forEach { (subject, label) ->
+            FilterChip(
+                selected = state.subject == subject,
+                onClick = { viewModel.switchSubject(subject) },
+                label = { Text(label) },
+            )
+        }
+    }
+    if ((state.stats?.totalCount ?: 0) == 0) {
+        AppEmptyState(
+            title = "背诵池是空的",
+            body = "重启后端会自动导入种子材料，或在 Web 后台导入。",
+            icon = Icons.Outlined.AutoStories,
+        )
+    } else {
+        state.today?.let { today ->
+            TodayRecitationCard(
+                item = today,
+                busy = today.id in state.busy,
+                onRecite = { undo -> viewModel.recite(today.id, undo) },
+            )
+        }
+        state.groups.forEach { group ->
+            Text(
+                text = group.category,
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            group.items.forEach { item ->
+                RecitationRow(
+                    item = item,
+                    busy = item.id in state.busy,
+                    expanded = item.id in state.expanded,
+                    onToggle = { viewModel.toggleExpanded(item.id) },
+                    onRecite = { undo -> viewModel.recite(item.id, undo) },
+                )
             }
         }
     }
@@ -188,15 +210,47 @@ private fun TodayRecitationCard(
                 text = item.contentMd,
                 style = MaterialTheme.typography.bodyLarge,
             )
-            if (item.recitedToday) {
-                OutlinedButton(onClick = { onRecite(true) }, enabled = !busy) {
-                    Text("撤销打卡")
-                }
-            } else {
-                Button(onClick = { onRecite(false) }, enabled = !busy) {
-                    Text("背完打卡")
-                }
+            ReciteButton(
+                recitedToday = item.recitedToday,
+                busy = busy,
+                doneLabel = "撤销打卡",
+                pendingLabel = "背完打卡",
+                onRecite = onRecite,
+            )
+        }
+    }
+}
+
+@Composable
+private fun ReciteButton(
+    recitedToday: Boolean,
+    busy: Boolean,
+    doneLabel: String,
+    pendingLabel: String,
+    onRecite: (Boolean) -> Unit,
+) {
+    val haptics = LocalHapticFeedback.current
+    if (recitedToday) {
+        OutlinedButton(onClick = { onRecite(true) }, enabled = !busy) {
+            Text(doneLabel)
+        }
+    } else {
+        Button(
+            onClick = {
+                haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                onRecite(false)
+            },
+            enabled = !busy,
+        ) {
+            if (busy) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(16.dp),
+                    strokeWidth = 2.dp,
+                    color = MaterialTheme.colorScheme.onPrimary,
+                )
+                Spacer(Modifier.width(8.dp))
             }
+            Text(pendingLabel)
         }
     }
 }
@@ -209,13 +263,19 @@ private fun RecitationRow(
     onToggle: () -> Unit,
     onRecite: (Boolean) -> Unit,
 ) {
-    Card(modifier = Modifier.fillMaxWidth()) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .animateContentSize(),
+    ) {
         Column(
             modifier = Modifier.padding(14.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable(onClick = onToggle),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
@@ -241,15 +301,13 @@ private fun RecitationRow(
                 TextButton(onClick = onToggle) {
                     Text(if (expanded) "收起" else "展开")
                 }
-                if (item.recitedToday) {
-                    TextButton(onClick = { onRecite(true) }, enabled = !busy) {
-                        Text("撤销")
-                    }
-                } else {
-                    Button(onClick = { onRecite(false) }, enabled = !busy) {
-                        Text("打卡")
-                    }
-                }
+                ReciteButton(
+                    recitedToday = item.recitedToday,
+                    busy = busy,
+                    doneLabel = "撤销",
+                    pendingLabel = "打卡",
+                    onRecite = onRecite,
+                )
             }
         }
     }

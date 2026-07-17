@@ -12,12 +12,17 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.Surface
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -25,6 +30,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -120,19 +126,43 @@ fun PdfViewerScreen(
             return@Scaffold
         }
         val density = LocalDensity.current
-        LazyColumn(
+        val listState = rememberLazyListState()
+        val currentPage by remember {
+            derivedStateOf { listState.firstVisibleItemIndex + 1 }
+        }
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
-                .background(MaterialTheme.colorScheme.surfaceVariant)
-                .transformable(transformState)
-                .graphicsLayer(scaleX = scale, scaleY = scale),
+                .padding(innerPadding),
         ) {
-            items((0 until document.pageCount).toList()) { pageIndex ->
-                PdfPage(
-                    document = document,
-                    pageIndex = pageIndex,
-                    targetWidth = with(density) { 420.dp.toPx() }.toInt() * 2,
+            LazyColumn(
+                state = listState,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                    .transformable(transformState)
+                    .graphicsLayer(scaleX = scale, scaleY = scale),
+            ) {
+                items((0 until document.pageCount).toList()) { pageIndex ->
+                    PdfPage(
+                        document = document,
+                        pageIndex = pageIndex,
+                        targetWidth = with(density) { 420.dp.toPx() }.toInt() * 2,
+                    )
+                }
+            }
+            Surface(
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(16.dp),
+                shape = RoundedCornerShape(999.dp),
+                color = MaterialTheme.colorScheme.surface.copy(alpha = 0.85f),
+                contentColor = MaterialTheme.colorScheme.onSurface,
+            ) {
+                Text(
+                    text = "$currentPage / ${document.pageCount}",
+                    style = MaterialTheme.typography.labelMedium,
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
                 )
             }
         }
@@ -169,6 +199,12 @@ private fun PdfPage(
                 .aspectRatio(0.72f)
                 .padding(bottom = 6.dp)
                 .background(Color.White),
-        )
+            contentAlignment = Alignment.Center,
+        ) {
+            CircularProgressIndicator(
+                modifier = Modifier.size(28.dp),
+                strokeWidth = 3.dp,
+            )
+        }
     }
 }
