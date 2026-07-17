@@ -4,6 +4,7 @@ enum class AppDestination {
     HOME,
     TODAY,
     REVIEWS,
+    PAPERS,
     CAPTURE,
     SETTINGS,
 }

@@ -3,6 +3,7 @@ package com.graduateentrance.app.network
 import com.google.gson.annotations.SerializedName
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
+import okhttp3.ResponseBody
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Multipart
@@ -10,6 +11,7 @@ import retrofit2.http.POST
 import retrofit2.http.Part
 import retrofit2.http.Path
 import retrofit2.http.Query
+import retrofit2.http.Streaming
 
 data class ServiceStatus(
     val status: String,
@@ -113,6 +115,49 @@ data class ReviewResultDto(
     @SerializedName("due_date") val dueDate: String,
 )
 
+data class PaperDto(
+    val id: String,
+    @SerializedName("rel_path") val relPath: String,
+    val title: String,
+    val category: String,
+    @SerializedName("size_bytes") val sizeBytes: Long,
+    val status: String,
+    @SerializedName("has_file") val hasFile: Boolean,
+    @SerializedName("started_on") val startedOn: String?,
+    @SerializedName("finished_on") val finishedOn: String?,
+)
+
+data class PaperStatsDto(
+    @SerializedName("total_count") val totalCount: Int,
+    @SerializedName("unread_count") val unreadCount: Int,
+    @SerializedName("reading_count") val readingCount: Int,
+    @SerializedName("done_count") val doneCount: Int,
+)
+
+data class PaperGroupDto(
+    val category: String,
+    val papers: List<PaperDto>,
+)
+
+data class PaperListDto(
+    val groups: List<PaperGroupDto>,
+    val stats: PaperStatsDto,
+)
+
+data class PaperTodayDto(
+    val date: String,
+    val paper: PaperDto?,
+    val stats: PaperStatsDto,
+)
+
+data class PaperStatusRequest(
+    val status: String,
+)
+
+data class PaperStatusResultDto(
+    val paper: PaperDto,
+)
+
 interface GraduateEntranceApi {
     @GET("api/ping")
     suspend fun ping(): ServiceStatus
@@ -148,4 +193,20 @@ interface GraduateEntranceApi {
 
     @POST("api/problems/{problemId}/extract")
     suspend fun extractProblem(@Path("problemId") problemId: String): ExtractionResultDto
+
+    @GET("api/papers")
+    suspend fun papers(): PaperListDto
+
+    @GET("api/papers/today")
+    suspend fun papersToday(): PaperTodayDto
+
+    @POST("api/papers/{paperId}/status")
+    suspend fun setPaperStatus(
+        @Path("paperId") paperId: String,
+        @Body payload: PaperStatusRequest,
+    ): PaperStatusResultDto
+
+    @Streaming
+    @GET("api/papers/{paperId}/file")
+    suspend fun downloadPaper(@Path("paperId") paperId: String): ResponseBody
 }
