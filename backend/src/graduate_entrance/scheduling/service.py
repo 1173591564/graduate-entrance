@@ -12,6 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 from sqlalchemy.sql import Select
 
+from graduate_entrance.mastery.service import recompute_kp_mastery
 from graduate_entrance.models.planning import (
     AvailabilityException,
     AvailabilityPeriod,
@@ -1090,4 +1091,6 @@ async def complete_task(
     task.actual_minutes = actual_minutes
     await session.commit()
     await session.refresh(task)
+    if task.knowledge_point_id is not None:
+        await recompute_kp_mastery(session, {task.knowledge_point_id})
     return _task_read(task)

@@ -7,6 +7,7 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from graduate_entrance.mastery.service import recompute_kp_mastery
 from graduate_entrance.models.problems import (
     Problem,
     ProblemKnowledgePoint,
@@ -300,6 +301,9 @@ async def confirm_problem(
     ]
     await session.commit()
     loaded = await _load_problem(session, problem.id)
+    await recompute_kp_mastery(
+        session, {link.knowledge_point_id for link in loaded.kp_links}
+    )
     return (await _read_problems(session, [loaded]))[0]
 
 
@@ -359,6 +363,9 @@ async def review_problem(
     session.add(ReviewLog(id=uuid4(), problem_id=problem.id, grade=grade, reviewed_on=as_of))
     await session.commit()
     loaded = await _load_problem(session, problem.id)
+    await recompute_kp_mastery(
+        session, {link.knowledge_point_id for link in loaded.kp_links}
+    )
     read = (await _read_problems(session, [loaded]))[0]
     return ReviewResult(
         problem=read,
