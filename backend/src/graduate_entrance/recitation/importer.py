@@ -32,7 +32,16 @@ async def import_recitations(session: AsyncSession, seed_path: Path) -> int:
     for order_index, entry in enumerate(entries):
         subject = str(entry.get("subject", "politics")).strip()
         title = str(entry.get("title", "")).strip()
-        if not title or (subject, title) in existing:
+        if not title:
+            continue
+        current = existing.get((subject, title))
+        if current is not None:
+            content_md = str(entry.get("content_md", ""))
+            category = str(entry.get("category", "")).strip() or "未分类"
+            if current.content_md != content_md or current.category != category:
+                current.content_md = content_md
+                current.category = category
+                imported += 1
             continue
         session.add(
             RecitationItem(

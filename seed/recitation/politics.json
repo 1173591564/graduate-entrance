@@ -147,55 +147,55 @@
     "subject": "math",
     "category": "高数·极限与连续",
     "title": "两个重要极限与等价无穷小",
-    "content_md": "$\\lim_{x\\to 0}\\frac{\\sin x}{x}=1$，$\\lim_{x\\to\\infty}(1+\\frac{1}{x})^x=e$。\n\n常用等价无穷小（$x\\to 0$）：$\\sin x\\sim x$，$\\tan x\\sim x$，$1-\\cos x\\sim \\frac{x^2}{2}$，$e^x-1\\sim x$，$\\ln(1+x)\\sim x$，$(1+x)^a-1\\sim ax$。\n\n注意：等价替换只能用于乘除因子，加减慎用。"
+    "content_md": "lim(x→0) sin x / x = 1；lim(x→∞) (1 + 1/x)ˣ = e。\n\n常用等价无穷小（x→0）：\nsin x ~ x，tan x ~ x，1 − cos x ~ x²/2\neˣ − 1 ~ x，ln(1+x) ~ x，(1+x)ᵃ − 1 ~ ax\n\n注意：等价替换只能用于乘除因子，加减慎用。"
   },
   {
     "subject": "math",
     "category": "高数·微分学",
     "title": "泰勒公式（麦克劳林展开）",
-    "content_md": "$e^x=1+x+\\frac{x^2}{2!}+\\cdots+\\frac{x^n}{n!}+o(x^n)$\n\n$\\sin x=x-\\frac{x^3}{3!}+\\frac{x^5}{5!}-\\cdots$，$\\cos x=1-\\frac{x^2}{2!}+\\frac{x^4}{4!}-\\cdots$\n\n$\\ln(1+x)=x-\\frac{x^2}{2}+\\frac{x^3}{3}-\\cdots$，$\\frac{1}{1-x}=1+x+x^2+\\cdots$\n\n用途：求极限、判断无穷小阶数、近似计算。"
+    "content_md": "eˣ = 1 + x + x²/2! + … + xⁿ/n! + o(xⁿ)\n\nsin x = x − x³/3! + x⁵/5! − …\ncos x = 1 − x²/2! + x⁴/4! − …\n\nln(1+x) = x − x²/2 + x³/3 − …\n1/(1−x) = 1 + x + x² + …\n\n用途：求极限、判断无穷小阶数、近似计算。"
   },
   {
     "subject": "math",
     "category": "高数·微分学",
     "title": "三大微分中值定理",
-    "content_md": "罗尔：$f$ 在 $[a,b]$ 连续、$(a,b)$ 可导且 $f(a)=f(b)$ ⟹ 存在 $\\xi$ 使 $f'(\\xi)=0$。\n\n拉格朗日：$f'(\\xi)=\\frac{f(b)-f(a)}{b-a}$。\n\n柯西：$\\frac{f'(\\xi)}{g'(\\xi)}=\\frac{f(b)-f(a)}{g(b)-g(a)}$。\n\n证明题信号：见 $f(a)=f(b)$ 想罗尔，见增量比想拉格朗日，见两函数比想柯西。"
+    "content_md": "罗尔：f 在 [a,b] 连续、(a,b) 可导且 f(a)=f(b) ⟹ 存在 ξ 使 f′(ξ)=0。\n\n拉格朗日：f′(ξ) = [f(b) − f(a)] / (b − a)。\n\n柯西：f′(ξ)/g′(ξ) = [f(b) − f(a)] / [g(b) − g(a)]。\n\n证明题信号：见 f(a)=f(b) 想罗尔，见增量比想拉格朗日，见两函数比想柯西。"
   },
   {
     "subject": "math",
     "category": "高数·积分学",
     "title": "定积分常用性质与华里士公式",
-    "content_md": "对称性：$\\int_{-a}^{a}f(x)dx=0$（$f$ 为奇函数）；$=2\\int_0^a f(x)dx$（$f$ 为偶函数）。\n\n华里士公式：$\\int_0^{\\pi/2}\\sin^n x\\,dx=\\int_0^{\\pi/2}\\cos^n x\\,dx=\\frac{(n-1)!!}{n!!}\\cdot\\begin{cases}\\frac{\\pi}{2}, & n\\text{ 偶}\\\\ 1, & n\\text{ 奇}\\end{cases}$"
+    "content_md": "对称性：∫₋ₐᵃ f(x)dx = 0（f 为奇函数）；= 2∫₀ᵃ f(x)dx（f 为偶函数）。\n\n华里士公式：∫₀^(π/2) sinⁿx dx = ∫₀^(π/2) cosⁿx dx = (n−1)!!/n!! × π/2（n 为偶数）；= (n−1)!!/n!!（n 为奇数）。"
   },
   {
     "subject": "math",
     "category": "线代·矩阵与秩",
     "title": "矩阵秩的重要不等式",
-    "content_md": "$r(A+B)\\le r(A)+r(B)$；$r(AB)\\le\\min\\{r(A),r(B)\\}$。\n\n若 $A_{m\\times n}B_{n\\times s}=O$，则 $r(A)+r(B)\\le n$。\n\n$r(A)=r(A^T)=r(A^TA)$。\n\n$Ax=0$ 基础解系含 $n-r(A)$ 个向量。"
+    "content_md": "r(A+B) ≤ r(A) + r(B)；r(AB) ≤ min{r(A), r(B)}。\n\n若 A(m×n)·B(n×s) = O，则 r(A) + r(B) ≤ n。\n\nr(A) = r(Aᵀ) = r(AᵀA)。\n\nAx = 0 的基础解系含 n − r(A) 个向量。"
   },
   {
     "subject": "math",
     "category": "线代·特征值",
     "title": "特征值的性质与相似对角化条件",
-    "content_md": "$\\sum\\lambda_i=\\mathrm{tr}(A)$，$\\prod\\lambda_i=|A|$。\n\n$A$ 可相似对角化 ⟺ $A$ 有 $n$ 个线性无关特征向量 ⟺ 每个 $k$ 重特征值有 $k$ 个线性无关特征向量。\n\n实对称矩阵必可正交对角化，不同特征值的特征向量正交。"
+    "content_md": "Σλᵢ = tr(A)，Πλᵢ = |A|。\n\nA 可相似对角化 ⟺ A 有 n 个线性无关特征向量 ⟺ 每个 k 重特征值有 k 个线性无关特征向量。\n\n实对称矩阵必可正交对角化，不同特征值的特征向量正交。"
   },
   {
     "subject": "math",
     "category": "概率·常用分布",
     "title": "常见分布的期望与方差",
-    "content_md": "二项 $B(n,p)$：$E=np$，$D=np(1-p)$。泊松 $P(\\lambda)$：$E=D=\\lambda$。\n\n均匀 $U(a,b)$：$E=\\frac{a+b}{2}$，$D=\\frac{(b-a)^2}{12}$。指数 $E(\\lambda)$：$E=\\frac{1}{\\lambda}$，$D=\\frac{1}{\\lambda^2}$。\n\n正态 $N(\\mu,\\sigma^2)$：$E=\\mu$，$D=\\sigma^2$。\n\n性质：$D(X)=E(X^2)-[E(X)]^2$。"
+    "content_md": "二项 B(n,p)：E = np，D = np(1−p)。泊松 P(λ)：E = D = λ。\n\n均匀 U(a,b)：E = (a+b)/2，D = (b−a)²/12。指数 E(λ)：E = 1/λ，D = 1/λ²。\n\n正态 N(μ,σ²)：E = μ，D = σ²。\n\n性质：D(X) = E(X²) − [E(X)]²。"
   },
   {
     "subject": "math",
     "category": "概率·极限定理",
     "title": "大数定律与中心极限定理",
-    "content_md": "切比雪夫不等式：$P\\{|X-EX|\\ge\\varepsilon\\}\\le\\frac{DX}{\\varepsilon^2}$。\n\n大数定律：独立同分布随机变量的均值依概率收敛于期望。\n\n中心极限定理（独立同分布）：$\\frac{\\sum X_i-n\\mu}{\\sqrt{n}\\sigma}\\xrightarrow{d}N(0,1)$，即大样本下和近似正态 $N(n\\mu,n\\sigma^2)$。"
+    "content_md": "切比雪夫不等式：P{|X − EX| ≥ ε} ≤ DX/ε²。\n\n大数定律：独立同分布随机变量的均值依概率收敛于期望。\n\n中心极限定理（独立同分布）：(ΣXᵢ − nμ) / (√n·σ) 依分布收敛于 N(0,1)，即大样本下和近似服从 N(nμ, nσ²)。"
   },
   {
     "subject": "cs408",
     "category": "数据结构·树",
     "title": "二叉树重要性质",
-    "content_md": "1. 第 $i$ 层至多 $2^{i-1}$ 个结点；深度为 $k$ 至多 $2^k-1$ 个。\n2. 叶结点数 $n_0$ 与度 2 结点数 $n_2$：$n_0=n_2+1$。\n3. $n$ 个结点的完全二叉树深度为 $\\lfloor\\log_2 n\\rfloor+1$。\n4. $n$ 个结点的二叉树共有 $\\frac{1}{n+1}C_{2n}^{n}$ 种形态（卡特兰数）。"
+    "content_md": "1. 第 i 层至多 2^(i−1) 个结点；深度为 k 的二叉树至多 2ᵏ − 1 个结点。\n2. 叶结点数 n₀ 与度 2 结点数 n₂：n₀ = n₂ + 1。\n3. n 个结点的完全二叉树深度为 ⌊log₂n⌋ + 1。\n4. n 个结点的二叉树共有 C(2n,n)/(n+1) 种形态（卡特兰数）。"
   },
   {
     "subject": "cs408",
@@ -213,7 +213,7 @@
     "subject": "cs408",
     "category": "组成原理·CPU",
     "title": "流水线冒险与解决",
-    "content_md": "结构冒险：硬件资源冲突 → 资源重复/分开取指访存（哈佛结构）。\n\n数据冒险：后指令用到前指令结果 → 转发（旁路）、插入气泡、编译器调度。\n\n控制冒险：转移指令改变 PC → 分支预测、延迟转移。\n\n流水线吞吐率 $TP=\\frac{n}{(k+n-1)\\Delta t}$。"
+    "content_md": "结构冒险：硬件资源冲突 → 资源重复/分开取指访存（哈佛结构）。\n\n数据冒险：后指令用到前指令结果 → 转发（旁路）、插入气泡、编译器调度。\n\n控制冒险：转移指令改变 PC → 分支预测、延迟转移。\n\n流水线吞吐率 TP = n / [(k + n − 1)·Δt]。"
   },
   {
     "subject": "cs408",
@@ -237,6 +237,6 @@
     "subject": "cs408",
     "category": "计算机网络·网络层",
     "title": "IP 地址与子网划分",
-    "content_md": "子网掩码：网络位全 1。CIDR a.b.c.d/n，主机数 $2^{32-n}-2$（去网络地址与广播地址）。\n\n例：/26 每子网 62 台主机。\n\n路由聚合取公共前缀；最长前缀匹配优先。\n\n特殊地址：127.0.0.1 环回；192.168/16、10/8、172.16/12 私有。"
+    "content_md": "子网掩码：网络位全 1。CIDR a.b.c.d/n，主机数 2^(32−n) − 2（去网络地址与广播地址）。\n\n例：/26 每子网 62 台主机。\n\n路由聚合取公共前缀；最长前缀匹配优先。\n\n特殊地址：127.0.0.1 环回；192.168/16、10/8、172.16/12 私有。"
   }
 ]
