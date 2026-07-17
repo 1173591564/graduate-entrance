@@ -8,6 +8,10 @@ import com.graduateentrance.app.network.DueReviewsDto
 import com.graduateentrance.app.network.ExtractedKnowledgePointDto
 import com.graduateentrance.app.network.ExtractionResultDto
 import com.graduateentrance.app.network.GraduateEntranceApi
+import com.graduateentrance.app.network.PaperListDto
+import com.graduateentrance.app.network.PaperStatusRequest
+import com.graduateentrance.app.network.PaperStatusResultDto
+import com.graduateentrance.app.network.PaperTodayDto
 import com.graduateentrance.app.network.ProblemCreatedDto
 import com.graduateentrance.app.network.ReviewRequest
 import com.graduateentrance.app.network.ReviewResultDto
@@ -20,6 +24,7 @@ import kotlinx.coroutines.test.runTest
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
+import okhttp3.ResponseBody
 import okhttp3.ResponseBody.Companion.toResponseBody
 import okio.Buffer
 import org.junit.Assert.assertEquals
@@ -94,6 +99,18 @@ private class FakeCaptureApi : GraduateEntranceApi {
             solution = null,
         )
     }
+
+    override suspend fun papers(): PaperListDto = throw UnsupportedOperationException()
+
+    override suspend fun papersToday(): PaperTodayDto = throw UnsupportedOperationException()
+
+    override suspend fun setPaperStatus(
+        paperId: String,
+        payload: PaperStatusRequest,
+    ): PaperStatusResultDto = throw UnsupportedOperationException()
+
+    override suspend fun downloadPaper(paperId: String): ResponseBody =
+        throw UnsupportedOperationException()
 }
 
 class CaptureRepositoryTest {

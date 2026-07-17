@@ -1,9 +1,13 @@
 package com.graduateentrance.app.ui
 
 import android.content.Context
+import android.content.Intent
 import android.net.ConnectivityManager
 import android.net.Network
 import android.net.Uri
+import android.widget.Toast
+import androidx.core.content.FileProvider
+import java.io.File
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,6 +22,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AutoStories
 import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.MenuBook
 import androidx.compose.material.icons.outlined.PhotoCamera
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.Sync
@@ -50,6 +55,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.graduateentrance.app.data.CaptureRepository
+import com.graduateentrance.app.data.PapersRepository
 import com.graduateentrance.app.data.ReviewsRepository
 import com.graduateentrance.app.data.TodayRepository
 import com.graduateentrance.app.data.local.AppDatabase
@@ -77,6 +83,9 @@ fun GraduateEntranceApp(
             loadCaptureImage(context, uri)
         },
     )
+    val papersRepository = remember { PapersRepository(ApiClient.service) }
+    val papersViewModel: PapersViewModel =
+        viewModel(factory = PapersViewModel.Factory(papersRepository, context.cacheDir))
     var destination by rememberSaveable { mutableStateOf(AppDestination.HOME) }
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
@@ -128,6 +137,9 @@ fun GraduateEntranceApp(
                             if (it == AppDestination.REVIEWS) {
                                 reviewsViewModel.refresh()
                             }
+                            if (it == AppDestination.PAPERS) {
+                                papersViewModel.refresh()
+                            }
                         },
                     )
                 }
@@ -146,6 +158,10 @@ fun GraduateEntranceApp(
                     )
                     AppDestination.TODAY -> TodayScreen(viewModel = todayViewModel)
                     AppDestination.REVIEWS -> ReviewsScreen(viewModel = reviewsViewModel)
+                    AppDestination.PAPERS -> PapersScreen(
+                        viewModel = papersViewModel,
+                        onOpenPdf = { file -> openPaperPdf(context, file) },
+                    )
                     AppDestination.CAPTURE -> CaptureScreen(viewModel = captureViewModel)
                     AppDestination.SETTINGS -> SettingsScreen(
                         todayState = todayState,
@@ -154,6 +170,23 @@ fun GraduateEntranceApp(
                 }
             }
         }
+    }
+}
+
+private fun openPaperPdf(context: Context, file: File) {
+    val uri = FileProvider.getUriForFile(
+        context,
+        "${context.packageName}.fileprovider",
+        file,
+    )
+    val intent = Intent(Intent.ACTION_VIEW).apply {
+        setDataAndType(uri, "application/pdf")
+        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK)
+    }
+    if (intent.resolveActivity(context.packageManager) != null) {
+        context.startActivity(intent)
+    } else {
+        Toast.makeText(context, "没有可打开 PDF 的应用", Toast.LENGTH_SHORT).show()
     }
 }
 
@@ -192,6 +225,7 @@ private val bottomItems = listOf(
     NavItem(AppDestination.HOME, "首页", Icons.Outlined.Home),
     NavItem(AppDestination.TODAY, "今日", Icons.Outlined.Today),
     NavItem(AppDestination.REVIEWS, "复习", Icons.Outlined.AutoStories),
+    NavItem(AppDestination.PAPERS, "阅读", Icons.Outlined.MenuBook),
     NavItem(AppDestination.CAPTURE, "拍题", Icons.Outlined.PhotoCamera),
 )
 

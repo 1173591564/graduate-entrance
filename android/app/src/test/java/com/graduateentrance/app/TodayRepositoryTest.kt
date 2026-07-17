@@ -8,6 +8,10 @@ import com.graduateentrance.app.data.local.TodayTaskEntity
 import com.graduateentrance.app.network.DueReviewsDto
 import com.graduateentrance.app.network.ExtractionResultDto
 import com.graduateentrance.app.network.GraduateEntranceApi
+import com.graduateentrance.app.network.PaperListDto
+import com.graduateentrance.app.network.PaperStatusRequest
+import com.graduateentrance.app.network.PaperStatusResultDto
+import com.graduateentrance.app.network.PaperTodayDto
 import com.graduateentrance.app.network.ProblemCreatedDto
 import com.graduateentrance.app.network.ReviewRequest
 import com.graduateentrance.app.network.ReviewResultDto
@@ -20,6 +24,7 @@ import kotlinx.coroutines.test.runTest
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
+import okhttp3.ResponseBody
 import okhttp3.ResponseBody.Companion.toResponseBody
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -112,6 +117,18 @@ private class FakeApi : GraduateEntranceApi {
 
     override suspend fun extractProblem(problemId: String): ExtractionResultDto =
         ExtractionResultDto(problemId, "test", "", emptyList(), null)
+
+    override suspend fun papers(): PaperListDto = throw UnsupportedOperationException()
+
+    override suspend fun papersToday(): PaperTodayDto = throw UnsupportedOperationException()
+
+    override suspend fun setPaperStatus(
+        paperId: String,
+        payload: PaperStatusRequest,
+    ): PaperStatusResultDto = throw UnsupportedOperationException()
+
+    override suspend fun downloadPaper(paperId: String): ResponseBody =
+        throw UnsupportedOperationException()
 }
 
 private fun dto(id: String, status: String = "planned", est: Int = 60, order: Int = 0) = TodayTaskDto(
