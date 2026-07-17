@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AutoStories
+import androidx.compose.material.icons.outlined.ChatBubbleOutline
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.MenuBook
 import androidx.compose.material.icons.outlined.PhotoCamera
@@ -53,6 +54,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.graduateentrance.app.data.CaptureRepository
+import com.graduateentrance.app.data.ChatRepository
 import com.graduateentrance.app.data.PapersRepository
 import com.graduateentrance.app.data.RecitationRepository
 import com.graduateentrance.app.data.ReviewsRepository
@@ -92,6 +94,12 @@ fun GraduateEntranceApp(
     val vocabRepository = remember { VocabRepository(ApiClient.service) }
     val vocabViewModel: VocabViewModel =
         viewModel(factory = VocabViewModel.Factory(vocabRepository))
+    val chatRepository = remember { ChatRepository(ApiClient.service) }
+    val chatViewModel: ChatViewModel = viewModel(
+        factory = ChatViewModel.Factory(chatRepository) { uri ->
+            loadCaptureImage(context, uri)
+        },
+    )
     var destination by rememberSaveable { mutableStateOf(AppDestination.HOME) }
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
@@ -152,6 +160,9 @@ fun GraduateEntranceApp(
                             if (it == AppDestination.VOCAB) {
                                 vocabViewModel.refresh()
                             }
+                            if (it == AppDestination.CHAT) {
+                                chatViewModel.refreshConversations()
+                            }
                         },
                     )
                 }
@@ -167,7 +178,13 @@ fun GraduateEntranceApp(
                         state = todayState,
                         onOpenDrawer = { scope.launch { drawerState.open() } },
                         onNavigate = { destination = it },
+                        onAskChat = { draft ->
+                            chatViewModel.prefillInput(draft)
+                            chatViewModel.refreshConversations()
+                            destination = AppDestination.CHAT
+                        },
                     )
+                    AppDestination.CHAT -> ChatScreen(viewModel = chatViewModel)
                     AppDestination.TODAY -> TodayScreen(viewModel = todayViewModel)
                     AppDestination.REVIEWS -> ReviewsScreen(viewModel = reviewsViewModel)
                     AppDestination.PAPERS -> PapersScreen(viewModel = papersViewModel)
@@ -218,15 +235,16 @@ private data class NavItem(
 
 private val bottomItems = listOf(
     NavItem(AppDestination.HOME, "首页", Icons.Outlined.Home),
+    NavItem(AppDestination.CHAT, "问答", Icons.Outlined.ChatBubbleOutline),
     NavItem(AppDestination.TODAY, "今日", Icons.Outlined.Today),
     NavItem(AppDestination.VOCAB, "背单词", Icons.Outlined.Translate),
     NavItem(AppDestination.RECITATION, "一背", Icons.Outlined.AutoStories),
-    NavItem(AppDestination.PAPERS, "阅读", Icons.Outlined.MenuBook),
     NavItem(AppDestination.CAPTURE, "拍题", Icons.Outlined.PhotoCamera),
 )
 
 private val drawerItems = listOf(
     NavItem(AppDestination.HOME, "首页", Icons.Outlined.Home),
+    NavItem(AppDestination.CHAT, "ChatLearning 问答", Icons.Outlined.ChatBubbleOutline),
     NavItem(AppDestination.TODAY, "今日", Icons.Outlined.Today),
     NavItem(AppDestination.VOCAB, "背单词", Icons.Outlined.Translate),
     NavItem(AppDestination.RECITATION, "一背", Icons.Outlined.AutoStories),

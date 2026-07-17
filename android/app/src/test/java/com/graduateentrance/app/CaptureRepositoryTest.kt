@@ -4,6 +4,9 @@ import com.graduateentrance.app.data.CaptureImage
 import com.graduateentrance.app.data.CaptureRepository
 import com.graduateentrance.app.data.CaptureResult
 import com.graduateentrance.app.data.ExtractionOutcome
+import com.graduateentrance.app.network.ChatConversationListDto
+import com.graduateentrance.app.network.ChatHistoryDto
+import com.graduateentrance.app.network.ChatSendResultDto
 import com.graduateentrance.app.network.DueReviewsDto
 import com.graduateentrance.app.network.ExtractedKnowledgePointDto
 import com.graduateentrance.app.network.ExtractionResultDto
@@ -137,6 +140,21 @@ private class FakeCaptureApi : GraduateEntranceApi {
     ): VocabGradeResultDto = throw UnsupportedOperationException()
 
     override suspend fun vocabStats(): VocabStatsDto = throw UnsupportedOperationException()
+
+    override suspend fun chatConversations(): ChatConversationListDto =
+        throw UnsupportedOperationException()
+
+    override suspend fun chatHistory(conversationId: String): ChatHistoryDto =
+        throw UnsupportedOperationException()
+
+    override suspend fun deleteChatConversation(conversationId: String): Response<Unit> =
+        throw UnsupportedOperationException()
+
+    override suspend fun sendChatMessage(
+        conversationId: RequestBody?,
+        content: RequestBody,
+        images: List<MultipartBody.Part>,
+    ): ChatSendResultDto = throw UnsupportedOperationException()
 }
 
 class CaptureRepositoryTest {
