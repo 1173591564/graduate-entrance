@@ -282,10 +282,17 @@ private fun ChatBubble(role: String, content: String, imageCount: Int) {
                     )
                 }
                 if (content.isNotBlank()) {
-                    Text(
-                        text = content,
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
+                    if (isUser) {
+                        Text(
+                            text = content,
+                            style = MaterialTheme.typography.bodyMedium,
+                        )
+                    } else {
+                        MarkdownText(
+                            markdown = content,
+                            style = MaterialTheme.typography.bodyMedium,
+                        )
+                    }
                 }
             }
         }
