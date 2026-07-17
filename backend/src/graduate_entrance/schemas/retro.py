@@ -21,6 +21,16 @@ class RetroSubjectSnapshot(BaseModel):
     estimated_score: float | None
 
 
+class RetroGapSuggestion(BaseModel):
+    knowledge_point_id: UUID
+    knowledge_point_name: str
+    subject_name: str
+    mastery: float
+    target: float
+    gap: float
+    suggestion: str
+
+
 class RetroContext(BaseModel):
     week_start: date
     week_end: date
@@ -32,6 +42,7 @@ class RetroContext(BaseModel):
     days_to_exam: int
     subjects: list[RetroSubjectSnapshot]
     weak_points: list[str]
+    gap_suggestions: list[RetroGapSuggestion] = []
 
 
 class RetroSessionResponse(BaseModel):

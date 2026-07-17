@@ -1946,6 +1946,11 @@ export interface components {
             days_to_exam: number;
             /** Execution Rate */
             execution_rate: number;
+            /**
+             * Gap Suggestions
+             * @default []
+             */
+            gap_suggestions: components["schemas"]["RetroGapSuggestion"][];
             /** Planned Minutes */
             planned_minutes: number;
             /** Subjects */
@@ -1964,6 +1969,26 @@ export interface components {
              * Format: date
              */
             week_start: string;
+        };
+        /** RetroGapSuggestion */
+        RetroGapSuggestion: {
+            /** Gap */
+            gap: number;
+            /**
+             * Knowledge Point Id
+             * Format: uuid
+             */
+            knowledge_point_id: string;
+            /** Knowledge Point Name */
+            knowledge_point_name: string;
+            /** Mastery */
+            mastery: number;
+            /** Subject Name */
+            subject_name: string;
+            /** Suggestion */
+            suggestion: string;
+            /** Target */
+            target: number;
         };
         /** RetroMessageRead */
         RetroMessageRead: {

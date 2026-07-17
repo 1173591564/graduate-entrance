@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from graduate_entrance.ai import client as ai_client
 from graduate_entrance.core.config import Settings, get_settings
+from graduate_entrance.mastery.service import list_mastery_gaps
 from graduate_entrance.models.retro import RetroMessage
 from graduate_entrance.problems.insights import get_problem_insights
 from graduate_entrance.profile.service import get_study_profile
@@ -14,12 +15,14 @@ from graduate_entrance.schemas.retro import (
     RetroChatResponse,
     RetroConfirmResponse,
     RetroContext,
+    RetroGapSuggestion,
     RetroMessageRead,
     RetroSessionResponse,
     RetroSubjectSnapshot,
 )
 
 MAX_WEAK_POINTS = 6
+MAX_GAP_SUGGESTIONS = 3
 MAX_HISTORY_MESSAGES = 20
 
 SYSTEM_PROMPT = (
@@ -46,6 +49,22 @@ async def _build_context(session: AsyncSession, week_start: date) -> RetroContex
         f"遗忘 {point.forgot_reviews}/{point.total_reviews}）"
         for point in insights.knowledge_points[:MAX_WEAK_POINTS]
     ]
+    gaps = await list_mastery_gaps(session, limit=MAX_GAP_SUGGESTIONS)
+    gap_suggestions = [
+        RetroGapSuggestion(
+            knowledge_point_id=item.knowledge_point_id,
+            knowledge_point_name=item.knowledge_point_name,
+            subject_name=item.subject_name,
+            mastery=item.mastery,
+            target=item.target,
+            gap=item.gap,
+            suggestion=(
+                f"+ 下周给「{item.knowledge_point_name}」加一个专项任务"
+                f"（掌握 {item.mastery} → 目标 {item.target}）"
+            ),
+        )
+        for item in gaps.items
+    ]
     return RetroContext(
         week_start=week_start,
         week_end=week_end,
@@ -66,6 +85,7 @@ async def _build_context(session: AsyncSession, week_start: date) -> RetroContex
             for subject in profile.subjects
         ],
         weak_points=weak_points,
+        gap_suggestions=gap_suggestions,
     )
 
 
@@ -81,6 +101,14 @@ def _context_text(context: RetroContext) -> str:
         for subject in context.subjects
     )
     weak_lines = "\n".join(f"- {point}" for point in context.weak_points) or "（暂无）"
+    gap_lines = (
+        "\n".join(
+            f"- {item.subject_name}·{item.knowledge_point_name}："
+            f"掌握 {item.mastery} / 目标 {item.target}（缺口 {item.gap}）"
+            for item in context.gap_suggestions
+        )
+        or "（暂无）"
+    )
     return (
         f"本周（{context.week_start} ~ {context.week_end}）执行数据：\n"
         f"- 任务完成 {context.completed_tasks}/{context.total_tasks}，"
@@ -88,7 +116,8 @@ def _context_text(context: RetroContext) -> str:
         f"- 已学 {context.completed_minutes} 分钟 / 计划 {context.planned_minutes} 分钟\n"
         f"- 距考试还有 {context.days_to_exam} 天\n\n"
         f"各科画像：\n{subject_lines}\n\n"
-        f"薄弱知识点：\n{weak_lines}"
+        f"薄弱知识点：\n{weak_lines}\n\n"
+        f"掌握度缺口 Top{MAX_GAP_SUGGESTIONS}（建议下周补齐）：\n{gap_lines}"
     )
 
 
