@@ -35,6 +35,7 @@ services:
       APP_LOG_LEVEL: ${APP_LOG_LEVEL:-INFO}
       APP_SYLLABUS_RAW_DIR: /app/seed/syllabus/raw
       APP_VOCAB_SEED_PATH: /app/seed/vocab/kaoyan_words.json
+      APP_RECITATION_SEED_PATH: /app/seed/recitation/politics.json
       APP_AI_BASE_URL: ${APP_AI_BASE_URL:-}
       APP_AI_API_KEY: ${APP_AI_API_KEY:-}
       APP_AI_MODEL: ${APP_AI_MODEL:-}
