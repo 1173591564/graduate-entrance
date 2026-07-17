@@ -51,6 +51,9 @@ const today = computed(() => {
         <RouterLink to="/vocab">
           背单词
         </RouterLink>
+        <RouterLink to="/papers">
+          英语阅读训练
+        </RouterLink>
       </nav>
 
       <nav class="app-nav">

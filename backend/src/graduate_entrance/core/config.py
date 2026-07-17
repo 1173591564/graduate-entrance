@@ -29,6 +29,7 @@ class Settings(BaseSettings):
     syllabus_raw_dir: Path = Path("../seed/syllabus/raw")
     vocab_seed_path: Path = Path("../seed/vocab/kaoyan_words.json")
     problem_images_dir: Path = Path("./data/problem-images")
+    papers_dir: Path = Path("./data/papers")
     ai_base_url: str = ""
     ai_api_key: SecretStr = SecretStr("")
     ai_model: str = ""
