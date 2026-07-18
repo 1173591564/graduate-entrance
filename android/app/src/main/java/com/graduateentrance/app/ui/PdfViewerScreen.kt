@@ -16,9 +16,15 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.outlined.AutoStories
+import androidx.compose.material.icons.outlined.ViewDay
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -34,8 +40,10 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -99,6 +107,8 @@ fun PdfViewerScreen(
     val transformState = rememberTransformableState { zoomChange, _, _ ->
         scale = (scale * zoomChange).coerceIn(1f, 3f)
     }
+    var pagerMode by rememberSaveable { mutableStateOf(false) }
+    var lastPage by rememberSaveable { mutableIntStateOf(0) }
 
     Scaffold(
         topBar = {
@@ -109,6 +119,17 @@ fun PdfViewerScreen(
                 navigationIcon = {
                     IconButton(onClick = onClose) {
                         Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = "返回")
+                    }
+                },
+                actions = {
+                    IconButton(onClick = {
+                        scale = 1f
+                        pagerMode = !pagerMode
+                    }) {
+                        Icon(
+                            if (pagerMode) Icons.Outlined.ViewDay else Icons.Outlined.AutoStories,
+                            contentDescription = if (pagerMode) "切换为滚动模式" else "切换为书页模式",
+                        )
                     }
                 },
             )
@@ -126,29 +147,68 @@ fun PdfViewerScreen(
             return@Scaffold
         }
         val density = LocalDensity.current
-        val listState = rememberLazyListState()
-        val currentPage by remember {
-            derivedStateOf { listState.firstVisibleItemIndex + 1 }
-        }
+        val targetWidth = with(density) { 420.dp.toPx() }.toInt() * 2
+        var currentPage by remember { mutableIntStateOf(lastPage + 1) }
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding),
         ) {
-            LazyColumn(
-                state = listState,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.surfaceVariant)
-                    .transformable(transformState)
-                    .graphicsLayer(scaleX = scale, scaleY = scale),
-            ) {
-                items((0 until document.pageCount).toList()) { pageIndex ->
-                    PdfPage(
-                        document = document,
-                        pageIndex = pageIndex,
-                        targetWidth = with(density) { 420.dp.toPx() }.toInt() * 2,
-                    )
+            if (pagerMode) {
+                val pagerState = rememberPagerState(
+                    initialPage = lastPage.coerceIn(0, document.pageCount - 1),
+                ) { document.pageCount }
+                LaunchedEffect(pagerState.currentPage) {
+                    lastPage = pagerState.currentPage
+                    currentPage = pagerState.currentPage + 1
+                }
+                HorizontalPager(
+                    state = pagerState,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(MaterialTheme.colorScheme.surfaceVariant)
+                        .transformable(transformState)
+                        .graphicsLayer(scaleX = scale, scaleY = scale),
+                ) { pageIndex ->
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .verticalScroll(rememberScrollState()),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        PdfPage(
+                            document = document,
+                            pageIndex = pageIndex,
+                            targetWidth = targetWidth,
+                        )
+                    }
+                }
+            } else {
+                val listState = rememberLazyListState(
+                    initialFirstVisibleItemIndex = lastPage.coerceIn(0, document.pageCount - 1),
+                )
+                val firstVisible by remember {
+                    derivedStateOf { listState.firstVisibleItemIndex }
+                }
+                LaunchedEffect(firstVisible) {
+                    lastPage = firstVisible
+                    currentPage = firstVisible + 1
+                }
+                LazyColumn(
+                    state = listState,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(MaterialTheme.colorScheme.surfaceVariant)
+                        .transformable(transformState)
+                        .graphicsLayer(scaleX = scale, scaleY = scale),
+                ) {
+                    items((0 until document.pageCount).toList()) { pageIndex ->
+                        PdfPage(
+                            document = document,
+                            pageIndex = pageIndex,
+                            targetWidth = targetWidth,
+                        )
+                    }
                 }
             }
             Surface(
