@@ -174,7 +174,11 @@ async def send_retro_message(
         chat_messages.append({"role": message.role, "content": message.content})
     chat_messages.append({"role": "user", "content": content.strip()})
 
-    reply = await ai_client.complete_chat(chat_messages, settings)
+    reply = await ai_client.complete_chat(
+        chat_messages,
+        settings,
+        reasoning_effort=settings.ai_planning_reasoning_effort or None,
+    )
     assistant_message = RetroMessage(
         week_start=week_start, role="assistant", content=reply.strip()
     )

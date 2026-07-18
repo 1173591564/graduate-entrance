@@ -74,7 +74,11 @@ async def submit_english_draft(client: AsyncClient, answer: str = "") -> dict[st
 async def test_batch_upload_extracts_each_image(
     client: AsyncClient, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    async def fake_complete_chat(messages: list[dict[str, object]], settings: object) -> str:
+    async def fake_complete_chat(
+        messages: list[dict[str, object]],
+        settings: object,
+        reasoning_effort: str | None = None,
+    ) -> str:
         return '{"content_md": "识别的题面", "knowledge_points": [], "solution": null}'
 
     monkeypatch.setattr("graduate_entrance.ai.client.complete_chat", fake_complete_chat)
@@ -107,7 +111,11 @@ async def test_batch_upload_reports_per_item_errors(
 ) -> None:
     calls = {"count": 0}
 
-    async def fake_complete_chat(messages: list[dict[str, object]], settings: object) -> str:
+    async def fake_complete_chat(
+        messages: list[dict[str, object]],
+        settings: object,
+        reasoning_effort: str | None = None,
+    ) -> str:
         calls["count"] += 1
         if calls["count"] == 1:
             return "not json"
@@ -136,7 +144,11 @@ async def test_batch_upload_reports_per_item_errors(
 async def test_grade_persists_score_and_feedback(
     client: AsyncClient, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    async def fake_complete_chat(messages: list[dict[str, object]], settings: object) -> str:
+    async def fake_complete_chat(
+        messages: list[dict[str, object]],
+        settings: object,
+        reasoning_effort: str | None = None,
+    ) -> str:
         return (
             '{"score": 72.5, "feedback_md": "结构完整，第二段论证薄弱。",'
             ' "suggestions": ["增加数据支撑", "替换重复词汇"]}'
@@ -162,7 +174,11 @@ async def test_grade_persists_score_and_feedback(
 async def test_grade_rejects_math_subject(
     client: AsyncClient, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    async def fake_complete_chat(messages: list[dict[str, object]], settings: object) -> str:
+    async def fake_complete_chat(
+        messages: list[dict[str, object]],
+        settings: object,
+        reasoning_effort: str | None = None,
+    ) -> str:
         return '{"score": 90, "feedback_md": "", "suggestions": []}'
 
     monkeypatch.setattr("graduate_entrance.ai.client.complete_chat", fake_complete_chat)
@@ -181,7 +197,11 @@ async def test_grade_rejects_math_subject(
 async def test_grade_requires_answer(
     client: AsyncClient, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    async def fake_complete_chat(messages: list[dict[str, object]], settings: object) -> str:
+    async def fake_complete_chat(
+        messages: list[dict[str, object]],
+        settings: object,
+        reasoning_effort: str | None = None,
+    ) -> str:
         return '{"score": 90, "feedback_md": "", "suggestions": []}'
 
     monkeypatch.setattr("graduate_entrance.ai.client.complete_chat", fake_complete_chat)

@@ -145,6 +145,7 @@ async def generate_ai_week_plan(
             {"role": "user", "content": user_text},
         ],
         settings,
+        reasoning_effort=settings.ai_planning_reasoning_effort or None,
     )
     data = _parse_advice_json(raw)
     plan = await persist_plan(session, request)
