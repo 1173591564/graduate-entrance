@@ -9,12 +9,21 @@ from pydantic import BaseModel
 ChatRole = Literal["user", "assistant"]
 
 
+StepType = Literal["reasoning", "code", "output"]
+
+
+class ChatStep(BaseModel):
+    type: StepType
+    content: str
+
+
 class ChatMessageRead(BaseModel):
     id: UUID
     conversation_id: UUID
     role: ChatRole
     content_md: str
     images: list[str]
+    steps: list[ChatStep]
     created_at: datetime
 
 

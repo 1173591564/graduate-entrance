@@ -47,6 +47,7 @@ class ChatMessage(Base):
     role: Mapped[str] = mapped_column(String(16))
     content_md: Mapped[str] = mapped_column(Text, default="")
     images: Mapped[list[str]] = mapped_column(JSON, default=list)
+    steps: Mapped[list[dict[str, str]]] = mapped_column(JSON, default=list)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
 
     conversation: Mapped[ChatConversation] = relationship(back_populates="messages")

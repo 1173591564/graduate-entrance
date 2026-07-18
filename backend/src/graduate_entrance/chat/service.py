@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import base64
+import json
 from typing import Any, cast
 from uuid import UUID
 
@@ -10,6 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from graduate_entrance.ai import client as ai_client
+from graduate_entrance.ai import sandbox
 from graduate_entrance.core.config import Settings, get_settings
 from graduate_entrance.models.chat import ChatConversation, ChatMessage, utc_now
 from graduate_entrance.schemas.chat import (
@@ -19,15 +21,41 @@ from graduate_entrance.schemas.chat import (
     ChatMessageRead,
     ChatRole,
     ChatSendResponse,
+    ChatStep,
 )
 
 SYSTEM_PROMPT = (
     "你是 ChatLearning，一名 11408 考研备考智能体，擅长数学一、英语一、政治与 408 计算机基础。"
     "用中文回答，数学公式用 $...$，回答尽量简洁、直接切入重点；"
     "题目求解时给出关键步骤与思路，不要长篇堆砌。"
+    "遇到数学一或 408 的数值计算、符号运算、算法验证类问题时，"
+    "先调用 run_python 工具（可用 sympy、numpy）执行代码验算，确认结果后再作答，不要凭空口算。"
 )
+RUN_PYTHON_TOOL: dict[str, Any] = {
+    "type": "function",
+    "function": {
+        "name": "run_python",
+        "description": (
+            "在受限沙箱中执行 Python 代码进行验算，可用 sympy、numpy。"
+            "无网络、无文件写入、限时执行；通过 print 输出结果。"
+        ),
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string",
+                    "description": "要执行的 Python 代码，用 print 输出需要的结果。",
+                }
+            },
+            "required": ["code"],
+        },
+    },
+}
+TOOLS: list[dict[str, Any]] = [RUN_PYTHON_TOOL]
+MAX_TOOL_ROUNDS = 5
 HISTORY_LIMIT = 20
 TITLE_MAX_CHARS = 30
+STEP_MAX_CHARS = 8192
 IMAGE_MIME_TYPES = {".jpg": "image/jpeg", ".png": "image/png", ".webp": "image/webp"}
 
 
@@ -47,6 +75,7 @@ def _message_read(message: ChatMessage) -> ChatMessageRead:
         role=cast(ChatRole, message.role),
         content_md=message.content_md,
         images=message.images,
+        steps=[ChatStep.model_validate(step) for step in (message.steps or [])],
         created_at=message.created_at,
     )
 
@@ -78,6 +107,84 @@ def _user_entry(settings: Settings, content: str, image_names: list[str]) -> dic
     if len(parts) == 1:
         return {"role": "user", "content": content}
     return {"role": "user", "content": parts}
+
+
+def _truncate_step(text: str) -> str:
+    if len(text) <= STEP_MAX_CHARS:
+        return text
+    return text[:STEP_MAX_CHARS] + "\n…[已截断]"
+
+
+def _extract_code(tool_call: dict[str, Any]) -> str | None:
+    function = tool_call.get("function")
+    if not isinstance(function, dict):
+        return None
+    arguments = function.get("arguments")
+    if isinstance(arguments, dict):
+        code = arguments.get("code")
+        return code if isinstance(code, str) else None
+    if isinstance(arguments, str):
+        try:
+            parsed = json.loads(arguments)
+        except (ValueError, TypeError):
+            return None
+        code = parsed.get("code") if isinstance(parsed, dict) else None
+        return code if isinstance(code, str) else None
+    return None
+
+
+async def _run_agent(
+    payload: list[dict[str, Any]],
+    settings: Settings,
+) -> tuple[str, list[dict[str, str]]]:
+    """Drive the tool-calling loop, returning the final reply and display steps."""
+    steps: list[dict[str, str]] = []
+    try:
+        turn = await ai_client.complete_chat_with_tools(payload, TOOLS, settings)
+    except ai_client.ToolsUnsupportedError:
+        reply = await ai_client.complete_chat(payload, settings)
+        return reply, steps
+
+    for _ in range(MAX_TOOL_ROUNDS):
+        if turn.reasoning.strip():
+            steps.append({"type": "reasoning", "content": _truncate_step(turn.reasoning)})
+        if not turn.tool_calls:
+            if turn.content.strip():
+                return turn.content, steps
+            break
+
+        payload.append(
+            {
+                "role": "assistant",
+                "content": turn.content,
+                "tool_calls": turn.tool_calls,
+            }
+        )
+        for tool_call in turn.tool_calls:
+            code = _extract_code(tool_call)
+            call_id = tool_call.get("id") or ""
+            if code is None:
+                output = "工具参数解析失败：缺少可执行的 code。"
+            else:
+                steps.append({"type": "code", "content": _truncate_step(code)})
+                result = await sandbox.run_python(code)
+                output = result.output
+                steps.append({"type": "output", "content": _truncate_step(output)})
+            payload.append(
+                {"role": "tool", "tool_call_id": call_id, "content": output}
+            )
+
+        turn = await ai_client.complete_chat_with_tools(payload, TOOLS, settings)
+
+    # Rounds exhausted or empty final content: force a plain answer.
+    payload.append(
+        {
+            "role": "system",
+            "content": "已达到验算上限，请基于以上验算结果直接给出最终回答，不要再调用工具。",
+        }
+    )
+    reply = await ai_client.complete_chat(payload, settings)
+    return reply, steps
 
 
 async def _load_conversation(session: AsyncSession, conversation_id: UUID) -> ChatConversation:
@@ -160,13 +267,14 @@ async def send_message(
     payload: list[dict[str, Any]] = [{"role": "system", "content": SYSTEM_PROMPT}]
     payload.extend(_history_entry(message) for message in history)
     payload.append(_user_entry(settings, content, image_names))
-    reply_text = await ai_client.complete_chat(payload, settings)
+    reply_text, steps = await _run_agent(payload, settings)
 
     reply = ChatMessage(
         conversation_id=conversation.id,
         role="assistant",
         content_md=reply_text,
         images=[],
+        steps=steps,
     )
     session.add(reply)
     conversation.updated_at = utc_now()

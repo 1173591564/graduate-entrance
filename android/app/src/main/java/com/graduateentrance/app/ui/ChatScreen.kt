@@ -30,8 +30,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Send
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.AddComment
+import androidx.compose.material.icons.outlined.Build
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.ExpandLess
+import androidx.compose.material.icons.outlined.ExpandMore
 import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.outlined.PhotoCamera
 import androidx.compose.material.icons.outlined.SmartToy
@@ -70,10 +73,12 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.graduateentrance.app.network.ChatConversationDto
+import com.graduateentrance.app.network.ChatStepDto
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -180,6 +185,8 @@ fun ChatScreen(viewModel: ChatViewModel) {
                             role = message.role,
                             content = message.contentMd,
                             imageCount = message.images.size,
+                            steps = message.steps,
+                            messageId = message.id,
                         )
                     }
                     if (state.sending) {
@@ -243,59 +250,159 @@ private fun ChatWelcome(modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun ChatBubble(role: String, content: String, imageCount: Int) {
+private fun ChatBubble(
+    role: String,
+    content: String,
+    imageCount: Int,
+    steps: List<ChatStepDto> = emptyList(),
+    messageId: String = "",
+) {
     val isUser = role == "user"
-    Row(
+    Column(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = if (isUser) Arrangement.End else Arrangement.Start,
+        horizontalAlignment = if (isUser) Alignment.End else Alignment.Start,
+        verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
-        Surface(
-            shape = RoundedCornerShape(
-                topStart = 18.dp,
-                topEnd = 18.dp,
-                bottomStart = if (isUser) 18.dp else 4.dp,
-                bottomEnd = if (isUser) 4.dp else 18.dp,
-            ),
-            color = if (isUser) {
-                MaterialTheme.colorScheme.primaryContainer
-            } else {
-                MaterialTheme.colorScheme.surfaceVariant
-            },
-            modifier = Modifier.widthIn(max = 300.dp),
+        if (!isUser && steps.isNotEmpty()) {
+            ChatStepsCard(steps = steps, messageId = messageId)
+        }
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = if (isUser) Arrangement.End else Arrangement.Start,
         ) {
-            Column(
-                modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
-                verticalArrangement = Arrangement.spacedBy(6.dp),
+            Surface(
+                shape = RoundedCornerShape(
+                    topStart = 18.dp,
+                    topEnd = 18.dp,
+                    bottomStart = if (isUser) 18.dp else 4.dp,
+                    bottomEnd = if (isUser) 4.dp else 18.dp,
+                ),
+                color = if (isUser) {
+                    MaterialTheme.colorScheme.primaryContainer
+                } else {
+                    MaterialTheme.colorScheme.surfaceVariant
+                },
+                modifier = Modifier.widthIn(max = 300.dp),
             ) {
-                if (imageCount > 0) {
-                    AssistChip(
-                        onClick = {},
-                        enabled = false,
-                        leadingIcon = {
-                            Icon(
-                                Icons.Outlined.PhotoCamera,
-                                contentDescription = null,
-                                modifier = Modifier.size(16.dp),
+                Column(
+                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
+                    verticalArrangement = Arrangement.spacedBy(6.dp),
+                ) {
+                    if (imageCount > 0) {
+                        AssistChip(
+                            onClick = {},
+                            enabled = false,
+                            leadingIcon = {
+                                Icon(
+                                    Icons.Outlined.PhotoCamera,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(16.dp),
+                                )
+                            },
+                            label = { Text("$imageCount 张图片") },
+                        )
+                    }
+                    if (content.isNotBlank()) {
+                        if (isUser) {
+                            Text(
+                                text = content,
+                                style = MaterialTheme.typography.bodyMedium,
                             )
-                        },
-                        label = { Text("$imageCount 张图片") },
-                    )
-                }
-                if (content.isNotBlank()) {
-                    if (isUser) {
-                        Text(
-                            text = content,
-                            style = MaterialTheme.typography.bodyMedium,
-                        )
-                    } else {
-                        MarkdownText(
-                            markdown = content,
-                            style = MaterialTheme.typography.bodyMedium,
-                        )
+                        } else {
+                            MarkdownText(
+                                markdown = content,
+                                style = MaterialTheme.typography.bodyMedium,
+                            )
+                        }
                     }
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun ChatStepsCard(steps: List<ChatStepDto>, messageId: String) {
+    var expanded by rememberSaveable(messageId) { mutableStateOf(false) }
+    val runCount = steps.count { it.type == "code" }
+    Surface(
+        shape = RoundedCornerShape(12.dp),
+        color = MaterialTheme.colorScheme.surfaceVariant,
+        modifier = Modifier
+            .widthIn(max = 320.dp)
+            .fillMaxWidth(),
+    ) {
+        Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { expanded = !expanded },
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.Build,
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp),
+                    tint = MaterialTheme.colorScheme.primary,
+                )
+                Text(
+                    text = if (runCount > 0) "已运行 $runCount 段验算" else "查看思考过程",
+                    style = MaterialTheme.typography.labelLarge,
+                    modifier = Modifier.weight(1f),
+                )
+                Icon(
+                    imageVector = if (expanded) {
+                        Icons.Outlined.ExpandLess
+                    } else {
+                        Icons.Outlined.ExpandMore
+                    },
+                    contentDescription = if (expanded) "收起" else "展开",
+                    modifier = Modifier.size(18.dp),
+                )
+            }
+            if (expanded) {
+                Column(
+                    modifier = Modifier.padding(top = 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    steps.forEach { step -> ChatStepItem(step) }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ChatStepItem(step: ChatStepDto) {
+    when (step.type) {
+        "reasoning" -> Text(
+            text = step.content,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        "code", "output" -> Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Text(
+                text = if (step.type == "code") "代码" else "运行结果",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Surface(
+                shape = RoundedCornerShape(8.dp),
+                color = MaterialTheme.colorScheme.surface,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text(
+                    text = step.content,
+                    style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
+                    modifier = Modifier.padding(8.dp),
+                )
+            }
+        }
+        else -> Text(
+            text = step.content,
+            style = MaterialTheme.typography.bodySmall,
+        )
     }
 }
 
