@@ -33,7 +33,8 @@ class PomodoroService : Service() {
                 val taskId = intent.getStringExtra(EXTRA_TASK_ID).orEmpty()
                 val taskTitle = intent.getStringExtra(EXTRA_TASK_TITLE).orEmpty()
                 val minutes = intent.getIntExtra(EXTRA_MINUTES, DEFAULT_MINUTES)
-                if (taskId.isNotEmpty() && PomodoroTimer.start(taskId, taskTitle, minutes)) {
+                val showFocus = intent.getBooleanExtra(EXTRA_SHOW_FOCUS, true)
+                if (taskId.isNotEmpty() && PomodoroTimer.start(taskId, taskTitle, minutes, showFocus)) {
                     startForegroundWithNotification()
                     startTicking()
                 } else if (!PomodoroTimer.state.value.active) {
@@ -176,13 +177,21 @@ class PomodoroService : Service() {
         private const val EXTRA_TASK_ID = "task_id"
         private const val EXTRA_TASK_TITLE = "task_title"
         private const val EXTRA_MINUTES = "minutes"
+        private const val EXTRA_SHOW_FOCUS = "show_focus"
 
-        fun start(context: Context, taskId: String, taskTitle: String, minutes: Int) {
+        fun start(
+            context: Context,
+            taskId: String,
+            taskTitle: String,
+            minutes: Int,
+            showFocus: Boolean = true,
+        ) {
             val intent = Intent(context, PomodoroService::class.java)
                 .setAction(ACTION_START)
                 .putExtra(EXTRA_TASK_ID, taskId)
                 .putExtra(EXTRA_TASK_TITLE, taskTitle)
                 .putExtra(EXTRA_MINUTES, minutes)
+                .putExtra(EXTRA_SHOW_FOCUS, showFocus)
             context.startForegroundService(intent)
         }
 

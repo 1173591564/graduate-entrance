@@ -35,7 +35,7 @@ object PomodoroTimer {
         _focusVisible.value = false
     }
 
-    fun start(taskId: String, taskTitle: String, minutes: Int): Boolean {
+    fun start(taskId: String, taskTitle: String, minutes: Int, showFocus: Boolean = true): Boolean {
         if (_state.value.active || minutes <= 0) {
             return false
         }
@@ -46,7 +46,7 @@ object PomodoroTimer {
             totalSeconds = minutes * 60,
             remainingSeconds = minutes * 60,
         )
-        _focusVisible.value = true
+        _focusVisible.value = showFocus
         return true
     }
 

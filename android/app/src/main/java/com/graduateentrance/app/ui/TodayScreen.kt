@@ -30,6 +30,7 @@ import androidx.compose.material.icons.outlined.EventAvailable
 import androidx.compose.material.icons.outlined.Pause
 import androidx.compose.material.icons.outlined.PlayArrow
 import androidx.compose.material.icons.outlined.Restore
+import androidx.compose.material.icons.outlined.School
 import androidx.compose.material.icons.outlined.Stop
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -45,6 +46,7 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -61,6 +63,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import com.graduateentrance.app.data.FocusTimeStore
@@ -79,30 +82,48 @@ private val dayFormatter = DateTimeFormatter.ofPattern("M月d日 EEEE", Locale.S
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TodayScreen(viewModel: TodayViewModel) {
+fun TodayScreen(
+    viewModel: TodayViewModel,
+    onStudyDestination: (AppDestination) -> Unit = {},
+) {
     val state by viewModel.uiState.collectAsState()
     val pomodoro by PomodoroTimer.state.collectAsState()
     val focusMinutes by FocusTimeStore.minutes.collectAsState()
     val context = LocalContext.current
     var pendingStart by rememberSaveable { mutableStateOf<String?>(null) }
+    var pendingShowFocus by rememberSaveable { mutableStateOf(true) }
     var showDatePicker by rememberSaveable { mutableStateOf(false) }
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission(),
     ) {
         pendingStart?.let { taskId ->
             state.tasks.firstOrNull { task -> task.id == taskId }?.let { task ->
-                PomodoroService.start(context, task.id, task.title, pomodoroMinutes(task.estMinutes))
+                PomodoroService.start(
+                    context,
+                    task.id,
+                    task.title,
+                    pomodoroMinutes(task.estMinutes),
+                    pendingShowFocus,
+                )
             }
         }
         pendingStart = null
+        pendingShowFocus = true
     }
 
-    fun startPomodoro(task: TodayTaskEntity) {
+    fun startPomodoro(task: TodayTaskEntity, showFocus: Boolean = true) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             pendingStart = task.id
+            pendingShowFocus = showFocus
             permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
         } else {
-            PomodoroService.start(context, task.id, task.title, pomodoroMinutes(task.estMinutes))
+            PomodoroService.start(
+                context,
+                task.id,
+                task.title,
+                pomodoroMinutes(task.estMinutes),
+                showFocus,
+            )
         }
     }
 
@@ -287,6 +308,12 @@ fun TodayScreen(viewModel: TodayViewModel) {
                     onCheckIn = { minutes -> viewModel.checkIn(task.id, minutes) },
                     onUpdateEstimate = { minutes -> viewModel.updateEstimate(task.id, minutes) },
                     onStartPomodoro = { startPomodoro(task) },
+                    onStudyNavigate = studyDestinationFor(task)?.let { dest ->
+                        {
+                            startPomodoro(task, showFocus = false)
+                            onStudyDestination(dest)
+                        }
+                    },
                 )
             }
             }
@@ -360,6 +387,39 @@ private fun OverviewMetric(label: String, value: String) {
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.72f),
         )
+    }
+}
+
+@Composable
+private fun TimeBadge(
+    label: String,
+    container: androidx.compose.ui.graphics.Color,
+    content: androidx.compose.ui.graphics.Color,
+    modifier: Modifier = Modifier,
+) {
+    Surface(
+        modifier = modifier,
+        shape = MaterialTheme.shapes.medium,
+        color = container,
+        contentColor = content,
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+        )
+    }
+}
+
+private fun studyDestinationFor(task: TodayTaskEntity): AppDestination? {
+    val text = "${task.title} ${task.knowledgePointName}"
+    return when {
+        text.contains("单词") -> AppDestination.VOCAB
+        text.contains("背诵") || text.contains("一背") -> AppDestination.RECITATION
+        text.contains("精读") || text.contains("阅读") -> AppDestination.PAPERS
+        else -> null
     }
 }
 
@@ -493,6 +553,7 @@ private fun TaskCard(
     onCheckIn: (Int) -> Unit,
     onUpdateEstimate: (Int) -> Unit,
     onStartPomodoro: () -> Unit,
+    onStudyNavigate: (() -> Unit)? = null,
 ) {
     var minutesInput by rememberSaveable(task.id) { mutableStateOf("") }
     var editingMinutes by rememberSaveable(task.id) { mutableStateOf(false) }
@@ -546,20 +607,22 @@ private fun TaskCard(
                 )
             }
             Row(
-                horizontalArrangement = Arrangement.spacedBy(14.dp),
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Text(
-                    text = "预计 ${formatMinutes(task.estMinutes)}",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
+                TimeBadge(
+                    label = "预计 ${formatMinutes(task.estMinutes)}",
+                    container = MaterialTheme.colorScheme.secondaryContainer,
+                    content = MaterialTheme.colorScheme.onSecondaryContainer,
+                    modifier = Modifier.weight(1f),
                 )
                 if (!completed && focusMinutes > 0) {
-                    Text(
-                        text = "已计时 ${formatMinutes(focusMinutes)}",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary,
+                    TimeBadge(
+                        label = "已计时 ${formatMinutes(focusMinutes)}",
+                        container = MaterialTheme.colorScheme.primaryContainer,
+                        content = MaterialTheme.colorScheme.onPrimaryContainer,
+                        modifier = Modifier.weight(1f),
                     )
                 }
                 if (task.carryCount > 0) {
@@ -631,6 +694,17 @@ private fun TaskCard(
                             Icon(Icons.Outlined.Check, contentDescription = null)
                             Spacer(Modifier.width(4.dp))
                             Text(if (focusMinutes > 0) "完成 ${formatMinutes(focusMinutes)}" else "完成")
+                        }
+                    }
+                    if (onStudyNavigate != null) {
+                        FilledTonalButton(
+                            onClick = onStudyNavigate,
+                            enabled = pomodoroEnabled,
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            Icon(Icons.Outlined.School, contentDescription = null)
+                            Spacer(Modifier.width(6.dp))
+                            Text("去学习，悬浮计时")
                         }
                     }
                     if (focusMinutes <= 0) {
