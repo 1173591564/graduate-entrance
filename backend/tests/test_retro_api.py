@@ -97,7 +97,11 @@ async def test_retro_chat_persists_history(
 ) -> None:
     captured: list[list[dict[str, str]]] = []
 
-    async def fake_complete_chat(messages: list[dict[str, str]], settings: object) -> str:
+    async def fake_complete_chat(
+        messages: list[dict[str, str]],
+        settings: object,
+        reasoning_effort: str | None = None,
+    ) -> str:
         captured.append(messages)
         return "本周执行率不错，下周建议加大等价无穷小的练习量。"
 

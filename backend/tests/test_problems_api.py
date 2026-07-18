@@ -367,7 +367,11 @@ async def test_extract_returns_normalized_suggestions(
 
     captured: dict[str, object] = {}
 
-    async def fake_complete_chat(messages: list[dict[str, object]], settings: object) -> str:
+    async def fake_complete_chat(
+        messages: list[dict[str, object]],
+        settings: object,
+        reasoning_effort: str | None = None,
+    ) -> str:
         captured["messages"] = messages
         return (
             "```json\n"
@@ -413,7 +417,11 @@ async def test_extract_invalid_json_returns_502(
 ) -> None:
     body = await submit_draft(client)
 
-    async def fake_complete_chat(messages: list[dict[str, object]], settings: object) -> str:
+    async def fake_complete_chat(
+        messages: list[dict[str, object]],
+        settings: object,
+        reasoning_effort: str | None = None,
+    ) -> str:
         return "这不是 JSON"
 
     monkeypatch.setattr("graduate_entrance.ai.client.complete_chat", fake_complete_chat)

@@ -18,6 +18,7 @@ def is_ai_configured(settings: Settings | None = None) -> bool:
 async def complete_chat(
     messages: list[dict[str, Any]],
     settings: Settings | None = None,
+    reasoning_effort: str | None = None,
 ) -> str:
     """Call the configured OpenAI-compatible chat completions endpoint."""
     settings = settings or get_settings()
@@ -27,7 +28,10 @@ async def complete_chat(
             detail="AI extraction is not configured",
         )
     url = f"{settings.ai_base_url.rstrip('/')}/chat/completions"
-    payload = {"model": settings.ai_model, "messages": messages}
+    payload: dict[str, Any] = {"model": settings.ai_model, "messages": messages}
+    effort = reasoning_effort or settings.ai_reasoning_effort
+    if effort:
+        payload["reasoning_effort"] = effort
     headers = {"Authorization": f"Bearer {settings.ai_api_key.get_secret_value()}"}
     try:
         async with httpx.AsyncClient(timeout=settings.ai_timeout_seconds) as client:

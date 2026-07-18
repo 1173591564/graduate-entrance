@@ -671,7 +671,11 @@ async def test_ai_week_plan_persists_plan_and_advice(
     await scheduling_context.client.post("/api/planning/task-pool/generate")
     captured: dict[str, object] = {}
 
-    async def fake_complete_chat(messages: list[dict[str, object]], settings: object) -> str:
+    async def fake_complete_chat(
+        messages: list[dict[str, object]],
+        settings: object,
+        reasoning_effort: str | None = None,
+    ) -> str:
         captured["messages"] = messages
         return (
             '{"summary": "先补数学薄弱点，再推进 408。",'

@@ -49,7 +49,11 @@ async def client(tmp_path: Any) -> AsyncIterator[AsyncClient]:
 def _fake_ai(monkeypatch: pytest.MonkeyPatch, reply: str = "这是回答") -> list[Any]:
     calls: list[Any] = []
 
-    async def fake_complete_chat(messages: list[dict[str, object]], settings: object) -> str:
+    async def fake_complete_chat(
+        messages: list[dict[str, object]],
+        settings: object,
+        reasoning_effort: str | None = None,
+    ) -> str:
         calls.append(messages)
         return reply
 
