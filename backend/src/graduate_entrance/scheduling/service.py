@@ -4,6 +4,7 @@ from dataclasses import dataclass, replace
 from datetime import UTC, date, datetime, timedelta
 from fractions import Fraction
 from heapq import heappop, heappush
+from statistics import median
 from uuid import NAMESPACE_URL, UUID, uuid5
 
 from fastapi import HTTPException, status
@@ -470,6 +471,68 @@ def _proposal_read(candidate: _Candidate, planned_date: date, order: int) -> Pla
     )
 
 
+RATIO_MIN = 0.5
+RATIO_MAX = 2.0
+RATIO_MIN_SAMPLES = 5
+RATIO_RECENT_LIMIT = 20
+
+
+async def _estimate_ratios(session: AsyncSession) -> dict[tuple[UUID, str], float]:
+    """Median actual/est ratio per (subject, task_type) over recent completions."""
+    rows = (
+        await session.execute(
+            select(
+                ScheduledTask.subject_id,
+                ScheduledTask.task_type,
+                ScheduledTask.est_minutes,
+                ScheduledTask.actual_minutes,
+            )
+            .where(
+                ScheduledTask.status == "completed",
+                ScheduledTask.actual_minutes.is_not(None),
+                ScheduledTask.actual_minutes > 0,
+                ScheduledTask.est_minutes > 0,
+                ScheduledTask.subject_id.is_not(None),
+            )
+            .order_by(ScheduledTask.done_at.desc())
+        )
+    ).all()
+    samples: dict[tuple[UUID, str], list[float]] = defaultdict(list)
+    for subject_id, task_type, est_minutes, actual_minutes in rows:
+        key = (subject_id, task_type)
+        if len(samples[key]) < RATIO_RECENT_LIMIT:
+            samples[key].append(actual_minutes / est_minutes)
+    return {
+        key: min(RATIO_MAX, max(RATIO_MIN, median(values)))
+        for key, values in samples.items()
+        if len(values) >= RATIO_MIN_SAMPLES
+    }
+
+
+def _corrected_minutes(est_minutes: int, ratio: float) -> int:
+    return max(5, round(est_minutes * ratio / 5) * 5)
+
+
+def _apply_estimate_ratios(
+    candidates: list[_Candidate],
+    ratios: dict[tuple[UUID, str], float],
+) -> list[_Candidate]:
+    if not ratios:
+        return candidates
+    return [
+        replace(
+            candidate,
+            est_minutes=_corrected_minutes(
+                candidate.est_minutes,
+                ratios[(candidate.subject_id, candidate.task_type)],
+            ),
+        )
+        if (candidate.subject_id, candidate.task_type) in ratios
+        else candidate
+        for candidate in candidates
+    ]
+
+
 def _week_start(day: date) -> date:
     return day - timedelta(days=day.weekday())
 
@@ -552,6 +615,7 @@ async def _build_plan(
         )
         for item, phase, subject, point, _, material in candidate_rows
     ]
+    candidates = _apply_estimate_ratios(candidates, await _estimate_ratios(session))
     pool_item_ids = [candidate.pool_item_id for candidate in candidates]
     existing_query = select(ScheduledTask).where(
         or_(

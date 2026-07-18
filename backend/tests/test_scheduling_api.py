@@ -1,6 +1,6 @@
 from collections.abc import AsyncIterator
 from dataclasses import dataclass
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 from decimal import Decimal
 from uuid import UUID, uuid4
 
@@ -755,3 +755,84 @@ async def test_ai_week_plan_without_available_time_returns_409(
     )
     assert response.status_code == 409
     assert "可用学习时间" in response.json()["error"]["message"]
+
+
+async def _seed_completed_history(
+    scheduling_context: SchedulingContext,
+    count: int,
+    actual_minutes: int,
+) -> None:
+    subject_id = SUBJECT_IDS["数学一"]
+    async with scheduling_context.session_factory() as session:
+        for index in range(count):
+            session.add(
+                ScheduledTask(
+                    id=uuid4(),
+                    phase_id=PHASE_ID,
+                    subject_id=subject_id,
+                    phase_name="基础阶段",
+                    subject_name="数学一",
+                    knowledge_point_name="历史知识点",
+                    material_name=None,
+                    title=f"历史任务{index}",
+                    task_type="reading",
+                    planned_date=date(2026, 7, 13),
+                    est_minutes=60,
+                    status="completed",
+                    actual_minutes=actual_minutes,
+                    done_at=datetime.now(UTC),
+                    order=index,
+                )
+            )
+        await session.commit()
+
+
+@pytest.mark.asyncio
+async def test_plan_estimates_corrected_by_completion_history(
+    scheduling_context: SchedulingContext,
+) -> None:
+    await _seed_completed_history(scheduling_context, count=5, actual_minutes=90)
+    await scheduling_context.client.post("/api/planning/task-pool/generate")
+    preview = await scheduling_context.client.post(
+        "/api/plan/preview",
+        json={"start_date": "2026-07-20", "end_date": "2026-07-26"},
+    )
+    assert preview.status_code == 200
+    est_by_subject = {
+        task["subject_name"]: task["est_minutes"] for task in preview.json()["tasks"]
+    }
+    assert est_by_subject["数学一"] == 90
+    assert est_by_subject["408"] == 60
+
+
+@pytest.mark.asyncio
+async def test_plan_estimates_unchanged_with_insufficient_samples(
+    scheduling_context: SchedulingContext,
+) -> None:
+    await _seed_completed_history(scheduling_context, count=4, actual_minutes=90)
+    await scheduling_context.client.post("/api/planning/task-pool/generate")
+    preview = await scheduling_context.client.post(
+        "/api/plan/preview",
+        json={"start_date": "2026-07-20", "end_date": "2026-07-26"},
+    )
+    assert preview.status_code == 200
+    assert all(task["est_minutes"] == 60 for task in preview.json()["tasks"])
+
+
+@pytest.mark.asyncio
+async def test_plan_estimate_ratio_is_clamped(
+    scheduling_context: SchedulingContext,
+) -> None:
+    await _seed_completed_history(scheduling_context, count=5, actual_minutes=300)
+    await scheduling_context.client.post("/api/planning/task-pool/generate")
+    preview = await scheduling_context.client.post(
+        "/api/plan/preview",
+        json={"start_date": "2026-07-20", "end_date": "2026-07-26"},
+    )
+    assert preview.status_code == 200
+    est_values = {
+        task["est_minutes"]
+        for task in preview.json()["tasks"]
+        if task["subject_name"] == "数学一"
+    }
+    assert est_values == {120}

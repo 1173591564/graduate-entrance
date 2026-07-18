@@ -628,10 +628,20 @@ private fun TaskCard(
             }
             when {
                 completed -> {
+                    val actual = task.actualMinutes
+                    val deviation = if (actual != null) actual - task.estMinutes else 0
+                    val deviationText = when {
+                        actual == null || deviation == 0 -> ""
+                        deviation > 0 -> " · 超出预计 ${formatMinutes(deviation)}"
+                        else -> " · 提前 ${formatMinutes(-deviation)}"
+                    }
                     Text(
-                        text = "实际完成 ${formatMinutes(task.actualMinutes ?: task.estMinutes)}",
+                        text = "实际完成 ${formatMinutes(actual ?: task.estMinutes)}$deviationText",
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.primary,
+                        color = when {
+                            deviation > 0 -> MaterialTheme.colorScheme.tertiary
+                            else -> MaterialTheme.colorScheme.primary
+                        },
                     )
                 }
                 task.status == "skipped" -> {
