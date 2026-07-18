@@ -265,12 +265,18 @@ data class ChatConversationListDto(
     val conversations: List<ChatConversationDto>,
 )
 
+data class ChatStepDto(
+    val type: String,
+    val content: String,
+)
+
 data class ChatMessageDto(
     val id: String,
     @SerializedName("conversation_id") val conversationId: String,
     val role: String,
     @SerializedName("content_md") val contentMd: String,
     val images: List<String>,
+    val steps: List<ChatStepDto> = emptyList(),
     @SerializedName("created_at") val createdAt: String,
 )
 

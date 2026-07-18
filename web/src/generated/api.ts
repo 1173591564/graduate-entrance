@@ -1535,6 +1535,8 @@ export interface components {
              * @enum {string}
              */
             role: "user" | "assistant";
+            /** Steps */
+            steps: components["schemas"]["ChatStep"][];
         };
         /** ChatSendResponse */
         ChatSendResponse: {
@@ -1543,6 +1545,16 @@ export interface components {
             model: string;
             reply: components["schemas"]["ChatMessageRead"];
             user_message: components["schemas"]["ChatMessageRead"];
+        };
+        /** ChatStep */
+        ChatStep: {
+            /** Content */
+            content: string;
+            /**
+             * Type
+             * @enum {string}
+             */
+            type: "reasoning" | "code" | "output";
         };
         /** ErrorDetail */
         ErrorDetail: {

@@ -1,3 +1,4 @@
+import json
 from collections.abc import AsyncIterator
 from typing import Any
 
@@ -10,6 +11,7 @@ from sqlalchemy.ext.asyncio import (
     create_async_engine,
 )
 
+from graduate_entrance.ai.client import AssistantTurn
 from graduate_entrance.core.config import get_settings
 from graduate_entrance.db.base import Base
 from graduate_entrance.db.session import get_session
@@ -49,15 +51,19 @@ async def client(tmp_path: Any) -> AsyncIterator[AsyncClient]:
 def _fake_ai(monkeypatch: pytest.MonkeyPatch, reply: str = "这是回答") -> list[Any]:
     calls: list[Any] = []
 
-    async def fake_complete_chat(
+    async def fake_complete_chat_with_tools(
         messages: list[dict[str, object]],
-        settings: object,
+        tools: list[dict[str, object]],
+        settings: object = None,
         reasoning_effort: str | None = None,
-    ) -> str:
-        calls.append(messages)
-        return reply
+    ) -> Any:
+        calls.append([dict(entry) for entry in messages])
+        return AssistantTurn(content=reply, reasoning="", tool_calls=[])
 
-    monkeypatch.setattr("graduate_entrance.ai.client.complete_chat", fake_complete_chat)
+    monkeypatch.setattr(
+        "graduate_entrance.ai.client.complete_chat_with_tools",
+        fake_complete_chat_with_tools,
+    )
     return calls
 
 
@@ -155,3 +161,75 @@ async def test_list_and_delete_conversations(
 
     missing = await client.get(f"/api/chat/conversations/{conversation_id}")
     assert missing.status_code == 404
+
+
+def _tool_call(code: str, call_id: str = "call_1") -> dict[str, Any]:
+    return {
+        "id": call_id,
+        "type": "function",
+        "function": {"name": "run_python", "arguments": json.dumps({"code": code})},
+    }
+
+
+@pytest.mark.asyncio
+async def test_send_message_runs_sandbox_and_records_steps(
+    client: AsyncClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    code = "import sympy as sp; print(sp.integrate(sp.Symbol('x'), sp.Symbol('x')))"
+    turns = [
+        AssistantTurn(content="", reasoning="先算一下积分", tool_calls=[_tool_call(code)]),
+        AssistantTurn(content="积分结果是 x**2/2", reasoning="", tool_calls=[]),
+    ]
+    captured: list[Any] = []
+
+    async def fake_with_tools(
+        messages: list[dict[str, object]],
+        tools: list[dict[str, object]],
+        settings: object = None,
+        reasoning_effort: str | None = None,
+    ) -> AssistantTurn:
+        captured.append([dict(entry) for entry in messages])
+        return turns[len(captured) - 1]
+
+    monkeypatch.setattr(
+        "graduate_entrance.ai.client.complete_chat_with_tools", fake_with_tools
+    )
+
+    response = await client.post("/api/chat/messages", data={"content": "求 x 的不定积分"})
+    assert response.status_code == 200
+    reply = response.json()["reply"]
+    assert reply["content_md"] == "积分结果是 x**2/2"
+    step_types = [step["type"] for step in reply["steps"]]
+    assert step_types == ["reasoning", "code", "output"]
+    assert "x**2/2" in reply["steps"][2]["content"]
+    # Second round must include the assistant tool_calls and the tool result.
+    roles = [entry["role"] for entry in captured[1]]
+    assert "tool" in roles
+
+
+@pytest.mark.asyncio
+async def test_send_message_falls_back_when_tools_unsupported(
+    client: AsyncClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from graduate_entrance.ai.client import ToolsUnsupportedError
+
+    async def fake_with_tools(*args: Any, **kwargs: Any) -> AssistantTurn:
+        raise ToolsUnsupportedError("not supported")
+
+    async def fake_plain(
+        messages: list[dict[str, object]],
+        settings: object = None,
+        reasoning_effort: str | None = None,
+    ) -> str:
+        return "降级后的普通回答"
+
+    monkeypatch.setattr(
+        "graduate_entrance.ai.client.complete_chat_with_tools", fake_with_tools
+    )
+    monkeypatch.setattr("graduate_entrance.ai.client.complete_chat", fake_plain)
+
+    response = await client.post("/api/chat/messages", data={"content": "你好"})
+    assert response.status_code == 200
+    reply = response.json()["reply"]
+    assert reply["content_md"] == "降级后的普通回答"
+    assert reply["steps"] == []

@@ -768,6 +768,13 @@
             ],
             "title": "Role",
             "type": "string"
+          },
+          "steps": {
+            "items": {
+              "$ref": "#/components/schemas/ChatStep"
+            },
+            "title": "Steps",
+            "type": "array"
           }
         },
         "required": [
@@ -776,6 +783,7 @@
           "role",
           "content_md",
           "images",
+          "steps",
           "created_at"
         ],
         "title": "ChatMessageRead",
@@ -804,6 +812,29 @@
           "model"
         ],
         "title": "ChatSendResponse",
+        "type": "object"
+      },
+      "ChatStep": {
+        "properties": {
+          "content": {
+            "title": "Content",
+            "type": "string"
+          },
+          "type": {
+            "enum": [
+              "reasoning",
+              "code",
+              "output"
+            ],
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "content"
+        ],
+        "title": "ChatStep",
         "type": "object"
       },
       "ErrorDetail": {
