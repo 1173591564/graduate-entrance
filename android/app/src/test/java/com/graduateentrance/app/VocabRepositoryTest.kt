@@ -62,7 +62,7 @@ private fun word(id: String, dueDate: String? = null, reps: Int = 0) = VocabWord
 private class FakeVocabApi : GraduateEntranceApi {
     var offline = false
     var rejectWith: Int? = null
-    var todayResponse = VocabTodayDto("2026-07-17", emptyList(), emptyList(), 0, 0, 0)
+    var todayResponse = VocabTodayDto("2026-07-17", emptyList(), emptyList(), 0, 0, 0, 0)
     val gradeCalls = mutableListOf<Pair<String, String>>()
 
     override suspend fun ping(): ServiceStatus = ServiceStatus("ok", "test", "test")
@@ -120,7 +120,7 @@ private class FakeVocabApi : GraduateEntranceApi {
         }
     }
 
-    override suspend fun vocabToday(): VocabTodayDto {
+    override suspend fun vocabToday(newLimit: Int): VocabTodayDto {
         maybeFail()
         return todayResponse
     }
@@ -181,9 +181,10 @@ class VocabRepositoryTest {
             dueCount = 1,
             learnedCount = 5,
             totalCount = 100,
+            reviewedTodayCount = 3,
         )
 
-        val result = VocabRepository(api).load()
+        val result = VocabRepository(api).load(20)
 
         assertTrue(result is VocabLoadResult.Loaded)
         result as VocabLoadResult.Loaded
@@ -197,7 +198,7 @@ class VocabRepositoryTest {
         val api = FakeVocabApi()
         api.offline = true
 
-        assertTrue(VocabRepository(api).load() is VocabLoadResult.Offline)
+        assertTrue(VocabRepository(api).load(20) is VocabLoadResult.Offline)
     }
 
     @Test
@@ -205,7 +206,7 @@ class VocabRepositoryTest {
         val api = FakeVocabApi()
         api.rejectWith = 401
 
-        val result = VocabRepository(api).load()
+        val result = VocabRepository(api).load(20)
 
         assertTrue(result is VocabLoadResult.Rejected)
         assertEquals(401, (result as VocabLoadResult.Rejected).code)

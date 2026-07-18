@@ -3,6 +3,7 @@ package com.graduateentrance.app.ui
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.graduateentrance.app.data.AppSettings
 import com.graduateentrance.app.data.VocabDictationResult
 import com.graduateentrance.app.data.VocabEnrichResult
 import com.graduateentrance.app.data.VocabGradeActionResult
@@ -46,6 +47,8 @@ class VocabViewModel(private val repository: VocabRepository) : ViewModel() {
     private val _uiState = MutableStateFlow(VocabUiState())
     val uiState: StateFlow<VocabUiState> = _uiState.asStateFlow()
 
+    private val gradedWordIds = mutableSetOf<String>()
+
     init {
         refresh()
     }
@@ -53,16 +56,18 @@ class VocabViewModel(private val repository: VocabRepository) : ViewModel() {
     fun refresh() {
         viewModelScope.launch {
             _uiState.update { it.copy(loading = true, error = null) }
-            when (val result = repository.load()) {
+            when (val result = repository.load(AppSettings.vocabNewLimit)) {
                 is VocabLoadResult.Loaded -> {
+                    gradedWordIds.clear()
                     val queue = result.today.dueWords + result.today.newWords
+                    val reviewedToday = result.today.reviewedTodayCount
                     _uiState.update {
                         it.copy(
                             loading = false,
                             queue = queue,
                             revealed = false,
-                            gradedCount = 0,
-                            sessionTotal = queue.size,
+                            gradedCount = reviewedToday,
+                            sessionTotal = reviewedToday + queue.size,
                             learnedCount = result.today.learnedCount,
                             totalCount = result.today.totalCount,
                             dueCount = result.today.dueCount,
@@ -152,13 +157,20 @@ class VocabViewModel(private val repository: VocabRepository) : ViewModel() {
     }
 
     fun checkDictation() {
-        _uiState.update { state ->
-            val word = state.dictationCurrent ?: return@update state
-            val correct = state.dictationInput.trim().equals(word.word, ignoreCase = true)
-            state.copy(
+        val state = _uiState.value
+        val word = state.dictationCurrent ?: return
+        val correct = state.dictationInput.trim().equals(word.word, ignoreCase = true)
+        _uiState.update {
+            it.copy(
                 dictationChecked = true,
-                dictationCorrectCount = state.dictationCorrectCount + if (correct) 1 else 0,
+                dictationCorrectCount = it.dictationCorrectCount + if (correct) 1 else 0,
             )
+        }
+        if (!correct) {
+            // 默写错词按「忘了」回灌调度，明天重新复习
+            viewModelScope.launch {
+                repository.grade(word.id, "forgot")
+            }
         }
     }
 
@@ -174,22 +186,48 @@ class VocabViewModel(private val repository: VocabRepository) : ViewModel() {
 
     fun grade(wordId: String, grade: String) {
         if (_uiState.value.grading) return
+        if (wordId in gradedWordIds) {
+            // 当天重现：首次评级已提交调度，这里只做本地复背
+            _uiState.update { state ->
+                if (grade == "mastered") {
+                    state.copy(
+                        queue = state.queue.filterNot { it.id == wordId },
+                        revealed = false,
+                    )
+                } else {
+                    state.copy(queue = requeue(state.queue, wordId), revealed = false)
+                }
+            }
+            return
+        }
         viewModelScope.launch {
             _uiState.update { it.copy(grading = true, notice = null) }
             when (val result = repository.grade(wordId, grade)) {
-                is VocabGradeActionResult.Graded -> _uiState.update { state ->
-                    state.copy(
-                        grading = false,
-                        queue = state.queue.filterNot { it.id == wordId },
-                        revealed = false,
-                        gradedCount = state.gradedCount + 1,
-                        learnedCount = if (result.result.word.reps == 1) {
-                            state.learnedCount + 1
-                        } else {
-                            state.learnedCount
-                        },
-                        notice = "已评级，下次复习 ${result.result.dueDate}",
-                    )
+                is VocabGradeActionResult.Graded -> {
+                    gradedWordIds.add(wordId)
+                    _uiState.update { state ->
+                        val mastered = grade == "mastered"
+                        state.copy(
+                            grading = false,
+                            queue = if (mastered) {
+                                state.queue.filterNot { it.id == wordId }
+                            } else {
+                                requeue(state.queue, wordId)
+                            },
+                            revealed = false,
+                            gradedCount = state.gradedCount + 1,
+                            learnedCount = if (result.result.word.reps == 1) {
+                                state.learnedCount + 1
+                            } else {
+                                state.learnedCount
+                            },
+                            notice = if (mastered) {
+                                "已评级，下次复习 ${result.result.dueDate}"
+                            } else {
+                                "稍后会再考这个词，直到你答「掌握」"
+                            },
+                        )
+                    }
                 }
                 VocabGradeActionResult.Offline -> _uiState.update {
                     it.copy(grading = false, notice = "网络不可用，评级未提交")
@@ -199,6 +237,11 @@ class VocabViewModel(private val repository: VocabRepository) : ViewModel() {
                 }
             }
         }
+    }
+
+    private fun requeue(queue: List<VocabWordDto>, wordId: String): List<VocabWordDto> {
+        val word = queue.firstOrNull { it.id == wordId } ?: return queue
+        return queue.filterNot { it.id == wordId } + word
     }
 
     fun consumeNotice() {

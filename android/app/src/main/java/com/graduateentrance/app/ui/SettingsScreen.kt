@@ -13,6 +13,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.ChevronRight
 import androidx.compose.material.icons.outlined.DarkMode
+import androidx.compose.material.icons.outlined.MenuBook
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.Security
 import androidx.compose.material.icons.outlined.Storage
@@ -67,6 +68,9 @@ fun SettingsScreen(
         ) {
             item {
                 ConnectionSettingsGroup(todayState)
+            }
+            item {
+                VocabSettingsGroup()
             }
             item {
                 SettingsGroup("通用") {
@@ -145,6 +149,44 @@ private fun ConnectionSettingsGroup(todayState: TodayUiState) {
                 "已同步"
             },
         )
+    }
+}
+
+@Composable
+private fun VocabSettingsGroup() {
+    var newLimit by remember { mutableStateOf(AppSettings.vocabNewLimit.toString()) }
+    var saved by remember { mutableStateOf(false) }
+
+    SettingsGroup("背单词") {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 14.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            OutlinedTextField(
+                value = newLimit,
+                onValueChange = {
+                    newLimit = it.filter(Char::isDigit).take(3)
+                    saved = false
+                },
+                label = { Text("每日新词量（0到200）") },
+                leadingIcon = { Icon(Icons.Outlined.MenuBook, contentDescription = null) },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth(),
+            )
+            Button(
+                onClick = {
+                    AppSettings.vocabNewLimit =
+                        newLimit.toIntOrNull() ?: AppSettings.DEFAULT_VOCAB_NEW_LIMIT
+                    newLimit = AppSettings.vocabNewLimit.toString()
+                    saved = true
+                },
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text(if (saved) "已保存，下次刷新生效" else "保存背单词设置")
+            }
+        }
     }
 }
 

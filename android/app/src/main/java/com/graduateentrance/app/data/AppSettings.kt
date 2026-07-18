@@ -8,6 +8,8 @@ object AppSettings {
     private const val PREFS_NAME = "connection_settings"
     private const val KEY_BASE_URL = "api_base_url"
     private const val KEY_TOKEN = "api_token"
+    private const val KEY_VOCAB_NEW_LIMIT = "vocab_new_limit"
+    const val DEFAULT_VOCAB_NEW_LIMIT = 20
 
     @Volatile
     private var prefs: SharedPreferences? = null
@@ -31,6 +33,13 @@ object AppSettings {
             ?: BuildConfig.API_TOKEN
         set(value) {
             prefs?.edit()?.putString(KEY_TOKEN, value.trim())?.apply()
+        }
+
+    var vocabNewLimit: Int
+        get() = prefs?.getInt(KEY_VOCAB_NEW_LIMIT, DEFAULT_VOCAB_NEW_LIMIT)
+            ?: DEFAULT_VOCAB_NEW_LIMIT
+        set(value) {
+            prefs?.edit()?.putInt(KEY_VOCAB_NEW_LIMIT, value.coerceIn(0, 200))?.apply()
         }
 
     private fun normalizeBaseUrl(value: String): String {

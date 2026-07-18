@@ -3154,6 +3154,12 @@ export interface components {
             learned_count: number;
             /** New Words */
             new_words: components["schemas"]["VocabWordRead"][];
+            /**
+             * Reviewed Today Count
+             * @description last_reviewed_on == date 的词数
+             * @default 0
+             */
+            reviewed_today_count: number;
             /** Total Count */
             total_count: number;
         };

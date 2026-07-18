@@ -152,7 +152,7 @@ private class FakeApi : GraduateEntranceApi {
     override suspend fun reciteItem(itemId: String, payload: ReciteRequest): ReciteResultDto =
         throw UnsupportedOperationException()
 
-    override suspend fun vocabToday(): VocabTodayDto = throw UnsupportedOperationException()
+    override suspend fun vocabToday(newLimit: Int): VocabTodayDto = throw UnsupportedOperationException()
 
     override suspend fun gradeVocabWord(
         wordId: String,

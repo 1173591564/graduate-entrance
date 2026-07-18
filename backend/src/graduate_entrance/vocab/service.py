@@ -11,7 +11,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from graduate_entrance.ai import client as ai_client
 from graduate_entrance.models.vocab import VocabWord
-from graduate_entrance.problems.service import apply_sm2
 from graduate_entrance.schemas.vocab import (
     VocabDictationResponse,
     VocabGrade,
@@ -21,8 +20,40 @@ from graduate_entrance.schemas.vocab import (
     VocabWordRead,
 )
 
-DEFAULT_NEW_LIMIT = 50
+DEFAULT_NEW_LIMIT = 20
 MASTERED_REPS = 3
+MIN_EASE_FACTOR = 1.3
+GRADE_QUALITY: dict[VocabGrade, int] = {"forgot": 2, "vague": 3, "mastered": 5}
+EBBINGHAUS_INTERVALS = (1, 2, 4, 7, 15)
+VAGUE_GROWTH = 1.2
+
+
+def apply_vocab_srs(
+    ef: float, interval_days: int, reps: int, grade: VocabGrade
+) -> tuple[float, int, int]:
+    """Return updated (ef, interval_days, reps) using Ebbinghaus-style early
+    intervals (1/2/4/7/15 days) before switching to EF-based growth.
+
+    - forgot: reset reps, review again tomorrow.
+    - vague: counts as a pass but the interval grows slowly (x1.2).
+    - mastered: climb the Ebbinghaus ladder, then interval * EF.
+    """
+    quality = GRADE_QUALITY[grade]
+    next_ef = ef + (0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02))
+    next_ef = max(MIN_EASE_FACTOR, next_ef)
+    if grade == "forgot":
+        return next_ef, 1, 0
+    if grade == "vague":
+        if reps <= 0:
+            return next_ef, 1, 1
+        next_interval = max(interval_days + 1, round(interval_days * VAGUE_GROWTH))
+        return next_ef, next_interval, reps + 1
+    if reps < len(EBBINGHAUS_INTERVALS):
+        next_interval = EBBINGHAUS_INTERVALS[reps]
+    else:
+        next_interval = max(interval_days + 1, round(interval_days * next_ef))
+    return next_ef, next_interval, reps + 1
+
 
 ENRICH_PROMPT = (
     "你是考研英语词汇助手。给定一个单词，返回严格的 JSON（不要代码块、不要多余文字），"
@@ -102,6 +133,13 @@ async def vocab_today(
         .all()
     )
     total, learned, due, _ = await _counts(session, as_of)
+    reviewed_today = (
+        await session.execute(
+            select(func.count())
+            .select_from(VocabWord)
+            .where(VocabWord.last_reviewed_on == as_of)
+        )
+    ).scalar_one()
     return VocabTodayResponse(
         date=as_of,
         due_words=[_read(word) for word in due_words],
@@ -109,6 +147,7 @@ async def vocab_today(
         due_count=due,
         learned_count=learned,
         total_count=total,
+        reviewed_today_count=reviewed_today,
     )
 
 
@@ -121,7 +160,7 @@ async def grade_word(
     word = await session.get(VocabWord, word_id)
     if word is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="单词不存在")
-    next_ef, next_interval, next_reps = apply_sm2(
+    next_ef, next_interval, next_reps = apply_vocab_srs(
         word.ef, word.interval_days, word.reps, grade
     )
     word.ef = next_ef

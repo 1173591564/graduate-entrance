@@ -34,9 +34,9 @@ sealed interface VocabEnrichResult {
 }
 
 class VocabRepository(private val api: GraduateEntranceApi) {
-    suspend fun load(): VocabLoadResult =
+    suspend fun load(newLimit: Int): VocabLoadResult =
         try {
-            VocabLoadResult.Loaded(api.vocabToday())
+            VocabLoadResult.Loaded(api.vocabToday(newLimit))
         } catch (_: IOException) {
             VocabLoadResult.Offline
         } catch (error: HttpException) {
