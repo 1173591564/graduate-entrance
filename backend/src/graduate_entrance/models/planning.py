@@ -206,6 +206,10 @@ class TaskTemplate(Base):
         ForeignKey("materials.id", ondelete="SET NULL"),
         index=True,
     )
+    chapter_id: Mapped[UUID | None] = mapped_column(
+        ForeignKey("chapters.id", ondelete="SET NULL"),
+        index=True,
+    )
     name: Mapped[str] = mapped_column(String(120))
     task_type: Mapped[str] = mapped_column(String(32))
     default_est_minutes: Mapped[int]

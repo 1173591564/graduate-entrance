@@ -4394,6 +4394,18 @@
             "title": "Active",
             "type": "boolean"
           },
+          "chapter_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Chapter Id"
+          },
           "default_est_minutes": {
             "exclusiveMinimum": 0.0,
             "maximum": 1440.0,
@@ -4473,6 +4485,18 @@
             "default": true,
             "title": "Active",
             "type": "boolean"
+          },
+          "chapter_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Chapter Id"
           },
           "default_est_minutes": {
             "exclusiveMinimum": 0.0,

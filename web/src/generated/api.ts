@@ -3010,6 +3010,8 @@ export interface components {
              * @default true
              */
             active: boolean;
+            /** Chapter Id */
+            chapter_id?: string | null;
             /** Default Est Minutes */
             default_est_minutes: number;
             /**
@@ -3046,6 +3048,8 @@ export interface components {
              * @default true
              */
             active: boolean;
+            /** Chapter Id */
+            chapter_id?: string | null;
             /** Default Est Minutes */
             default_est_minutes: number;
             /**
