@@ -222,6 +222,7 @@ data class VocabTodayDto(
     @SerializedName("due_count") val dueCount: Int,
     @SerializedName("learned_count") val learnedCount: Int,
     @SerializedName("total_count") val totalCount: Int,
+    @SerializedName("reviewed_today_count") val reviewedTodayCount: Int,
 )
 
 data class VocabGradeRequest(
@@ -344,7 +345,9 @@ interface GraduateEntranceApi {
     ): ReciteResultDto
 
     @GET("api/vocab/today")
-    suspend fun vocabToday(): VocabTodayDto
+    suspend fun vocabToday(
+        @Query("new_limit") newLimit: Int,
+    ): VocabTodayDto
 
     @POST("api/vocab/{wordId}/grade")
     suspend fun gradeVocabWord(

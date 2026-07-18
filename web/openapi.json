@@ -4741,6 +4741,12 @@
             "title": "New Words",
             "type": "array"
           },
+          "reviewed_today_count": {
+            "default": 0,
+            "description": "last_reviewed_on == date 的词数",
+            "title": "Reviewed Today Count",
+            "type": "integer"
+          },
           "total_count": {
             "title": "Total Count",
             "type": "integer"
@@ -10565,7 +10571,7 @@
             "name": "new_limit",
             "required": false,
             "schema": {
-              "default": 50,
+              "default": 20,
               "maximum": 200,
               "minimum": 0,
               "title": "New Limit",

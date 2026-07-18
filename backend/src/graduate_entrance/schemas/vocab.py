@@ -30,6 +30,9 @@ class VocabTodayResponse(BaseModel):
     due_count: int
     learned_count: int
     total_count: int
+    reviewed_today_count: int = Field(
+        default=0, description="last_reviewed_on == date 的词数"
+    )
 
 
 class VocabGradeRequest(BaseModel):

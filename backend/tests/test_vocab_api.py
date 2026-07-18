@@ -15,6 +15,7 @@ from graduate_entrance.db.base import Base
 from graduate_entrance.db.session import get_session
 from graduate_entrance.main import app
 from graduate_entrance.vocab.importer import import_vocab
+from graduate_entrance.vocab.service import apply_vocab_srs
 
 SEED_ENTRIES = [
     {"word": "radiate", "meaning": "vt. 散发", "page": 1, "index": 1},
@@ -96,6 +97,7 @@ async def test_grading_schedules_review_and_moves_word_out_of_new(
     refreshed = await client.get("/api/vocab/today", params={"as_of": "2026-07-20"})
     refreshed_body = refreshed.json()
     assert refreshed_body["learned_count"] == 1
+    assert refreshed_body["reviewed_today_count"] == 1
     assert word_id not in [word["id"] for word in refreshed_body["new_words"]]
 
     next_day = await client.get("/api/vocab/today", params={"as_of": "2026-07-21"})
@@ -120,6 +122,30 @@ async def test_forgot_resets_reps(client: AsyncClient) -> None:
     body = forgot.json()
     assert body["word"]["reps"] == 0
     assert body["due_date"] == "2026-07-22"
+
+
+def test_srs_mastered_climbs_ebbinghaus_ladder() -> None:
+    ef, interval, reps = 2.5, 0, 0
+    intervals = []
+    for _ in range(6):
+        ef, interval, reps = apply_vocab_srs(ef, interval, reps, "mastered")
+        intervals.append(interval)
+    assert intervals[:5] == [1, 2, 4, 7, 15]
+    assert intervals[5] > 15
+
+
+def test_srs_vague_grows_slowly() -> None:
+    ef, interval, reps = apply_vocab_srs(2.5, 0, 0, "vague")
+    assert (interval, reps) == (1, 1)
+    ef, interval, reps = apply_vocab_srs(ef, 10, 3, "vague")
+    assert interval == 12
+    assert reps == 4
+
+
+def test_srs_forgot_resets() -> None:
+    ef, interval, reps = apply_vocab_srs(2.5, 15, 5, "forgot")
+    assert (interval, reps) == (1, 0)
+    assert ef < 2.5
 
 
 @pytest.mark.asyncio
