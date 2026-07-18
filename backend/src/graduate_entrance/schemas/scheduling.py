@@ -153,6 +153,10 @@ class TaskCompletionRequest(BaseModel):
     actual_minutes: int = Field(ge=0, le=1440)
 
 
+class TaskUpdateRequest(BaseModel):
+    est_minutes: int = Field(ge=1, le=1440)
+
+
 class WeeklyStatRead(BaseModel):
     week_start: date
     week_end: date

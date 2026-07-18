@@ -1176,6 +1176,23 @@ async def get_weekly_stats(
     )
 
 
+async def update_task_estimate(
+    session: AsyncSession,
+    task_id: UUID,
+    est_minutes: int,
+) -> PlanTaskRead:
+    task = await session.get(ScheduledTask, task_id)
+    if task is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Scheduled task not found",
+        )
+    task.est_minutes = est_minutes
+    await session.commit()
+    await session.refresh(task)
+    return _task_read(task)
+
+
 async def complete_task(
     session: AsyncSession,
     task_id: UUID,

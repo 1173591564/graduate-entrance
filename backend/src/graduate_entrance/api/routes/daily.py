@@ -6,10 +6,15 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from graduate_entrance.db.session import get_session
-from graduate_entrance.scheduling.service import complete_task, get_today
+from graduate_entrance.scheduling.service import (
+    complete_task,
+    get_today,
+    update_task_estimate,
+)
 from graduate_entrance.schemas.scheduling import (
     PlanTaskRead,
     TaskCompletionRequest,
+    TaskUpdateRequest,
     TodayResponse,
 )
 
@@ -32,3 +37,12 @@ async def mark_task_done(
     session: Session,
 ) -> PlanTaskRead:
     return await complete_task(session, task_id, payload.actual_minutes)
+
+
+@router.patch("/tasks/{task_id}", response_model=PlanTaskRead)
+async def update_task(
+    task_id: UUID,
+    payload: TaskUpdateRequest,
+    session: Session,
+) -> PlanTaskRead:
+    return await update_task_estimate(session, task_id, payload.est_minutes)

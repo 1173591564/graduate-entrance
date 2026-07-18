@@ -285,6 +285,7 @@ fun TodayScreen(viewModel: TodayViewModel) {
                     pomodoroTaskId = pomodoro.taskId,
                     focusMinutes = focusMinutes[task.id] ?: 0,
                     onCheckIn = { minutes -> viewModel.checkIn(task.id, minutes) },
+                    onUpdateEstimate = { minutes -> viewModel.updateEstimate(task.id, minutes) },
                     onStartPomodoro = { startPomodoro(task) },
                 )
             }
@@ -490,6 +491,7 @@ private fun TaskCard(
     pomodoroTaskId: String,
     focusMinutes: Int,
     onCheckIn: (Int) -> Unit,
+    onUpdateEstimate: (Int) -> Unit,
     onStartPomodoro: () -> Unit,
 ) {
     var minutesInput by rememberSaveable(task.id) { mutableStateOf("") }
@@ -576,7 +578,7 @@ private fun TaskCard(
                         OutlinedTextField(
                             value = minutesInput,
                             onValueChange = { minutesInput = it.filter(Char::isDigit) },
-                            label = { Text("实际耗时") },
+                            label = { Text("预计时长") },
                             suffix = { Text("分钟") },
                             singleLine = true,
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
@@ -584,12 +586,12 @@ private fun TaskCard(
                         )
                         Button(
                             onClick = {
-                                minutesInput.toIntOrNull()?.let(onCheckIn)
+                                minutesInput.toIntOrNull()?.let(onUpdateEstimate)
                                 editingMinutes = false
                             },
-                            enabled = minutesInput.toIntOrNull()?.let { it in 0..1440 } == true,
+                            enabled = minutesInput.toIntOrNull()?.let { it in 1..1440 } == true,
                         ) {
-                            Text("按此耗时打卡")
+                            Text("保存")
                         }
                     }
                     TextButton(onClick = { editingMinutes = false }) {
@@ -611,23 +613,24 @@ private fun TaskCard(
                             Text("专注 ${pomodoroMinutes(task.estMinutes)} 分钟")
                         }
                         FilledTonalButton(
-                            onClick = {
-                                if (focusMinutes > 0) {
-                                    onCheckIn(focusMinutes)
-                                } else {
-                                    minutesInput = ""
-                                    editingMinutes = true
-                                }
-                            },
+                            onClick = { onCheckIn(focusMinutes) },
+                            enabled = focusMinutes > 0,
                         ) {
                             Icon(Icons.Outlined.Check, contentDescription = null)
                             Spacer(Modifier.width(4.dp))
                             Text(if (focusMinutes > 0) "完成 ${formatMinutes(focusMinutes)}" else "完成")
                         }
                     }
+                    if (focusMinutes <= 0) {
+                        Text(
+                            text = "先用番茄钟计时，打卡按实际计时记录",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
                     TextButton(
                         onClick = {
-                            minutesInput = if (focusMinutes > 0) focusMinutes.toString() else ""
+                            minutesInput = task.estMinutes.toString()
                             editingMinutes = true
                         },
                     ) {
@@ -637,7 +640,7 @@ private fun TaskCard(
                             modifier = Modifier.size(18.dp),
                         )
                         Spacer(Modifier.width(6.dp))
-                        Text("手动填耗时打卡")
+                        Text("修改预计时长")
                     }
                 }
             }
