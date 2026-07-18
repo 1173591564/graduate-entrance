@@ -15,8 +15,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Pause
+import androidx.compose.material.icons.outlined.PlayArrow
 import androidx.compose.material.icons.outlined.AutoStories
 import androidx.compose.material.icons.outlined.ChatBubbleOutline
 import androidx.compose.material.icons.outlined.Home
@@ -29,12 +33,14 @@ import androidx.compose.material.icons.outlined.Translate
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.material3.DrawerValue
@@ -51,6 +57,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.graduateentrance.app.data.CaptureRepository
@@ -62,7 +70,9 @@ import com.graduateentrance.app.data.TodayRepository
 import com.graduateentrance.app.data.VocabRepository
 import com.graduateentrance.app.data.local.AppDatabase
 import com.graduateentrance.app.network.ApiClient
+import com.graduateentrance.app.timer.PomodoroPhase
 import com.graduateentrance.app.timer.PomodoroService
+import com.graduateentrance.app.timer.PomodoroState
 import com.graduateentrance.app.timer.PomodoroTimer
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.rememberCoroutineScope
@@ -204,7 +214,18 @@ fun GraduateEntranceApp(
                         },
                     )
                     AppDestination.CHAT -> ChatScreen(viewModel = chatViewModel)
-                    AppDestination.TODAY -> TodayScreen(viewModel = todayViewModel)
+                    AppDestination.TODAY -> TodayScreen(
+                        viewModel = todayViewModel,
+                        onStudyDestination = { dest ->
+                            destination = dest
+                            when (dest) {
+                                AppDestination.VOCAB -> vocabViewModel.refresh()
+                                AppDestination.RECITATION -> recitationViewModel.refresh()
+                                AppDestination.PAPERS -> papersViewModel.refresh()
+                                else -> Unit
+                            }
+                        },
+                    )
                     AppDestination.REVIEWS -> ReviewsScreen(viewModel = reviewsViewModel)
                     AppDestination.PAPERS -> PapersScreen(viewModel = papersViewModel)
                     AppDestination.RECITATION -> RecitationScreen(viewModel = recitationViewModel)
@@ -215,11 +236,72 @@ fun GraduateEntranceApp(
                         onBack = { destination = AppDestination.HOME },
                     )
                 }
+                if (pomodoro.active) {
+                    FocusMiniBar(
+                        state = pomodoro,
+                        onTogglePause = {
+                            if (pomodoro.phase == PomodoroPhase.PAUSED) {
+                                PomodoroService.resume(context)
+                            } else {
+                                PomodoroService.pause(context)
+                            }
+                        },
+                        onOpen = { PomodoroTimer.showFocus() },
+                        modifier = Modifier
+                            .align(Alignment.TopCenter)
+                            .padding(horizontal = 16.dp, vertical = 8.dp),
+                    )
+                }
             }
         }
     }
 }
 
+
+@Composable
+private fun FocusMiniBar(
+    state: PomodoroState,
+    onTogglePause: () -> Unit,
+    onOpen: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val paused = state.phase == PomodoroPhase.PAUSED
+    Surface(
+        modifier = modifier.clickable(onClick = onOpen),
+        shape = MaterialTheme.shapes.extraLarge,
+        color = MaterialTheme.colorScheme.primaryContainer,
+        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+        shadowElevation = 6.dp,
+    ) {
+        Row(
+            modifier = Modifier.padding(start = 16.dp, end = 4.dp, top = 4.dp, bottom = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            Text(
+                text = "%02d:%02d".format(
+                    state.remainingSeconds / 60,
+                    state.remainingSeconds % 60,
+                ),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+            )
+            Text(
+                text = if (paused) "已暂停 · ${state.taskTitle}" else state.taskTitle,
+                style = MaterialTheme.typography.bodySmall,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.widthIn(max = 180.dp),
+            )
+            IconButton(onClick = onTogglePause) {
+                Icon(
+                    imageVector = if (paused) Icons.Outlined.PlayArrow else Icons.Outlined.Pause,
+                    contentDescription = if (paused) "继续" else "暂停",
+                )
+            }
+        }
+    }
+}
 
 @Composable
 private fun AppBottomBar(
