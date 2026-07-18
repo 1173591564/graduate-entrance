@@ -117,6 +117,7 @@ class MaterialRead(MaterialInput):
 class TaskTemplateInput(BaseModel):
     subject_id: UUID
     material_id: UUID | None = None
+    chapter_id: UUID | None = None
     name: str = Field(min_length=1, max_length=120)
     task_type: TaskType
     default_est_minutes: int = Field(gt=0, le=1440)

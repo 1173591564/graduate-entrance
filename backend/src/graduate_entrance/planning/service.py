@@ -17,7 +17,7 @@ from graduate_entrance.models.planning import (
     TaskTemplate,
     TaskTemplatePhase,
 )
-from graduate_entrance.models.syllabus import Subject
+from graduate_entrance.models.syllabus import Chapter, Subject
 from graduate_entrance.schemas.planning import (
     AvailabilityExceptionInput,
     AvailabilityExceptionRead,
@@ -103,6 +103,7 @@ def task_template_read(template: TaskTemplate) -> TaskTemplateRead:
         id=template.id,
         subject_id=template.subject_id,
         material_id=template.material_id,
+        chapter_id=template.chapter_id,
         name=template.name,
         task_type=template.task_type,
         default_est_minutes=template.default_est_minutes,
@@ -501,6 +502,13 @@ async def validate_template_references(
 ) -> None:
     await ensure_subjects_exist(session, [payload.subject_id])
     await ensure_phases_exist(session, payload.phase_ids)
+    if payload.chapter_id is not None:
+        chapter = await session.get(Chapter, payload.chapter_id)
+        if chapter is None:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="Chapter does not exist",
+            )
     if payload.material_id is None:
         return
     material = await session.get(Material, payload.material_id)
@@ -524,6 +532,7 @@ async def create_task_template(
     template = TaskTemplate(
         subject_id=payload.subject_id,
         material_id=payload.material_id,
+        chapter_id=payload.chapter_id,
         name=payload.name,
         task_type=payload.task_type,
         default_est_minutes=payload.default_est_minutes,
@@ -557,6 +566,7 @@ async def update_task_template(
     await validate_template_references(session, payload)
     template.subject_id = payload.subject_id
     template.material_id = payload.material_id
+    template.chapter_id = payload.chapter_id
     template.name = payload.name
     template.task_type = payload.task_type
     template.default_est_minutes = payload.default_est_minutes

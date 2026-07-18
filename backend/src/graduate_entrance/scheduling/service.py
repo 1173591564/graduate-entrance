@@ -152,6 +152,8 @@ async def generate_task_pool(session: AsyncSession) -> TaskPoolGenerationRespons
         )
         for phase_id in phase_ids:
             for point, chapter, module in points_by_subject[template.subject_id]:
+                if template.chapter_id is not None and chapter.id != template.chapter_id:
+                    continue
                 specs.append(
                     _PoolSpec(
                         id=_pool_item_id(phase_id, template.id, point.id),
