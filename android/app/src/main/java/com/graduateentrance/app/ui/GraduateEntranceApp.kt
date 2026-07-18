@@ -62,6 +62,8 @@ import com.graduateentrance.app.data.TodayRepository
 import com.graduateentrance.app.data.VocabRepository
 import com.graduateentrance.app.data.local.AppDatabase
 import com.graduateentrance.app.network.ApiClient
+import com.graduateentrance.app.timer.PomodoroService
+import com.graduateentrance.app.timer.PomodoroTimer
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.rememberCoroutineScope
 
@@ -103,6 +105,8 @@ fun GraduateEntranceApp(
     var destination by rememberSaveable { mutableStateOf(AppDestination.HOME) }
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
+    val pomodoro by PomodoroTimer.state.collectAsState()
+    val focusVisible by PomodoroTimer.focusVisible.collectAsState()
 
     LaunchedEffect(initialCaptureUris) {
         if (initialCaptureUris.isNotEmpty()) {
@@ -124,6 +128,20 @@ fun GraduateEntranceApp(
         onDispose {
             connectivityManager.unregisterNetworkCallback(callback)
         }
+    }
+
+    if (focusVisible && pomodoro.active) {
+        FocusScreen(
+            state = pomodoro,
+            onPause = { PomodoroService.pause(context) },
+            onResume = { PomodoroService.resume(context) },
+            onStop = { PomodoroService.stop(context) },
+            onExit = {
+                PomodoroService.pause(context)
+                PomodoroTimer.hideFocus()
+            },
+        )
+        return
     }
 
     ModalNavigationDrawer(

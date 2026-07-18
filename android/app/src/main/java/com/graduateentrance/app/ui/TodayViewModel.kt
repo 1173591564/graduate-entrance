@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.graduateentrance.app.data.CheckInResult
+import com.graduateentrance.app.data.FocusTimeStore
 import com.graduateentrance.app.data.TodayRepository
 import com.graduateentrance.app.data.local.TodayTaskEntity
 import java.time.LocalDate
@@ -62,10 +63,14 @@ class TodayViewModel(private val repository: TodayRepository) : ViewModel() {
 
     fun checkIn(taskId: String, actualMinutes: Int) {
         viewModelScope.launch {
-            val notice = when (val result = repository.checkIn(taskId, actualMinutes)) {
+            val result = repository.checkIn(taskId, actualMinutes)
+            val notice = when (result) {
                 CheckInResult.Synced -> "打卡成功"
                 CheckInResult.Queued -> "网络不可用，打卡已入队，恢复后自动同步"
                 is CheckInResult.Rejected -> "打卡失败（HTTP ${result.code}）"
+            }
+            if (result !is CheckInResult.Rejected) {
+                FocusTimeStore.clear(taskId)
             }
             _uiState.update { it.copy(notice = notice) }
             refresh()
