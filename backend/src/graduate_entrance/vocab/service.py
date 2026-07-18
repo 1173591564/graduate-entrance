@@ -25,7 +25,6 @@ MASTERED_REPS = 3
 MIN_EASE_FACTOR = 1.3
 GRADE_QUALITY: dict[VocabGrade, int] = {"forgot": 2, "vague": 3, "mastered": 5}
 EBBINGHAUS_INTERVALS = (1, 2, 4, 7, 15)
-VAGUE_GROWTH = 1.2
 
 
 def apply_vocab_srs(
@@ -34,9 +33,11 @@ def apply_vocab_srs(
     """Return updated (ef, interval_days, reps) using Ebbinghaus-style early
     intervals (1/2/4/7/15 days) before switching to EF-based growth.
 
-    - forgot: reset reps, review again tomorrow.
-    - vague: counts as a pass but the interval grows slowly (x1.2).
-    - mastered: climb the Ebbinghaus ladder, then interval * EF.
+    Each grade maps to a distinct move on the forgetting curve:
+    - forgot: back to the start — reset reps, review again tomorrow.
+    - vague: stay in place — keep the ladder position, repeat the current
+      interval with an ease penalty.
+    - mastered: move forward — climb the ladder, then interval * EF.
     """
     quality = GRADE_QUALITY[grade]
     next_ef = ef + (0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02))
@@ -44,10 +45,7 @@ def apply_vocab_srs(
     if grade == "forgot":
         return next_ef, 1, 0
     if grade == "vague":
-        if reps <= 0:
-            return next_ef, 1, 1
-        next_interval = max(interval_days + 1, round(interval_days * VAGUE_GROWTH))
-        return next_ef, next_interval, reps + 1
+        return next_ef, max(1, interval_days), reps
     if reps < len(EBBINGHAUS_INTERVALS):
         next_interval = EBBINGHAUS_INTERVALS[reps]
     else:
@@ -120,13 +118,21 @@ async def vocab_today(
         .scalars()
         .all()
     )
+    started_today = (
+        await session.execute(
+            select(func.count())
+            .select_from(VocabWord)
+            .where(VocabWord.started_on == as_of)
+        )
+    ).scalar_one()
+    new_budget = max(0, new_limit - started_today)
     new_words = (
         (
             await session.execute(
                 select(VocabWord)
                 .where(VocabWord.due_date.is_(None))
                 .order_by(VocabWord.order_index)
-                .limit(new_limit)
+                .limit(new_budget)
             )
         )
         .scalars()
@@ -167,6 +173,8 @@ async def grade_word(
     word.interval_days = next_interval
     word.reps = next_reps
     word.due_date = as_of + timedelta(days=next_interval)
+    if word.last_reviewed_on is None:
+        word.started_on = as_of
     word.last_reviewed_on = as_of
     await session.commit()
     await session.refresh(word)

@@ -34,6 +34,7 @@ class VocabWord(Base):
     due_date: Mapped[date | None] = mapped_column(Date, index=True)
     reps: Mapped[int] = mapped_column(default=0)
     last_reviewed_on: Mapped[date | None] = mapped_column(Date)
+    started_on: Mapped[date | None] = mapped_column(Date, index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),

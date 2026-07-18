@@ -124,6 +124,38 @@ async def test_forgot_resets_reps(client: AsyncClient) -> None:
     assert body["due_date"] == "2026-07-22"
 
 
+@pytest.mark.asyncio
+async def test_new_word_budget_shrinks_as_words_are_started(client: AsyncClient) -> None:
+    today = await client.get(
+        "/api/vocab/today", params={"as_of": "2026-07-20", "new_limit": 2}
+    )
+    new_words = today.json()["new_words"]
+    assert len(new_words) == 2
+
+    await client.post(
+        f"/api/vocab/{new_words[0]['id']}/grade",
+        json={"grade": "mastered", "as_of": "2026-07-20"},
+    )
+    refreshed = await client.get(
+        "/api/vocab/today", params={"as_of": "2026-07-20", "new_limit": 2}
+    )
+    assert len(refreshed.json()["new_words"]) == 1
+
+    await client.post(
+        f"/api/vocab/{new_words[1]['id']}/grade",
+        json={"grade": "forgot", "as_of": "2026-07-20"},
+    )
+    exhausted = await client.get(
+        "/api/vocab/today", params={"as_of": "2026-07-20", "new_limit": 2}
+    )
+    assert exhausted.json()["new_words"] == []
+
+    next_day = await client.get(
+        "/api/vocab/today", params={"as_of": "2026-07-21", "new_limit": 2}
+    )
+    assert len(next_day.json()["new_words"]) == 1
+
+
 def test_srs_mastered_climbs_ebbinghaus_ladder() -> None:
     ef, interval, reps = 2.5, 0, 0
     intervals = []
@@ -134,12 +166,12 @@ def test_srs_mastered_climbs_ebbinghaus_ladder() -> None:
     assert intervals[5] > 15
 
 
-def test_srs_vague_grows_slowly() -> None:
+def test_srs_vague_stays_in_place() -> None:
     ef, interval, reps = apply_vocab_srs(2.5, 0, 0, "vague")
-    assert (interval, reps) == (1, 1)
-    ef, interval, reps = apply_vocab_srs(ef, 10, 3, "vague")
-    assert interval == 12
-    assert reps == 4
+    assert (interval, reps) == (1, 0)
+    assert ef < 2.5
+    ef, interval, reps = apply_vocab_srs(2.5, 7, 3, "vague")
+    assert (interval, reps) == (7, 3)
 
 
 def test_srs_forgot_resets() -> None:
