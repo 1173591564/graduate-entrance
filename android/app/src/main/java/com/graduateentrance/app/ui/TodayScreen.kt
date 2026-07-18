@@ -545,10 +545,22 @@ private fun TaskCard(
                     },
                 )
             }
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                AppStatusChip("预计 ${formatMinutes(task.estMinutes)}", NoticeTone.OFFLINE)
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(14.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = "预计 ${formatMinutes(task.estMinutes)}",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                )
                 if (!completed && focusMinutes > 0) {
-                    AppStatusChip("已计时 ${formatMinutes(focusMinutes)}", NoticeTone.INFO)
+                    Text(
+                        text = "已计时 ${formatMinutes(focusMinutes)}",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary,
+                    )
                 }
                 if (task.carryCount > 0) {
                     AppStatusChip("顺延 ${task.carryCount} 次", NoticeTone.WARNING)
