@@ -24,6 +24,17 @@ object PomodoroTimer {
     private val _state = MutableStateFlow(PomodoroState())
     val state: StateFlow<PomodoroState> = _state.asStateFlow()
 
+    private val _focusVisible = MutableStateFlow(false)
+    val focusVisible: StateFlow<Boolean> = _focusVisible.asStateFlow()
+
+    fun showFocus() {
+        _focusVisible.value = true
+    }
+
+    fun hideFocus() {
+        _focusVisible.value = false
+    }
+
     fun start(taskId: String, taskTitle: String, minutes: Int): Boolean {
         if (_state.value.active || minutes <= 0) {
             return false
@@ -35,6 +46,7 @@ object PomodoroTimer {
             totalSeconds = minutes * 60,
             remainingSeconds = minutes * 60,
         )
+        _focusVisible.value = true
         return true
     }
 
@@ -71,14 +83,17 @@ object PomodoroTimer {
     fun cancel(): PomodoroState {
         val snapshot = _state.value
         _state.value = PomodoroState()
+        _focusVisible.value = false
         return snapshot
     }
 
     fun finishWithNotice(notice: String) {
         _state.update { it.copy(phase = PomodoroPhase.FINISHED, notice = notice) }
+        _focusVisible.value = false
     }
 
     fun clear() {
         _state.value = PomodoroState()
+        _focusVisible.value = false
     }
 }

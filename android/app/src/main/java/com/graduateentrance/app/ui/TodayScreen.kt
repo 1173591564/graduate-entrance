@@ -62,6 +62,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import com.graduateentrance.app.data.FocusTimeStore
 import com.graduateentrance.app.data.local.TodayTaskEntity
 import com.graduateentrance.app.timer.PomodoroPhase
 import com.graduateentrance.app.timer.PomodoroService
@@ -80,6 +81,7 @@ private val dayFormatter = DateTimeFormatter.ofPattern("M月d日 EEEE", Locale.S
 fun TodayScreen(viewModel: TodayViewModel) {
     val state by viewModel.uiState.collectAsState()
     val pomodoro by PomodoroTimer.state.collectAsState()
+    val focusMinutes by FocusTimeStore.minutes.collectAsState()
     val context = LocalContext.current
     var pendingStart by rememberSaveable { mutableStateOf<String?>(null) }
     var showDatePicker by rememberSaveable { mutableStateOf(false) }
@@ -244,6 +246,7 @@ fun TodayScreen(viewModel: TodayViewModel) {
                         onPause = { PomodoroService.pause(context) },
                         onResume = { PomodoroService.resume(context) },
                         onStop = { PomodoroService.stop(context) },
+                        onOpenFocus = { PomodoroTimer.showFocus() },
                         onDismiss = {
                             PomodoroTimer.clear()
                             viewModel.refresh()
@@ -274,6 +277,7 @@ fun TodayScreen(viewModel: TodayViewModel) {
                     task = task,
                     pomodoroEnabled = !pomodoro.active,
                     pomodoroTaskId = pomodoro.taskId,
+                    focusMinutes = focusMinutes[task.id] ?: 0,
                     onCheckIn = { minutes -> viewModel.checkIn(task.id, minutes) },
                     onStartPomodoro = { startPomodoro(task) },
                 )
@@ -328,9 +332,9 @@ private fun DayOverviewCard(planned: Int, completed: Int, remaining: Int) {
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
             ) {
-                OverviewMetric("计划", formatMinutes(planned))
                 OverviewMetric("完成", formatMinutes(completed))
                 OverviewMetric("剩余", formatMinutes(remaining))
+                OverviewMetric("计划", formatMinutes(planned))
             }
         }
     }
@@ -373,6 +377,7 @@ private fun PomodoroCard(
     onPause: () -> Unit,
     onResume: () -> Unit,
     onStop: () -> Unit,
+    onOpenFocus: () -> Unit,
     onDismiss: () -> Unit,
 ) {
     Card(
@@ -387,7 +392,7 @@ private fun PomodoroCard(
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 AppStatusChip("专注完成", NoticeTone.SUCCESS)
-                Text("这段学习已记录", style = MaterialTheme.typography.titleLarge)
+                Text("专注时间已计入任务", style = MaterialTheme.typography.titleLarge)
                 Text(
                     text = state.notice ?: "本次专注 ${state.elapsedMinutes} 分钟",
                     style = MaterialTheme.typography.bodyMedium,
@@ -462,6 +467,9 @@ private fun PomodoroCard(
                             Icon(Icons.Outlined.Stop, contentDescription = "结束番茄钟")
                         }
                     }
+                    TextButton(onClick = onOpenFocus) {
+                        Text("进入专注页")
+                    }
                 }
             }
         }
@@ -473,10 +481,11 @@ private fun TaskCard(
     task: TodayTaskEntity,
     pomodoroEnabled: Boolean,
     pomodoroTaskId: String,
+    focusMinutes: Int,
     onCheckIn: (Int) -> Unit,
     onStartPomodoro: () -> Unit,
 ) {
-    var minutesInput by rememberSaveable(task.id) { mutableStateOf(task.estMinutes.toString()) }
+    var minutesInput by rememberSaveable(task.id) { mutableStateOf("") }
     var editingMinutes by rememberSaveable(task.id) { mutableStateOf(false) }
     val completed = task.status == "completed"
 
@@ -529,6 +538,9 @@ private fun TaskCard(
             }
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 AppStatusChip("预计 ${formatMinutes(task.estMinutes)}", NoticeTone.OFFLINE)
+                if (!completed && focusMinutes > 0) {
+                    AppStatusChip("已计时 ${formatMinutes(focusMinutes)}", NoticeTone.INFO)
+                }
                 if (task.carryCount > 0) {
                     AppStatusChip("顺延 ${task.carryCount} 次", NoticeTone.WARNING)
                 }
@@ -570,11 +582,11 @@ private fun TaskCard(
                             },
                             enabled = minutesInput.toIntOrNull()?.let { it in 0..1440 } == true,
                         ) {
-                            Text("完成")
+                            Text("按此耗时打卡")
                         }
                     }
                     TextButton(onClick = { editingMinutes = false }) {
-                        Text("取消修改")
+                        Text("取消")
                     }
                 }
                 else -> {
@@ -592,21 +604,33 @@ private fun TaskCard(
                             Text("专注 ${pomodoroMinutes(task.estMinutes)} 分钟")
                         }
                         FilledTonalButton(
-                            onClick = { onCheckIn(task.estMinutes) },
+                            onClick = {
+                                if (focusMinutes > 0) {
+                                    onCheckIn(focusMinutes)
+                                } else {
+                                    minutesInput = ""
+                                    editingMinutes = true
+                                }
+                            },
                         ) {
                             Icon(Icons.Outlined.Check, contentDescription = null)
                             Spacer(Modifier.width(4.dp))
-                            Text("完成")
+                            Text(if (focusMinutes > 0) "完成 ${formatMinutes(focusMinutes)}" else "完成")
                         }
                     }
-                    TextButton(onClick = { editingMinutes = true }) {
+                    TextButton(
+                        onClick = {
+                            minutesInput = if (focusMinutes > 0) focusMinutes.toString() else ""
+                            editingMinutes = true
+                        },
+                    ) {
                         Icon(
                             Icons.Outlined.Edit,
                             contentDescription = null,
                             modifier = Modifier.size(18.dp),
                         )
                         Spacer(Modifier.width(6.dp))
-                        Text("修改实际耗时")
+                        Text("手动填耗时打卡")
                     }
                 }
             }

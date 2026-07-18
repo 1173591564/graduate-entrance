@@ -12,10 +12,7 @@ import android.os.Build
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
 import com.graduateentrance.app.R
-import com.graduateentrance.app.data.CheckInResult
-import com.graduateentrance.app.data.TodayRepository
-import com.graduateentrance.app.data.local.AppDatabase
-import com.graduateentrance.app.network.ApiClient
+import com.graduateentrance.app.data.FocusTimeStore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -27,10 +24,6 @@ import kotlinx.coroutines.launch
 class PomodoroService : Service() {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private var tickJob: Job? = null
-
-    private val repository: TodayRepository by lazy {
-        TodayRepository(ApiClient.service, AppDatabase.get(applicationContext).todayDao())
-    }
 
     override fun onBind(intent: Intent?): IBinder? = null
 
@@ -57,7 +50,8 @@ class PomodoroService : Service() {
             }
             ACTION_STOP -> {
                 tickJob?.cancel()
-                PomodoroTimer.cancel()
+                val snapshot = PomodoroTimer.cancel()
+                FocusTimeStore.add(snapshot.taskId, snapshot.elapsedMinutes)
                 stopForeground(STOP_FOREGROUND_REMOVE)
                 stopSelf()
             }
@@ -88,14 +82,12 @@ class PomodoroService : Service() {
         }
     }
 
-    private suspend fun completeSession() {
+    private fun completeSession() {
         val state = PomodoroTimer.state.value
         val minutes = maxOf(1, state.totalSeconds / 60)
-        val notice = when (repository.checkIn(state.taskId, minutes)) {
-            CheckInResult.Synced -> "番茄钟完成，已自动打卡 $minutes 分钟"
-            CheckInResult.Queued -> "番茄钟完成，打卡已入队，网络恢复后自动同步"
-            is CheckInResult.Rejected -> "番茄钟完成，但打卡失败，请手动打卡"
-        }
+        FocusTimeStore.add(state.taskId, minutes)
+        val total = FocusTimeStore.minutesFor(state.taskId)
+        val notice = "番茄钟完成，今日已计时 $total 分钟，可在任务卡确认打卡"
         PomodoroTimer.finishWithNotice(notice)
         val manager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
         manager.notify(FINISHED_NOTIFICATION_ID, buildFinishedNotification(state.taskTitle, notice))
