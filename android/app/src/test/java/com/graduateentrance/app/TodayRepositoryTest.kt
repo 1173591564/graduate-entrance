@@ -24,6 +24,7 @@ import com.graduateentrance.app.network.ReviewRequest
 import com.graduateentrance.app.network.ReviewResultDto
 import com.graduateentrance.app.network.ServiceStatus
 import com.graduateentrance.app.network.TaskCompletionRequest
+import com.graduateentrance.app.network.TaskUpdateRequest
 import com.graduateentrance.app.network.TodayDto
 import com.graduateentrance.app.network.TodayTaskDto
 import com.graduateentrance.app.network.VocabDictationDto
@@ -63,6 +64,12 @@ private class FakeDao : TodayDao {
     override suspend fun markCompleted(taskId: String, actualMinutes: Int) {
         tasks[taskId]?.let {
             tasks[taskId] = it.copy(status = "completed", actualMinutes = actualMinutes)
+        }
+    }
+
+    override suspend fun updateEstimate(taskId: String, estMinutes: Int) {
+        tasks[taskId]?.let {
+            tasks[taskId] = it.copy(estMinutes = estMinutes)
         }
     }
 
@@ -111,6 +118,22 @@ private class FakeApi : GraduateEntranceApi {
             estMinutes = 60,
             status = "completed",
             actualMinutes = payload.actualMinutes,
+            carryCount = 0,
+            order = 0,
+        )
+    }
+
+    override suspend fun updateTask(taskId: String, payload: TaskUpdateRequest): TodayTaskDto {
+        if (offline) throw IOException("offline")
+        return TodayTaskDto(
+            id = taskId,
+            subjectName = "s",
+            knowledgePointName = "kp",
+            title = "t",
+            plannedDate = "2026-08-05",
+            estMinutes = payload.estMinutes,
+            status = "planned",
+            actualMinutes = null,
             carryCount = 0,
             order = 0,
         )

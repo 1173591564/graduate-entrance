@@ -26,6 +26,9 @@ interface TodayDao {
     @Query("UPDATE today_tasks SET status = 'completed', actualMinutes = :actualMinutes WHERE id = :taskId")
     suspend fun markCompleted(taskId: String, actualMinutes: Int)
 
+    @Query("UPDATE today_tasks SET estMinutes = :estMinutes WHERE id = :taskId")
+    suspend fun updateEstimate(taskId: String, estMinutes: Int)
+
     @Query("SELECT * FROM pending_check_ins ORDER BY queuedAt, taskId")
     suspend fun pendingCheckIns(): List<PendingCheckInEntity>
 

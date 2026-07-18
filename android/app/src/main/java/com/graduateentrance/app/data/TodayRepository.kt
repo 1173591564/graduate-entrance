@@ -5,6 +5,7 @@ import com.graduateentrance.app.data.local.TodayDao
 import com.graduateentrance.app.data.local.TodayTaskEntity
 import com.graduateentrance.app.network.GraduateEntranceApi
 import com.graduateentrance.app.network.TaskCompletionRequest
+import com.graduateentrance.app.network.TaskUpdateRequest
 import java.io.IOException
 import retrofit2.HttpException
 
@@ -82,6 +83,17 @@ class TodayRepository(
             CheckInResult.Queued
         } catch (error: HttpException) {
             CheckInResult.Rejected(error.code())
+        }
+
+    suspend fun updateEstimate(taskId: String, estMinutes: Int): Boolean =
+        try {
+            api.updateTask(taskId, TaskUpdateRequest(estMinutes))
+            dao.updateEstimate(taskId, estMinutes)
+            true
+        } catch (_: IOException) {
+            false
+        } catch (_: HttpException) {
+            false
         }
 
     suspend fun syncPendingCheckIns(): Int {

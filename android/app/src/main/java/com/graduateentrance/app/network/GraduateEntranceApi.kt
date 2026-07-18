@@ -9,6 +9,7 @@ import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.Multipart
+import retrofit2.http.PATCH
 import retrofit2.http.POST
 import retrofit2.http.Part
 import retrofit2.http.Path
@@ -44,6 +45,10 @@ data class TodayDto(
 
 data class TaskCompletionRequest(
     @SerializedName("actual_minutes") val actualMinutes: Int,
+)
+
+data class TaskUpdateRequest(
+    @SerializedName("est_minutes") val estMinutes: Int,
 )
 
 data class ProblemKnowledgePointDto(
@@ -291,6 +296,12 @@ interface GraduateEntranceApi {
     suspend fun completeTask(
         @Path("taskId") taskId: String,
         @Body payload: TaskCompletionRequest,
+    ): TodayTaskDto
+
+    @PATCH("api/tasks/{taskId}")
+    suspend fun updateTask(
+        @Path("taskId") taskId: String,
+        @Body payload: TaskUpdateRequest,
     ): TodayTaskDto
 
     @GET("api/problems/reviews/due")

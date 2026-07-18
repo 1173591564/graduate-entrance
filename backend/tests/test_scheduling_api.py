@@ -615,6 +615,42 @@ async def test_weekly_stats_handle_empty_database_and_bad_range(
 
 
 @pytest.mark.asyncio
+async def test_update_task_estimate(
+    scheduling_context: SchedulingContext,
+) -> None:
+    await scheduling_context.client.post("/api/planning/task-pool/generate")
+    request = {"start_date": "2026-07-20", "end_date": "2026-07-26"}
+    await scheduling_context.client.post("/api/plan/generate", json=request)
+    today = await scheduling_context.client.get(
+        "/api/today",
+        params={"date": "2026-07-20"},
+    )
+    task = today.json()["tasks"][0]
+    assert task["status"] == "planned"
+
+    updated = await scheduling_context.client.patch(
+        f"/api/tasks/{task['id']}",
+        json={"est_minutes": 90},
+    )
+    assert updated.status_code == 200
+    assert updated.json()["est_minutes"] == 90
+    assert updated.json()["status"] == "planned"
+    assert updated.json()["actual_minutes"] is None
+
+    invalid = await scheduling_context.client.patch(
+        f"/api/tasks/{task['id']}",
+        json={"est_minutes": 0},
+    )
+    assert invalid.status_code == 422
+
+    missing = await scheduling_context.client.patch(
+        f"/api/tasks/{uuid4()}",
+        json={"est_minutes": 60},
+    )
+    assert missing.status_code == 404
+
+
+@pytest.mark.asyncio
 async def test_check_in_rejects_unknown_task(
     scheduling_context: SchedulingContext,
 ) -> None:

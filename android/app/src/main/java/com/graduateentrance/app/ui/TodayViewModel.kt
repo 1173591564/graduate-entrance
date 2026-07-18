@@ -77,6 +77,16 @@ class TodayViewModel(private val repository: TodayRepository) : ViewModel() {
         }
     }
 
+    fun updateEstimate(taskId: String, estMinutes: Int) {
+        viewModelScope.launch {
+            val ok = repository.updateEstimate(taskId, estMinutes)
+            _uiState.update {
+                it.copy(notice = if (ok) "预计时长已更新" else "预计时长更新失败，请检查网络")
+            }
+            refresh()
+        }
+    }
+
     fun onNetworkAvailable() {
         viewModelScope.launch {
             syncMutex.withLock {

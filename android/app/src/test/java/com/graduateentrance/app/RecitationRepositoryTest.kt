@@ -25,6 +25,7 @@ import com.graduateentrance.app.network.ReviewRequest
 import com.graduateentrance.app.network.ReviewResultDto
 import com.graduateentrance.app.network.ServiceStatus
 import com.graduateentrance.app.network.TaskCompletionRequest
+import com.graduateentrance.app.network.TaskUpdateRequest
 import com.graduateentrance.app.network.TodayDto
 import com.graduateentrance.app.network.TodayTaskDto
 import com.graduateentrance.app.network.VocabDictationDto
@@ -71,6 +72,9 @@ private class FakeRecitationApi : GraduateEntranceApi {
     override suspend fun today(date: String): TodayDto = TodayDto(date, 0, 0, 0, emptyList())
 
     override suspend fun completeTask(taskId: String, payload: TaskCompletionRequest): TodayTaskDto =
+        throw UnsupportedOperationException()
+
+    override suspend fun updateTask(taskId: String, payload: TaskUpdateRequest): TodayTaskDto =
         throw UnsupportedOperationException()
 
     override suspend fun dueReviews(includeDrafts: Boolean, limit: Int): DueReviewsDto =
