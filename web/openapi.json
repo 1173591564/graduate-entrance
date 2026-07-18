@@ -2451,6 +2451,21 @@
             "title": "Status",
             "type": "string"
           },
+          "study_module": {
+            "anyOf": [
+              {
+                "enum": [
+                  "vocab",
+                  "recitation"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Study Module"
+          },
           "subject_id": {
             "anyOf": [
               {

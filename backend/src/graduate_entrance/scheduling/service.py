@@ -47,6 +47,7 @@ from graduate_entrance.schemas.scheduling import (
     PlanResponse,
     PlanSubjectSummary,
     PlanTaskRead,
+    StudyModule,
     TaskPoolGenerationResponse,
     TaskPoolItemRead,
     TaskPoolPage,
@@ -411,6 +412,14 @@ def _knowledge_order(
     return {point_id: order for order, point_id in enumerate(ordered)}, cycle
 
 
+def _study_module(task_type: str) -> StudyModule | None:
+    if task_type == "dictation":
+        return "vocab"
+    if task_type == "memorization":
+        return "recitation"
+    return None
+
+
 def _task_read(task: ScheduledTask) -> PlanTaskRead:
     return PlanTaskRead(
         id=task.id,
@@ -425,6 +434,7 @@ def _task_read(task: ScheduledTask) -> PlanTaskRead:
         material_name=task.material_name,
         title=task.title,
         task_type=task.task_type,
+        study_module=_study_module(task.task_type),
         planned_date=task.planned_date,
         est_minutes=task.est_minutes,
         status=task.status,
@@ -449,6 +459,7 @@ def _proposal_read(candidate: _Candidate, planned_date: date, order: int) -> Pla
         material_name=candidate.material_name,
         title=candidate.title,
         task_type=candidate.task_type,
+        study_module=_study_module(candidate.task_type),
         planned_date=planned_date,
         est_minutes=candidate.est_minutes,
         status="planned",

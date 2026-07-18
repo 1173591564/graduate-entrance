@@ -413,15 +413,12 @@ private fun TimeBadge(
     }
 }
 
-private fun studyDestinationFor(task: TodayTaskEntity): AppDestination? {
-    val text = "${task.title} ${task.knowledgePointName}"
-    return when {
-        text.contains("单词") -> AppDestination.VOCAB
-        text.contains("背诵") || text.contains("一背") -> AppDestination.RECITATION
-        text.contains("精读") || text.contains("阅读") -> AppDestination.PAPERS
+private fun studyDestinationFor(task: TodayTaskEntity): AppDestination? =
+    when (task.studyModule) {
+        "vocab" -> AppDestination.VOCAB
+        "recitation" -> AppDestination.RECITATION
         else -> null
     }
-}
 
 private fun formatMinutes(minutes: Int): String =
     if (minutes >= 60) {
@@ -704,7 +701,7 @@ private fun TaskCard(
                         ) {
                             Icon(Icons.Outlined.School, contentDescription = null)
                             Spacer(Modifier.width(6.dp))
-                            Text("去学习，悬浮计时")
+                            Text("去学习")
                         }
                     }
                     if (focusMinutes <= 0) {
