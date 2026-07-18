@@ -413,14 +413,12 @@ private fun TimeBadge(
     }
 }
 
-private fun studyDestinationFor(task: TodayTaskEntity): AppDestination? {
-    val text = "${task.title} ${task.knowledgePointName}"
-    return when {
-        text.contains("单词") -> AppDestination.VOCAB
-        text.contains("背诵") || text.contains("一背") -> AppDestination.RECITATION
+private fun studyDestinationFor(task: TodayTaskEntity): AppDestination? =
+    when (task.studyModule) {
+        "vocab" -> AppDestination.VOCAB
+        "recitation" -> AppDestination.RECITATION
         else -> null
     }
-}
 
 private fun formatMinutes(minutes: Int): String =
     if (minutes >= 60) {

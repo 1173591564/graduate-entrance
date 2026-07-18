@@ -7,6 +7,7 @@ from pydantic import BaseModel, Field, model_validator
 from graduate_entrance.schemas.planning import TaskType
 
 TaskStatus = Literal["planned", "completed", "skipped"]
+StudyModule = Literal["vocab", "recitation"]
 
 
 class TaskPoolGenerationResponse(BaseModel):
@@ -83,6 +84,7 @@ class PlanTaskRead(BaseModel):
     material_name: str | None
     title: str
     task_type: TaskType
+    study_module: StudyModule | None = None
     planned_date: date
     est_minutes: int
     status: TaskStatus

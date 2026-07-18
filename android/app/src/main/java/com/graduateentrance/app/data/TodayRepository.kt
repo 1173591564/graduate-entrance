@@ -46,6 +46,7 @@ class TodayRepository(
                         actualMinutes = task.actualMinutes,
                         carryCount = task.carryCount,
                         taskOrder = task.order,
+                        studyModule = task.studyModule,
                     )
                 },
             )

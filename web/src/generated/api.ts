@@ -2237,6 +2237,8 @@ export interface components {
              * @enum {string}
              */
             status: "planned" | "completed" | "skipped";
+            /** Study Module */
+            study_module?: ("vocab" | "recitation") | null;
             /** Subject Id */
             subject_id: string | null;
             /** Subject Name */

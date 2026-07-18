@@ -15,6 +15,7 @@ data class TodayTaskEntity(
     val actualMinutes: Int?,
     val carryCount: Int,
     val taskOrder: Int,
+    val studyModule: String? = null,
 )
 
 @Entity(tableName = "pending_check_ins")

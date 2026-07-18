@@ -33,6 +33,7 @@ data class TodayTaskDto(
     @SerializedName("actual_minutes") val actualMinutes: Int?,
     @SerializedName("carry_count") val carryCount: Int,
     @SerializedName("order") val order: Int,
+    @SerializedName("study_module") val studyModule: String? = null,
 )
 
 data class TodayDto(
