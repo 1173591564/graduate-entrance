@@ -33,6 +33,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -51,6 +52,7 @@ fun HomeScreen(
     onOpenDrawer: () -> Unit,
     onNavigate: (AppDestination) -> Unit,
     onAskChat: (String) -> Unit,
+    onRefresh: () -> Unit,
 ) {
     var questionDraft by rememberSaveable { mutableStateOf("") }
     val nextTask = state.tasks.firstOrNull { it.status != "completed" && it.status != "skipped" }
@@ -73,13 +75,18 @@ fun HomeScreen(
             )
         },
     ) { innerPadding ->
-        LazyColumn(
+        PullToRefreshBox(
+            isRefreshing = state.loading,
+            onRefresh = onRefresh,
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding),
-            contentPadding = PaddingValues(horizontal = 18.dp, vertical = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(horizontal = 18.dp, vertical = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+            ) {
             item {
                 GreetingCard(
                     planned = state.plannedMinutes,
@@ -121,6 +128,7 @@ fun HomeScreen(
                         questionDraft = ""
                     },
                 )
+            }
             }
         }
     }
