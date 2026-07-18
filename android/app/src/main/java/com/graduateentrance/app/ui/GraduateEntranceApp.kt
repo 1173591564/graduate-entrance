@@ -196,6 +196,7 @@ fun GraduateEntranceApp(
                         state = todayState,
                         onOpenDrawer = { scope.launch { drawerState.open() } },
                         onNavigate = { destination = it },
+                        onRefresh = { todayViewModel.refresh() },
                         onAskChat = { draft ->
                             chatViewModel.prefillInput(draft)
                             chatViewModel.refreshConversations()

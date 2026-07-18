@@ -62,6 +62,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import com.graduateentrance.app.data.FocusTimeStore
 import com.graduateentrance.app.data.local.TodayTaskEntity
 import com.graduateentrance.app.timer.PomodoroPhase
@@ -194,13 +195,18 @@ fun TodayScreen(viewModel: TodayViewModel) {
             )
         },
     ) { innerPadding ->
-        LazyColumn(
+        PullToRefreshBox(
+            isRefreshing = state.loading,
+            onRefresh = viewModel::refresh,
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding),
-            contentPadding = PaddingValues(horizontal = 18.dp, vertical = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(horizontal = 18.dp, vertical = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(14.dp),
+            ) {
             if (state.loading && state.tasks.isNotEmpty()) {
                 item {
                     LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
@@ -281,6 +287,7 @@ fun TodayScreen(viewModel: TodayViewModel) {
                     onCheckIn = { minutes -> viewModel.checkIn(task.id, minutes) },
                     onStartPomodoro = { startPomodoro(task) },
                 )
+            }
             }
         }
     }
