@@ -418,7 +418,6 @@ private fun studyDestinationFor(task: TodayTaskEntity): AppDestination? {
     return when {
         text.contains("单词") -> AppDestination.VOCAB
         text.contains("背诵") || text.contains("一背") -> AppDestination.RECITATION
-        text.contains("精读") || text.contains("阅读") -> AppDestination.PAPERS
         else -> null
     }
 }
@@ -704,7 +703,7 @@ private fun TaskCard(
                         ) {
                             Icon(Icons.Outlined.School, contentDescription = null)
                             Spacer(Modifier.width(6.dp))
-                            Text("去学习，悬浮计时")
+                            Text("去学习")
                         }
                     }
                     if (focusMinutes <= 0) {
