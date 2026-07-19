@@ -441,6 +441,7 @@ def _task_read(task: ScheduledTask) -> PlanTaskRead:
         planned_date=task.planned_date,
         est_minutes=task.est_minutes,
         status=task.status,
+        source=task.source,
         actual_minutes=task.actual_minutes,
         done_at=task.done_at,
         carry_count=task.carry_count,

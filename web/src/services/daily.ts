@@ -135,6 +135,7 @@ export interface AiDailyFocus {
 
 export interface AiWeekAdvice {
   week_start: string
+  status: string
   summary: string
   daily_focus: AiDailyFocus[]
   review_suggestions: string[]
@@ -169,4 +170,23 @@ export function generateAiWeekPlan(startDate?: string): Promise<AiWeekPlan> {
 export function fetchAiWeekAdvice(weekStart?: string): Promise<AiWeekAdvice> {
   const query = weekStart ? `?week_start=${encodeURIComponent(weekStart)}` : ''
   return request<AiWeekAdvice>(`/plan/ai-week${query}`)
+}
+
+export function confirmAiWeekPlan(startDate?: string): Promise<AiWeekPlan> {
+  return request<AiWeekPlan>('/plan/ai-week/confirm', {
+    method: 'POST',
+    body: JSON.stringify(startDate ? { start_date: startDate } : {}),
+  })
+}
+
+export interface AutomationRun {
+  id: string
+  job_name: string
+  status: string
+  detail: Record<string, unknown>
+  run_at: string
+}
+
+export function fetchAutomationRuns(limit = 10): Promise<{ runs: AutomationRun[] }> {
+  return request<{ runs: AutomationRun[] }>(`/automation/runs?limit=${limit}`)
 }
