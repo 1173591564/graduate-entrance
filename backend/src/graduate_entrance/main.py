@@ -1,3 +1,4 @@
+import logging
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
@@ -5,7 +6,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from graduate_entrance.api.router import protected_api_router, public_api_router
-from graduate_entrance.automation.scheduler import create_scheduler
+from graduate_entrance.automation.scheduler import create_scheduler, run_startup_catchup
 from graduate_entrance.core.config import get_settings
 from graduate_entrance.core.errors import ErrorResponse, install_exception_handlers
 from graduate_entrance.core.observability import configure_logging, install_request_logging
@@ -19,6 +20,12 @@ async def lifespan(_: FastAPI) -> AsyncIterator[None]:
     if settings.automation_enabled and settings.environment != "test":
         scheduler = create_scheduler(settings)
         scheduler.start()
+        try:
+            await run_startup_catchup(settings)
+        except Exception:
+            logging.getLogger(__name__).exception(
+                "automation startup catch-up failed"
+            )
     yield
     if scheduler is not None:
         scheduler.shutdown(wait=False)
