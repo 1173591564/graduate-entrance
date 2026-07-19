@@ -3,12 +3,13 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import date
+from datetime import UTC, date, datetime, time, timedelta
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from graduate_entrance.mastery.service import list_mastery_gaps
+from graduate_entrance.models.chat import ChatTopicTag
 from graduate_entrance.models.essay import EssayMaterial
 from graduate_entrance.models.problems import Problem
 from graduate_entrance.problems.insights import get_problem_insights
@@ -17,6 +18,8 @@ from graduate_entrance.vocab.service import vocab_stats
 
 MAX_GAPS = 5
 MAX_WEAK_POINTS = 5
+MAX_CHAT_TOPICS = 5
+CHAT_TOPIC_DAYS = 14
 
 
 @dataclass
@@ -31,6 +34,7 @@ class LearningSnapshot:
     recitation_total: int = 0
     review_due: int = 0
     essay_due: int = 0
+    chat_topic_lines: list[str] = field(default_factory=list)
 
 
 async def build_learning_snapshot(
@@ -83,6 +87,26 @@ async def build_learning_snapshot(
         or 0
     )
 
+    since = datetime.combine(
+        as_of - timedelta(days=CHAT_TOPIC_DAYS), time.min, tzinfo=UTC
+    )
+    topic_rows = (
+        await session.execute(
+            select(
+                ChatTopicTag.subject,
+                ChatTopicTag.topic,
+                func.count().label("asked"),
+            )
+            .where(ChatTopicTag.created_at >= since)
+            .group_by(ChatTopicTag.subject, ChatTopicTag.topic)
+            .order_by(func.count().desc())
+            .limit(MAX_CHAT_TOPICS)
+        )
+    ).all()
+    snapshot.chat_topic_lines = [
+        f"{subject}·{topic}：问了 {asked} 次" for subject, topic, asked in topic_rows
+    ]
+
     return snapshot
 
 
@@ -100,6 +124,9 @@ def snapshot_text(snapshot: LearningSnapshot) -> str:
         if snapshot.recitation_total
         else "（暂无背诵条目）"
     )
+    chat_block = (
+        "\n".join(f"- {line}" for line in snapshot.chat_topic_lines) or "（暂无）"
+    )
     return (
         f"学习画像快照（截至 {snapshot.as_of}）：\n"
         f"掌握度缺口 Top{MAX_GAPS}：\n{gap_block}\n\n"
@@ -107,5 +134,6 @@ def snapshot_text(snapshot: LearningSnapshot) -> str:
         f"单词：{vocab_line}\n"
         f"背诵：{recitation_line}\n"
         f"错题到期待复习：{snapshot.review_due} 道\n"
-        f"作文素材到期待背：{snapshot.essay_due} 篇"
+        f"作文素材到期待背：{snapshot.essay_due} 篇\n\n"
+        f"近{CHAT_TOPIC_DAYS}天提问高频主题（学生反复问=可能薄弱）：\n{chat_block}"
     )

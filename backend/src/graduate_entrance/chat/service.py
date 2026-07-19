@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import base64
 import json
 from typing import Any, cast
@@ -12,6 +13,7 @@ from sqlalchemy.orm import selectinload
 
 from graduate_entrance.ai import client as ai_client
 from graduate_entrance.ai import sandbox
+from graduate_entrance.chat.topics import tag_message_topics
 from graduate_entrance.core.config import Settings, get_settings
 from graduate_entrance.models.chat import ChatConversation, ChatMessage, utc_now
 from graduate_entrance.schemas.chat import (
@@ -52,6 +54,7 @@ RUN_PYTHON_TOOL: dict[str, Any] = {
     },
 }
 TOOLS: list[dict[str, Any]] = [RUN_PYTHON_TOOL]
+_background_tasks: set[asyncio.Task[int]] = set()
 MAX_TOOL_ROUNDS = 5
 HISTORY_LIMIT = 20
 TITLE_MAX_CHARS = 30
@@ -282,6 +285,12 @@ async def send_message(
     await session.refresh(conversation)
     await session.refresh(user_message)
     await session.refresh(reply)
+    if settings.environment != "test":
+        task = asyncio.create_task(
+            tag_message_topics(reply.id, content, reply_text, settings)
+        )
+        _background_tasks.add(task)
+        task.add_done_callback(_background_tasks.discard)
     return ChatSendResponse(
         conversation=_conversation_read(conversation),
         user_message=_message_read(user_message),
