@@ -12,6 +12,8 @@ from sqlalchemy.ext.asyncio import (
 )
 
 from graduate_entrance.automation import jobs
+from graduate_entrance.automation import scheduler as scheduler_module
+from graduate_entrance.core.config import Settings
 from graduate_entrance.db.base import Base
 from graduate_entrance.models.automation import AutomationRun
 from graduate_entrance.models.scheduling import ScheduledTask
@@ -146,3 +148,73 @@ async def test_backlog_check_skips_when_clean(
 ) -> None:
     result = await jobs.run_daily_backlog_check(as_of=AS_OF)
     assert result == "skipped"
+
+
+@pytest.mark.asyncio
+async def test_success_is_deduped_by_run_date(
+    session_factory: async_sessionmaker[AsyncSession],
+) -> None:
+    async with session_factory() as session:
+        for index in range(jobs.VOCAB_BACKLOG_THRESHOLD + 1):
+            session.add(
+                VocabWord(
+                    id=uuid4(),
+                    word=f"word{index}",
+                    meaning="含义",
+                    phonetic="",
+                    example_en="",
+                    example_zh="",
+                    book_page=1,
+                    reps=1,
+                    due_date=AS_OF - timedelta(days=1),
+                )
+            )
+        await session.commit()
+
+    assert await jobs.run_daily_backlog_check(as_of=AS_OF) == "success"
+    # A second run for the same target date short-circuits on the success row.
+    assert await jobs.run_daily_backlog_check(as_of=AS_OF) == "skipped"
+    async with session_factory() as session:
+        successes = (
+            await session.scalars(
+                select(AutomationRun).where(AutomationRun.status == "success")
+            )
+        ).all()
+        assert len(successes) == 1
+        assert successes[0].run_date == AS_OF
+
+
+class _FixedDatetime:
+    @classmethod
+    def now(cls, tz: object = None) -> datetime:
+        # Wednesday 14:00 — daily jobs are due, weekly (Sunday) is not.
+        return datetime(2026, 7, 22, 14, 0, tzinfo=tz)  # type: ignore[arg-type]
+
+
+@pytest.mark.asyncio
+async def test_startup_catchup_runs_due_daily_jobs_once(
+    session_factory: async_sessionmaker[AsyncSession],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    async def fake_gaps(session: object, limit: int = 20) -> MasteryGapResponse:
+        return _gap_response([_gap("重要极限", 80.0)])
+
+    monkeypatch.setattr(jobs, "list_mastery_gaps", fake_gaps)
+    monkeypatch.setattr(scheduler_module, "datetime", _FixedDatetime)
+
+    await scheduler_module.run_startup_catchup(Settings())
+    await scheduler_module.run_startup_catchup(Settings())
+
+    async with session_factory() as session:
+        watch_success = (
+            await session.scalars(
+                select(AutomationRun).where(
+                    AutomationRun.job_name == jobs.DAILY_MASTERY_WATCH,
+                    AutomationRun.status == "success",
+                )
+            )
+        ).all()
+        # Idempotent: the second catch-up sees the success row and skips.
+        assert len(watch_success) == 1
+        tasks = (await session.scalars(select(ScheduledTask))).all()
+        assert len(tasks) == 1
