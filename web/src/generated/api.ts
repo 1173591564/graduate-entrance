@@ -4,6 +4,23 @@
  */
 
 export interface paths {
+    "/api/automation/runs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Automation Runs */
+        get: operations["list_automation_runs_api_automation_runs_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/calendar": {
         parameters: {
             query?: never;
@@ -343,6 +360,23 @@ export interface paths {
         put?: never;
         /** Generate Ai Week */
         post: operations["generate_ai_week_api_plan_ai_week_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/plan/ai-week/confirm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Confirm Ai Week */
+        post: operations["confirm_ai_week_api_plan_ai_week_confirm_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1216,6 +1250,11 @@ export interface components {
             model: string;
             /** Review Suggestions */
             review_suggestions: string[];
+            /**
+             * Status
+             * @default confirmed
+             */
+            status: string;
             /** Summary */
             summary: string;
             /**
@@ -1233,6 +1272,32 @@ export interface components {
         AiWeekPlanResponse: {
             advice: components["schemas"]["AiWeekAdvice"];
             plan: components["schemas"]["PlanResponse"];
+        };
+        /** AutomationRunRead */
+        AutomationRunRead: {
+            /** Detail */
+            detail: {
+                [key: string]: unknown;
+            };
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Job Name */
+            job_name: string;
+            /**
+             * Run At
+             * Format: date-time
+             */
+            run_at: string;
+            /** Status */
+            status: string;
+        };
+        /** AutomationRunsResponse */
+        AutomationRunsResponse: {
+            /** Runs */
+            runs: components["schemas"]["AutomationRunRead"][];
         };
         /** AvailabilityExceptionInput */
         AvailabilityExceptionInput: {
@@ -3334,6 +3399,55 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    list_automation_runs_api_automation_runs_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AutomationRunsResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
     read_calendar_api_calendar_get: {
         parameters: {
             query: {
@@ -4524,6 +4638,57 @@ export interface operations {
         };
     };
     generate_ai_week_api_plan_ai_week_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AiWeekPlanRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AiWeekPlanResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    confirm_ai_week_api_plan_ai_week_confirm_post: {
         parameters: {
             query?: never;
             header?: never;
