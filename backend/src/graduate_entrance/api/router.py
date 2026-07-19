@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends
 
+from graduate_entrance.api.routes.automation import router as automation_router
 from graduate_entrance.api.routes.calendar import router as calendar_router
 from graduate_entrance.api.routes.chat import router as chat_router
 from graduate_entrance.api.routes.daily import router as daily_router
@@ -39,3 +40,4 @@ protected_api_router.include_router(retro_router)
 protected_api_router.include_router(vocab_router)
 protected_api_router.include_router(recitation_router)
 protected_api_router.include_router(chat_router)
+protected_api_router.include_router(automation_router)

@@ -131,6 +131,7 @@ class AiWeekPlan(Base):
 
     id: Mapped[UUID] = mapped_column(primary_key=True)
     week_start: Mapped[date] = mapped_column(Date, index=True)
+    status: Mapped[str] = mapped_column(String(16), default="confirmed")
     summary: Mapped[str] = mapped_column(Text)
     daily_focus: Mapped[list[dict[str, str]]] = mapped_column(JSON, default=list)
     review_suggestions: Mapped[list[str]] = mapped_column(JSON, default=list)

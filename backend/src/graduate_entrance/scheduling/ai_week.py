@@ -118,6 +118,7 @@ async def generate_ai_week_plan(
     session: AsyncSession,
     start_date: date,
     settings: Settings | None = None,
+    as_draft: bool = False,
 ) -> AiWeekPlanResponse:
     settings = settings or get_settings()
     week_start = start_date - timedelta(days=start_date.weekday())
@@ -155,7 +156,8 @@ async def generate_ai_week_plan(
         reasoning_effort=settings.ai_planning_reasoning_effort or None,
     )
     data = _parse_advice_json(raw)
-    plan = await persist_plan(session, request)
+    if not as_draft:
+        plan = await persist_plan(session, request)
     summary = data.get("summary")
     if not isinstance(summary, str) or not summary.strip():
         summary = "已生成下周计划，按每日任务推进即可。"
@@ -174,6 +176,7 @@ async def generate_ai_week_plan(
     ]
     stored.review_suggestions = review_suggestions
     stored.model = settings.ai_model
+    stored.status = "draft" if as_draft else "confirmed"
     await session.commit()
     await session.refresh(stored)
     return AiWeekPlanResponse(plan=plan, advice=_advice_read(stored))
@@ -182,6 +185,7 @@ async def generate_ai_week_plan(
 def _advice_read(stored: AiWeekPlan) -> AiWeekAdvice:
     return AiWeekAdvice(
         week_start=stored.week_start,
+        status=stored.status,
         summary=stored.summary,
         daily_focus=[
             AiDailyFocus(
@@ -204,3 +208,25 @@ async def get_ai_week_advice(
         select(AiWeekPlan).where(AiWeekPlan.week_start == normalized)
     )
     return _advice_read(stored) if stored is not None else None
+
+
+async def confirm_ai_week_draft(
+    session: AsyncSession, week_start: date
+) -> AiWeekPlanResponse:
+    normalized = week_start - timedelta(days=week_start.weekday())
+    stored = await session.scalar(
+        select(AiWeekPlan).where(AiWeekPlan.week_start == normalized)
+    )
+    if stored is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"周 {normalized} 没有待确认的 AI 计划草稿",
+        )
+    request = PlanGenerationRequest(
+        start_date=normalized, end_date=normalized + timedelta(days=6)
+    )
+    plan = await persist_plan(session, request)
+    stored.status = "confirmed"
+    await session.commit()
+    await session.refresh(stored)
+    return AiWeekPlanResponse(plan=plan, advice=_advice_read(stored))

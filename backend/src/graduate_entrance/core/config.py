@@ -39,6 +39,8 @@ class Settings(BaseSettings):
     ai_reasoning_effort: str = ""
     ai_planning_reasoning_effort: str = ""
     exam_date: date = date(2026, 12, 26)
+    automation_enabled: bool = True
+    automation_timezone: str = "Asia/Shanghai"
 
 
 @lru_cache
