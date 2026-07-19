@@ -1,4 +1,5 @@
 from graduate_entrance.db.base import Base
+from graduate_entrance.models.automation import AutomationRun
 from graduate_entrance.models.chat import ChatConversation, ChatMessage
 from graduate_entrance.models.essay import EssayMaterial
 from graduate_entrance.models.mastery import KpMastery
@@ -41,6 +42,7 @@ __all__ = [
     "AvailabilityException",
     "AvailabilityPeriod",
     "AvailabilityRule",
+    "AutomationRun",
     "Base",
     "Chapter",
     "ChatConversation",

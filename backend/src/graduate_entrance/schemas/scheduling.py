@@ -186,6 +186,7 @@ class AiDailyFocus(BaseModel):
 
 class AiWeekAdvice(BaseModel):
     week_start: date
+    status: str = "confirmed"
     summary: str
     daily_focus: list[AiDailyFocus]
     review_suggestions: list[str]

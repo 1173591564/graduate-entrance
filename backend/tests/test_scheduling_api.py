@@ -836,3 +836,73 @@ async def test_plan_estimate_ratio_is_clamped(
         if task["subject_name"] == "数学一"
     }
     assert est_values == {120}
+
+
+FAKE_ADVICE_JSON = (
+    '{"summary": "草稿：先补数学薄弱点。",'
+    ' "daily_focus": [{"date": "2026-07-20", "focus": "上午攻克重要极限"}],'
+    ' "review_suggestions": ["每天 20 分钟复盘错题"]}'
+)
+
+
+@pytest.mark.asyncio
+async def test_weekly_plan_draft_job_and_confirm(
+    scheduling_context: SchedulingContext,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from graduate_entrance.automation.jobs import run_weekly_plan_draft
+
+    await scheduling_context.client.post("/api/planning/task-pool/generate")
+
+    async def fake_complete_chat(
+        messages: list[dict[str, object]],
+        settings: object,
+        reasoning_effort: str | None = None,
+    ) -> str:
+        return FAKE_ADVICE_JSON
+
+    monkeypatch.setattr("graduate_entrance.ai.client.complete_chat", fake_complete_chat)
+    monkeypatch.setattr(
+        "graduate_entrance.automation.jobs.session_factory",
+        scheduling_context.session_factory,
+    )
+
+    result = await run_weekly_plan_draft(as_of=date(2026, 7, 15))
+    assert result == "success"
+
+    advice = await scheduling_context.client.get(
+        "/api/plan/ai-week", params={"week_start": "2026-07-20"}
+    )
+    assert advice.status_code == 200
+    assert advice.json()["status"] == "draft"
+
+    tasks = await scheduling_context.client.get(
+        "/api/today", params={"date": "2026-07-20"}
+    )
+    assert tasks.json()["tasks"] == []
+
+    runs = await scheduling_context.client.get("/api/automation/runs")
+    assert runs.status_code == 200
+    assert runs.json()["runs"][0]["job_name"] == "weekly_plan_draft"
+    assert runs.json()["runs"][0]["status"] == "success"
+
+    confirmed = await scheduling_context.client.post(
+        "/api/plan/ai-week/confirm", json={"start_date": "2026-07-20"}
+    )
+    assert confirmed.status_code == 200
+    assert confirmed.json()["advice"]["status"] == "confirmed"
+    assert confirmed.json()["plan"]["persisted"] is True
+    assert confirmed.json()["plan"]["tasks"]
+
+    result = await run_weekly_plan_draft(as_of=date(2026, 7, 15))
+    assert result == "skipped"
+
+
+@pytest.mark.asyncio
+async def test_confirm_without_draft_returns_404(
+    scheduling_context: SchedulingContext,
+) -> None:
+    response = await scheduling_context.client.post(
+        "/api/plan/ai-week/confirm", json={"start_date": "2030-01-07"}
+    )
+    assert response.status_code == 404

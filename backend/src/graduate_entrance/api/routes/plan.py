@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from graduate_entrance.db.session import get_session
 from graduate_entrance.scheduling.ai_week import (
+    confirm_ai_week_draft,
     generate_ai_week_plan,
     get_ai_week_advice,
     next_week_start,
@@ -47,6 +48,15 @@ async def generate_ai_week(
 ) -> AiWeekPlanResponse:
     start_date = payload.start_date or next_week_start(date.today())
     return await generate_ai_week_plan(session, start_date)
+
+
+@router.post("/ai-week/confirm", response_model=AiWeekPlanResponse)
+async def confirm_ai_week(
+    payload: AiWeekPlanRequest,
+    session: Session,
+) -> AiWeekPlanResponse:
+    start_date = payload.start_date or next_week_start(date.today())
+    return await confirm_ai_week_draft(session, start_date)
 
 
 @router.get("/ai-week", response_model=AiWeekAdvice)
