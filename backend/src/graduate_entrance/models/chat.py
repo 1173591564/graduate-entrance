@@ -33,6 +33,27 @@ class ChatConversation(Base):
     )
 
 
+class ChatTopicTag(Base):
+    """Knowledge-point topics an assistant reply touched, tagged asynchronously.
+
+    This feeds chat activity back into the learning snapshot: frequently asked
+    topics are a weakness signal that planning and retro should see.
+    """
+
+    __tablename__ = "chat_topic_tags"
+
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    message_id: Mapped[UUID] = mapped_column(
+        ForeignKey("chat_messages.id", ondelete="CASCADE"),
+        index=True,
+    )
+    subject: Mapped[str] = mapped_column(String(80))
+    topic: Mapped[str] = mapped_column(String(160))
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utc_now, index=True
+    )
+
+
 class ChatMessage(Base):
     __tablename__ = "chat_messages"
     __table_args__ = (

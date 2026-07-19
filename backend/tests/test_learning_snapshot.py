@@ -11,6 +11,7 @@ from sqlalchemy.ext.asyncio import (
 )
 
 from graduate_entrance.db.base import Base
+from graduate_entrance.models.chat import ChatConversation, ChatMessage, ChatTopicTag
 from graduate_entrance.models.essay import EssayMaterial
 from graduate_entrance.models.vocab import VocabWord
 from graduate_entrance.profile.learning_snapshot import (
@@ -80,3 +81,30 @@ async def test_snapshot_counts_vocab_and_essay_backlog(
     text = snapshot_text(snapshot)
     assert "到期待复习 1 个" in text
     assert "作文素材到期待背：1 篇" in text
+
+
+@pytest.mark.asyncio
+async def test_snapshot_counts_chat_topics(session: AsyncSession) -> None:
+    conversation = ChatConversation(id=uuid4(), title="测试")
+    session.add(conversation)
+    await session.flush()
+    message = ChatMessage(
+        id=uuid4(),
+        conversation_id=conversation.id,
+        role="assistant",
+        content_md="答案",
+        images=[],
+    )
+    session.add(message)
+    await session.flush()
+    for _ in range(3):
+        session.add(
+            ChatTopicTag(message_id=message.id, subject="数学一", topic="泰勒公式")
+        )
+    session.add(ChatTopicTag(message_id=message.id, subject="408", topic="B树"))
+    await session.commit()
+
+    snapshot = await build_learning_snapshot(session, AS_OF)
+    assert snapshot.chat_topic_lines[0] == "数学一·泰勒公式：问了 3 次"
+    assert "408·B树：问了 1 次" in snapshot.chat_topic_lines
+    assert "提问高频主题" in snapshot_text(snapshot)
