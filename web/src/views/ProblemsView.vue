@@ -819,14 +819,14 @@ onMounted(() => loadPending())
   margin: 0 0 8px;
   color: var(--deep);
   font-size: 13px;
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
 .problems-hero h1 {
   margin: 0;
-  font-size: clamp(32px, 5vw, 52px);
+  font-size: clamp(24px, 2.5vw, 30px);
 }
 
 .problems-hero p:last-child {
@@ -839,7 +839,7 @@ onMounted(() => loadPending())
   border-radius: 999px;
   color: var(--deep);
   background: var(--paper-warm);
-  font-weight: 800;
+  font-weight: 700;
   white-space: nowrap;
 }
 
@@ -848,7 +848,7 @@ onMounted(() => loadPending())
   gap: 14px;
   padding: 22px;
   border: 1px solid var(--rule);
-  border-radius: 3px;
+  border-radius: var(--radius-md);
   background: white;
 }
 
@@ -869,7 +869,7 @@ onMounted(() => loadPending())
   gap: 6px;
   color: var(--ink-soft);
   font-size: 13px;
-  font-weight: 750;
+  font-weight: 600;
 }
 
 .intake-card input,
@@ -880,7 +880,7 @@ onMounted(() => loadPending())
 .review-card textarea {
   padding: 9px 10px;
   border: 1px solid var(--rule);
-  border-radius: 3px;
+  border-radius: var(--radius-md);
   font: inherit;
 }
 
@@ -889,11 +889,11 @@ onMounted(() => loadPending())
   justify-self: start;
   padding: 10px 18px;
   border: 0;
-  border-radius: 3px;
+  border-radius: var(--radius-md);
   color: white;
-  background: var(--deep);
+  background: var(--brand);
   cursor: pointer;
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .intake-card button[type='submit']:disabled {
@@ -911,7 +911,7 @@ onMounted(() => loadPending())
   gap: 14px;
   padding: 22px;
   border: 1px solid var(--rule);
-  border-radius: 3px;
+  border-radius: var(--radius-md);
   background: white;
 }
 
@@ -933,7 +933,7 @@ onMounted(() => loadPending())
   color: var(--warn);
   background: var(--paper-warm);
   font-size: 12px;
-  font-weight: 750;
+  font-weight: 600;
 }
 
 .heading-actions {
@@ -949,7 +949,7 @@ onMounted(() => loadPending())
   color: white;
   background: var(--accent-cs);
   font-size: 13px;
-  font-weight: 750;
+  font-weight: 600;
   cursor: pointer;
 }
 
@@ -967,7 +967,7 @@ onMounted(() => loadPending())
   gap: 8px;
   padding: 14px;
   border: 1px dashed var(--rule);
-  border-radius: 3px;
+  border-radius: var(--radius-md);
   background: var(--card);
 }
 
@@ -979,7 +979,7 @@ onMounted(() => loadPending())
 .grade-score {
   margin: 0;
   font-size: 16px;
-  font-weight: 800;
+  font-weight: 700;
   color: var(--accent-cs);
 }
 
@@ -998,7 +998,7 @@ onMounted(() => loadPending())
   gap: 8px;
   padding: 14px;
   border: 1px solid var(--rule);
-  border-radius: 3px;
+  border-radius: var(--radius-md);
   background: var(--paper-warm);
 }
 
@@ -1013,7 +1013,7 @@ onMounted(() => loadPending())
   color: var(--accent-cs);
   background: var(--rule);
   font-size: 12px;
-  font-weight: 750;
+  font-weight: 600;
 }
 
 .image-strip {
@@ -1026,7 +1026,7 @@ onMounted(() => loadPending())
   max-width: 240px;
   max-height: 180px;
   border: 1px solid var(--rule);
-  border-radius: 3px;
+  border-radius: var(--radius-md);
   object-fit: contain;
 }
 
@@ -1041,7 +1041,7 @@ onMounted(() => loadPending())
   gap: 10px;
   padding: 14px;
   border: 1px dashed var(--rule);
-  border-radius: 3px;
+  border-radius: var(--radius-md);
 }
 
 .mapping-heading {
@@ -1061,7 +1061,7 @@ onMounted(() => loadPending())
   color: var(--ok);
   background: var(--paper-warm);
   font-size: 12px;
-  font-weight: 750;
+  font-weight: 600;
 }
 
 .weight-total.invalid {
@@ -1079,11 +1079,11 @@ onMounted(() => loadPending())
 .remove-button {
   padding: 8px 12px;
   border: 1px solid var(--rule);
-  border-radius: 3px;
+  border-radius: var(--radius-md);
   color: var(--ink);
   background: var(--paper-warm);
   cursor: pointer;
-  font-weight: 750;
+  font-weight: 600;
 }
 
 .remove-button:disabled {
@@ -1096,7 +1096,7 @@ onMounted(() => loadPending())
 .empty-state {
   margin: 0;
   padding: 16px 18px;
-  border-radius: 3px;
+  border-radius: var(--radius-md);
 }
 
 .feedback.error {

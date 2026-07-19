@@ -261,14 +261,14 @@ onMounted(() => loadDue())
   margin: 0 0 8px;
   color: var(--deep);
   font-size: 13px;
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
 .reviews-hero h1 {
   margin: 0;
-  font-size: clamp(32px, 5vw, 52px);
+  font-size: clamp(24px, 2.5vw, 30px);
 }
 
 .reviews-hero p:last-child {
@@ -281,7 +281,7 @@ onMounted(() => loadDue())
   border-radius: 999px;
   color: var(--deep);
   background: var(--paper-warm);
-  font-weight: 800;
+  font-weight: 700;
   white-space: nowrap;
 }
 
@@ -296,17 +296,17 @@ onMounted(() => loadDue())
   align-items: center;
   gap: 8px;
   color: var(--ink-soft);
-  font-weight: 750;
+  font-weight: 600;
 }
 
 .refresh-button {
   padding: 8px 14px;
   border: 1px solid var(--rule);
-  border-radius: 3px;
+  border-radius: var(--radius-md);
   color: var(--ink);
   background: var(--paper-warm);
   cursor: pointer;
-  font-weight: 750;
+  font-weight: 600;
 }
 
 .review-deck {
@@ -319,7 +319,7 @@ onMounted(() => loadDue())
   gap: 12px;
   padding: 22px;
   border: 1px solid var(--rule);
-  border-radius: 3px;
+  border-radius: var(--radius-md);
   background: white;
 }
 
@@ -339,7 +339,7 @@ onMounted(() => loadDue())
   padding: 5px 9px;
   border-radius: 999px;
   font-size: 12px;
-  font-weight: 750;
+  font-weight: 600;
 }
 
 .status-badge.draft {
@@ -369,13 +369,13 @@ onMounted(() => loadDue())
   max-width: 240px;
   max-height: 180px;
   border: 1px solid var(--rule);
-  border-radius: 3px;
+  border-radius: var(--radius-md);
   object-fit: contain;
 }
 
 .content-body {
   padding: 14px;
-  border-radius: 3px;
+  border-radius: var(--radius-md);
   background: var(--paper-warm);
   white-space: pre-wrap;
 }
@@ -407,11 +407,11 @@ onMounted(() => loadDue())
   justify-self: start;
   padding: 8px 14px;
   border: 1px dashed var(--rule);
-  border-radius: 3px;
+  border-radius: var(--radius-md);
   color: var(--ink);
   background: var(--paper-warm);
   cursor: pointer;
-  font-weight: 750;
+  font-weight: 600;
 }
 
 .solutions {
@@ -421,7 +421,7 @@ onMounted(() => loadDue())
 
 .solution {
   padding: 12px 14px;
-  border-radius: 3px;
+  border-radius: var(--radius-md);
   border: 1px solid var(--rule);
 }
 
@@ -429,7 +429,7 @@ onMounted(() => loadDue())
   margin: 0 0 4px;
   color: var(--deep);
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .solution p {
@@ -445,10 +445,10 @@ onMounted(() => loadDue())
 .grade-button {
   padding: 12px;
   border: 0;
-  border-radius: 3px;
+  border-radius: var(--radius-md);
   color: white;
   cursor: pointer;
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .grade-button:disabled {
@@ -473,7 +473,7 @@ onMounted(() => loadDue())
 .empty-state {
   margin: 0;
   padding: 16px 18px;
-  border-radius: 3px;
+  border-radius: var(--radius-md);
 }
 
 .feedback.error {

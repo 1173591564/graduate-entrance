@@ -262,13 +262,13 @@ onMounted(() => load())
   border: 1px solid var(--rule);
   border-radius: 999px;
   background: white;
-  font-weight: 750;
+  font-weight: 600;
   cursor: pointer;
   color: var(--ink-soft);
 }
 
 .subject-switch button.active {
-  background: var(--deep);
+  background: var(--brand);
   color: white;
   border-color: var(--deep);
 }
@@ -285,7 +285,7 @@ onMounted(() => load())
   border-radius: 999px;
   background: white;
   font-size: 13px;
-  font-weight: 750;
+  font-weight: 600;
   color: var(--ink-soft);
 }
 
@@ -294,7 +294,7 @@ onMounted(() => load())
   gap: 16px;
   padding: 32px 28px;
   border: 1px solid var(--rule);
-  border-radius: 3px;
+  border-radius: var(--radius-md);
   background: white;
 }
 
@@ -308,7 +308,7 @@ onMounted(() => load())
 }
 
 .pick-label {
-  font-weight: 750;
+  font-weight: 600;
   color: var(--deep);
 }
 
@@ -322,7 +322,7 @@ onMounted(() => load())
   margin: 0;
   padding: 16px;
   border: 1px solid var(--rule);
-  border-radius: 3px;
+  border-radius: var(--radius-md);
   background: var(--paper-warm);
   font-family: inherit;
   font-size: 15px;
@@ -343,9 +343,9 @@ onMounted(() => load())
 .row-actions button {
   padding: 8px 18px;
   border: 1px solid var(--rule);
-  border-radius: 3px;
+  border-radius: var(--radius-md);
   background: var(--paper-warm);
-  font-weight: 750;
+  font-weight: 600;
   cursor: pointer;
 }
 
@@ -384,7 +384,7 @@ onMounted(() => load())
   gap: 12px;
   padding: 12px 16px;
   border: 1px solid var(--rule);
-  border-radius: 3px;
+  border-radius: var(--radius-md);
   background: white;
 }
 
@@ -416,7 +416,7 @@ onMounted(() => load())
   padding: 3px 10px;
   border-radius: 999px;
   font-size: 12px;
-  font-weight: 750;
+  font-weight: 600;
   border: 1px solid var(--rule);
   color: var(--ink-muted);
 }
@@ -430,7 +430,7 @@ onMounted(() => load())
   text-align: center;
   color: var(--ink-muted);
   border: 1px dashed var(--rule);
-  border-radius: 3px;
+  border-radius: var(--radius-md);
 }
 
 .feedback.error {

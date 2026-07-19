@@ -37,6 +37,17 @@ const taskTypes: Array<{ value: TaskType; label: string }> = [
   { value: 'review', label: '复盘' },
 ]
 
+type SectionKey = 'goals' | 'phases' | 'availability' | 'materials' | 'templates'
+
+const sections: Array<{ key: SectionKey; label: string }> = [
+  { key: 'goals', label: '目标分' },
+  { key: 'phases', label: '阶段配比' },
+  { key: 'availability', label: '可用时段' },
+  { key: 'materials', label: '资料库' },
+  { key: 'templates', label: '任务模板' },
+]
+const activeSection = ref<SectionKey>('goals')
+
 const config = ref<PlanningConfig | null>(null)
 const loading = ref(true)
 const busy = ref(false)
@@ -353,14 +364,20 @@ onMounted(async () => {
         class="section-nav"
         aria-label="规划配置分区"
       >
-        <a href="#goals">目标分</a>
-        <a href="#phases">阶段配比</a>
-        <a href="#availability">可用时段</a>
-        <a href="#materials">资料库</a>
-        <a href="#templates">任务模板</a>
+        <button
+          v-for="section in sections"
+          :key="section.key"
+          type="button"
+          class="section-tab"
+          :class="{ active: activeSection === section.key }"
+          @click="activeSection = section.key"
+        >
+          {{ section.label }}
+        </button>
       </nav>
 
       <section
+        v-show="activeSection === 'goals'"
         id="goals"
         class="config-section"
       >
@@ -405,6 +422,7 @@ onMounted(async () => {
       </section>
 
       <section
+        v-show="activeSection === 'phases'"
         id="phases"
         class="config-section"
       >
@@ -549,13 +567,14 @@ onMounted(async () => {
       </section>
 
       <section
+        v-show="activeSection === 'availability'"
         id="availability"
         class="config-section"
       >
         <div class="section-heading">
           <div>
             <span>02</span>
-            <h2>Availability</h2>
+            <h2>可用时段</h2>
           </div>
           <strong>{{ config.availability_periods.length }} 套周模板</strong>
         </div>
@@ -742,6 +761,7 @@ onMounted(async () => {
       </section>
 
       <section
+        v-show="activeSection === 'materials'"
         id="materials"
         class="config-section"
       >
@@ -844,6 +864,7 @@ onMounted(async () => {
       </section>
 
       <section
+        v-show="activeSection === 'templates'"
         id="templates"
         class="config-section"
       >
@@ -1021,13 +1042,13 @@ onMounted(async () => {
   margin: 0 0 10px;
   color: var(--deep);
   font-size: 14px;
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: 0.08em;
 }
 
 h1 {
   margin: 0;
-  font-size: clamp(34px, 5vw, 56px);
+  font-size: clamp(24px, 2.5vw, 30px);
   letter-spacing: -0.04em;
 }
 
@@ -1038,10 +1059,10 @@ h1 {
 }
 
 .secondary-link,
-.section-nav a,
+.section-tab,
 .tag-row span {
   border-radius: 999px;
-  font-weight: 750;
+  font-weight: 600;
 }
 
 .secondary-link {
@@ -1065,7 +1086,7 @@ h1 {
 .state-card,
 .feedback {
   padding: 18px 20px;
-  border-radius: 3px;
+  border-radius: var(--radius-md);
 }
 
 .feedback.success {
@@ -1084,27 +1105,36 @@ h1 {
   z-index: 3;
   top: 12px;
   display: flex;
-  gap: 8px;
-  margin: 24px 0;
-  padding: 10px;
-  border-radius: 3px;
+  gap: 6px;
+  margin: 24px 0 0;
+  padding: 8px;
+  border-radius: var(--radius-md, 10px);
 }
 
-.section-nav a {
-  padding: 9px 14px;
+.section-tab {
+  padding: 8px 16px;
+  border: none;
+  background: transparent;
   color: var(--ink-soft);
+  cursor: pointer;
+  font-size: 0.9rem;
 }
 
-.section-nav a:hover {
+.section-tab:hover {
   color: var(--deep);
   background: var(--paper-warm);
+}
+
+.section-tab.active {
+  color: var(--brand, var(--deep));
+  background: var(--brand-soft, var(--paper-warm));
 }
 
 .config-section {
   scroll-margin-top: 90px;
   margin-top: 24px;
   padding: 28px;
-  border-radius: 24px;
+  border-radius: var(--radius-lg, 14px);
 }
 
 .section-heading {
@@ -1150,7 +1180,7 @@ h1 {
 .config-form,
 .record-list article {
   padding: 20px;
-  border-radius: 3px;
+  border-radius: var(--radius-md);
   box-shadow: none;
 }
 
@@ -1193,7 +1223,7 @@ h1 {
   gap: 7px;
   color: var(--ink-soft);
   font-size: 13px;
-  font-weight: 750;
+  font-weight: 600;
 }
 
 input,
@@ -1202,7 +1232,7 @@ textarea {
   width: 100%;
   padding: 10px 11px;
   border: 1px solid var(--rule);
-  border-radius: 3px;
+  border-radius: var(--radius-md);
   color: var(--deep);
   background: white;
 }
@@ -1214,11 +1244,11 @@ textarea {
 .config-form button {
   padding: 11px 16px;
   border: 0;
-  border-radius: 3px;
+  border-radius: var(--radius-md);
   color: white;
-  background: var(--deep);
+  background: var(--brand);
   cursor: pointer;
-  font-weight: 800;
+  font-weight: 700;
 }
 
 button:disabled {
@@ -1246,14 +1276,14 @@ fieldset {
   margin: 0;
   padding: 14px;
   border: 1px solid var(--rule-soft);
-  border-radius: 3px;
+  border-radius: var(--radius-md);
 }
 
 legend {
   padding: 0 6px;
   color: var(--ink-soft);
   font-size: 13px;
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .ratio-grid,
@@ -1268,7 +1298,7 @@ legend {
 
 .ratio-grid label {
   padding: 10px;
-  border-radius: 3px;
+  border-radius: var(--radius-md);
   background: white;
 }
 
@@ -1311,7 +1341,7 @@ legend {
 .record-title button {
   padding: 6px 10px;
   border: 0;
-  border-radius: 3px;
+  border-radius: var(--radius-md);
   color: var(--danger);
   background: var(--paper-warm);
   cursor: pointer;
@@ -1339,7 +1369,7 @@ legend {
 }
 
 .week-summary span {
-  border-radius: 3px;
+  border-radius: var(--radius-md);
   color: var(--ink-soft);
   background: var(--paper-warm);
 }
@@ -1353,7 +1383,7 @@ legend {
   margin: 0;
   padding: 20px;
   border: 1px dashed var(--rule);
-  border-radius: 3px;
+  border-radius: var(--radius-md);
   color: var(--ink-muted);
   text-align: center;
 }

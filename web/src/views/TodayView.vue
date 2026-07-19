@@ -395,14 +395,14 @@ onMounted(async () => {
   margin: 0 0 8px;
   color: var(--deep);
   font-size: 13px;
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
 .today-hero h1 {
   margin: 0;
-  font-size: clamp(32px, 5vw, 52px);
+  font-size: clamp(24px, 2.5vw, 30px);
 }
 
 .today-hero p:last-child {
@@ -416,7 +416,7 @@ onMounted(async () => {
   gap: 10px;
   padding: 14px;
   border: 1px solid var(--rule);
-  border-radius: 3px;
+  border-radius: var(--radius-md);
   background: white;
 }
 
@@ -426,18 +426,18 @@ onMounted(async () => {
   gap: 6px;
   color: var(--ink-soft);
   font-size: 13px;
-  font-weight: 750;
+  font-weight: 600;
 }
 
 .date-control button,
 .complete-button {
   padding: 10px 16px;
   border: 0;
-  border-radius: 3px;
+  border-radius: var(--radius-md);
   color: white;
-  background: var(--deep);
+  background: var(--brand);
   cursor: pointer;
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .plan-actions {
@@ -450,11 +450,11 @@ onMounted(async () => {
 .leave-button {
   padding: 10px 16px;
   border: 1px solid var(--deep);
-  border-radius: 3px;
+  border-radius: var(--radius-md);
   color: var(--deep);
   background: white;
   cursor: pointer;
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .leave-button {
@@ -465,11 +465,11 @@ onMounted(async () => {
 .ai-week-button {
   padding: 10px 16px;
   border: 0;
-  border-radius: 3px;
+  border-radius: var(--radius-md);
   color: white;
-  background: linear-gradient(120deg, var(--deep), var(--accent-cs));
+  background: var(--brand);
   cursor: pointer;
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .ai-advice-card {
@@ -477,7 +477,7 @@ onMounted(async () => {
   gap: 12px;
   padding: 22px;
   border: 1px solid var(--rule);
-  border-radius: 3px;
+  border-radius: var(--radius-md);
   background: linear-gradient(150deg, var(--paper-warm), var(--card));
 }
 
@@ -502,7 +502,7 @@ onMounted(async () => {
   background: white;
   cursor: pointer;
   font-size: 13px;
-  font-weight: 750;
+  font-weight: 600;
 }
 
 .ai-summary {
@@ -513,10 +513,10 @@ onMounted(async () => {
 .ai-today-focus {
   margin: 0;
   padding: 10px 14px;
-  border-radius: 3px;
+  border-radius: var(--radius-md);
   color: var(--accent-cs);
   background: var(--paper-warm);
-  font-weight: 750;
+  font-weight: 600;
 }
 
 .ai-focus-list,
@@ -538,12 +538,12 @@ onMounted(async () => {
 .focus-date {
   flex-shrink: 0;
   color: var(--accent-cs);
-  font-weight: 750;
+  font-weight: 600;
 }
 
 .ai-suggestion-list li {
   padding: 8px 12px;
-  border-radius: 3px;
+  border-radius: var(--radius-md);
   color: var(--ink);
   background: white;
   font-size: 14px;
@@ -569,7 +569,7 @@ onMounted(async () => {
 .due-review-card a {
   color: var(--deep);
   font-size: 13px;
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .summary-grid article {
@@ -577,7 +577,7 @@ onMounted(async () => {
   gap: 8px;
   padding: 20px;
   border: 1px solid var(--rule);
-  border-radius: 3px;
+  border-radius: var(--radius-md);
   background: white;
 }
 
@@ -602,7 +602,7 @@ onMounted(async () => {
   gap: 24px;
   padding: 22px;
   border: 1px solid var(--rule);
-  border-radius: 3px;
+  border-radius: var(--radius-md);
   background: white;
 }
 
@@ -624,7 +624,7 @@ onMounted(async () => {
   padding: 5px 9px;
   border-radius: 999px;
   font-size: 12px;
-  font-weight: 750;
+  font-weight: 600;
 }
 
 .subject-badge {
@@ -662,7 +662,7 @@ onMounted(async () => {
 }
 
 .task-meta span {
-  border-radius: 3px;
+  border-radius: var(--radius-md);
   color: var(--ink-soft);
   background: var(--paper-warm);
 }
@@ -690,7 +690,7 @@ onMounted(async () => {
 .empty-state {
   margin: 0;
   padding: 16px 18px;
-  border-radius: 3px;
+  border-radius: var(--radius-md);
 }
 
 .feedback.error {

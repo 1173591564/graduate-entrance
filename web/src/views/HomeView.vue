@@ -186,7 +186,7 @@ onMounted(async () => {
             已学 {{ formatMinutes(subject.studied_minutes) }} · 错题 {{ subject.wrong_count }} 道
           </p>
           <div
-            v-if="subject.weak_points.length > 0"
+            v-if="subject.weak_points.length > 0 && subject.studied_points > 0"
             class="weak-list"
           >
             <span>薄弱点</span>
@@ -200,6 +200,12 @@ onMounted(async () => {
               </li>
             </ul>
           </div>
+          <p
+            v-else
+            class="weak-empty"
+          >
+            暂无掌握度数据，先打卡积累。
+          </p>
         </article>
       </div>
     </template>
@@ -223,7 +229,7 @@ onMounted(async () => {
 
 .dash-hero h1 {
   margin: 14px 0 0;
-  font-size: clamp(30px, 3.6vw, 44px);
+  font-size: clamp(24px, 2.5vw, 30px);
   letter-spacing: -0.03em;
 }
 
@@ -242,27 +248,27 @@ onMounted(async () => {
 
 .primary-link {
   display: inline-flex;
-  padding: 12px 18px;
-  border-radius: 999px;
+  padding: 10px 18px;
+  border-radius: var(--radius-sm, 8px);
   color: white;
-  background: var(--deep);
-  font-weight: 800;
+  background: var(--brand, var(--deep));
+  font-weight: 600;
 }
 
 .secondary-link {
   display: inline-flex;
-  padding: 12px 18px;
+  padding: 10px 18px;
   border: 1px solid var(--rule);
-  border-radius: 999px;
+  border-radius: var(--radius-sm, 8px);
   color: var(--ink-soft);
   background: white;
-  font-weight: 800;
+  font-weight: 500;
 }
 
 .state-card {
   padding: 28px;
   border: 1px solid var(--rule);
-  border-radius: 3px;
+  border-radius: var(--radius-md);
   background: white;
   color: var(--ink-soft);
 }
@@ -283,14 +289,14 @@ onMounted(async () => {
   gap: 6px;
   padding: 22px;
   border: 1px solid var(--rule);
-  border-radius: 3px;
+  border-radius: var(--radius-md);
   background: white;
 }
 
 .metric-card span {
   color: var(--ink-muted);
   font-size: 13px;
-  font-weight: 750;
+  font-weight: 600;
 }
 
 .metric-card strong {
@@ -314,7 +320,7 @@ onMounted(async () => {
   gap: 14px;
   padding: 24px;
   border: 1px solid var(--rule);
-  border-radius: 3px;
+  border-radius: var(--radius-md);
   background: white;
 }
 
@@ -353,7 +359,7 @@ onMounted(async () => {
   display: block;
   height: 100%;
   border-radius: 999px;
-  background: linear-gradient(90deg, var(--deep), var(--accent-cs));
+  background: var(--brand, var(--deep));
 }
 
 .bar i.coverage {
@@ -366,10 +372,16 @@ onMounted(async () => {
   font-size: 13px;
 }
 
+.weak-empty {
+  margin: 0;
+  color: var(--ink-muted);
+  font-size: 13px;
+}
+
 .weak-list span {
   color: var(--ink-muted);
   font-size: 13px;
-  font-weight: 750;
+  font-weight: 600;
 }
 
 .weak-list ul {

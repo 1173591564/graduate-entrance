@@ -186,7 +186,7 @@ onMounted(async () => {
 
 .syllabus-hero h1 {
   margin: 0;
-  font-size: clamp(34px, 5vw, 56px);
+  font-size: clamp(24px, 2.5vw, 30px);
   letter-spacing: -0.04em;
 }
 
@@ -195,7 +195,7 @@ onMounted(async () => {
 .subject-panel,
 .tree-card {
   border: 1px solid var(--rule);
-  border-radius: 3px;
+  border-radius: var(--radius-md);
   background: white;
   box-shadow: var(--shadow-card);
 }
@@ -246,7 +246,7 @@ onMounted(async () => {
   justify-content: space-between;
   padding: 14px 16px;
   border: 1px solid var(--rule);
-  border-radius: 3px;
+  border-radius: var(--radius-md);
   color: var(--ink-soft);
   background: white;
   cursor: pointer;
@@ -298,13 +298,13 @@ onMounted(async () => {
 
 .subject-panel dd {
   margin: 0;
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .exam-blueprint {
   margin-top: 18px;
   padding: 14px;
-  border-radius: 3px;
+  border-radius: var(--radius-md);
   background: var(--paper-warm);
 }
 
@@ -336,7 +336,7 @@ details {
 summary {
   padding: 16px 0;
   cursor: pointer;
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .chapter-body {
@@ -347,7 +347,7 @@ summary {
 
 .section-block {
   padding: 16px;
-  border-radius: 3px;
+  border-radius: var(--radius-md);
   background: var(--paper-warm);
 }
 
@@ -369,7 +369,7 @@ li {
   gap: 12px;
   justify-content: space-between;
   padding: 10px 12px;
-  border-radius: 3px;
+  border-radius: var(--radius-md);
   background: white;
   color: var(--ink);
 }
@@ -377,12 +377,12 @@ li {
 li small {
   flex: 0 0 auto;
   color: var(--deep);
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .chapter-points {
   padding: 16px;
-  border-radius: 3px;
+  border-radius: var(--radius-md);
   background: var(--paper-warm);
 }
 

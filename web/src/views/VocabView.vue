@@ -177,7 +177,7 @@ onMounted(() => load())
   border-radius: 999px;
   background: white;
   font-size: 13px;
-  font-weight: 750;
+  font-weight: 600;
   color: var(--ink-soft);
 }
 
@@ -188,7 +188,7 @@ onMounted(() => load())
   text-align: center;
   padding: 48px 28px;
   border: 1px solid var(--rule);
-  border-radius: 3px;
+  border-radius: var(--radius-md);
   background: white;
 }
 
@@ -218,9 +218,9 @@ onMounted(() => load())
 .reveal-button {
   padding: 10px 26px;
   border: 1px solid var(--rule);
-  border-radius: 3px;
+  border-radius: var(--radius-md);
   background: var(--paper-warm);
-  font-weight: 750;
+  font-weight: 600;
   cursor: pointer;
 }
 
@@ -232,9 +232,9 @@ onMounted(() => load())
 .grade-button {
   padding: 10px 26px;
   border: 1px solid var(--rule);
-  border-radius: 3px;
+  border-radius: var(--radius-md);
   background: white;
-  font-weight: 750;
+  font-weight: 600;
   cursor: pointer;
 }
 
@@ -260,7 +260,7 @@ onMounted(() => load())
   text-align: center;
   color: var(--ink-muted);
   border: 1px dashed var(--rule);
-  border-radius: 3px;
+  border-radius: var(--radius-md);
 }
 
 .feedback.error {

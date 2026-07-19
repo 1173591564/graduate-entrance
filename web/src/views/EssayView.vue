@@ -432,7 +432,7 @@ onMounted(load)
   border: 1px solid var(--ok);
   color: var(--ok);
   padding: 10px 14px;
-  border-radius: 3px;
+  border-radius: var(--radius-md);
   margin: 0;
 }
 
@@ -441,14 +441,14 @@ onMounted(load)
   border: 1px solid var(--danger);
   color: var(--danger);
   padding: 10px 14px;
-  border-radius: 3px;
+  border-radius: var(--radius-md);
   margin: 0;
 }
 
 .due-panel {
   border: 1px solid var(--warn);
   background: var(--paper-warm);
-  border-radius: 3px;
+  border-radius: var(--radius-md);
   padding: 16px;
   display: flex;
   flex-direction: column;
@@ -464,7 +464,7 @@ onMounted(load)
 .material-card {
   border: 1px solid var(--rule);
   background: var(--card);
-  border-radius: 3px;
+  border-radius: var(--radius-md);
   padding: 14px 16px;
   display: flex;
   flex-direction: column;
@@ -524,7 +524,7 @@ onMounted(load)
 
 .material-form {
   border: 1px solid var(--rule);
-  border-radius: 3px;
+  border-radius: var(--radius-md);
   padding: 16px;
   display: flex;
   flex-direction: column;
@@ -557,7 +557,7 @@ onMounted(load)
 .filters input,
 .filters select {
   border: 1px solid var(--rule);
-  border-radius: 3px;
+  border-radius: var(--radius-md);
   padding: 8px 10px;
   font: inherit;
 }
@@ -573,7 +573,7 @@ onMounted(load)
   gap: 12px;
   padding: 16px;
   border: 1px solid var(--rule);
-  border-radius: 3px;
+  border-radius: var(--radius-md);
   background: var(--card);
 }
 
@@ -608,7 +608,7 @@ onMounted(load)
   flex: 1;
   min-width: 200px;
   border: 1px solid var(--rule);
-  border-radius: 3px;
+  border-radius: var(--radius-md);
   padding: 9px 12px;
   font: inherit;
 }
@@ -620,7 +620,7 @@ onMounted(load)
   gap: 8px;
   padding: 56px 24px;
   border: 1px dashed var(--rule);
-  border-radius: 3px;
+  border-radius: var(--radius-md);
   background: var(--card);
   color: var(--ink-soft);
   text-align: center;
@@ -663,15 +663,15 @@ onMounted(load)
 button {
   border: 1px solid var(--rule);
   background: var(--card);
-  border-radius: 3px;
+  border-radius: var(--radius-md);
   padding: 8px 14px;
   cursor: pointer;
   font: inherit;
 }
 
 button.primary {
-  background: var(--deep);
-  border-color: var(--deep);
+  background: var(--brand);
+  border-color: var(--brand);
   color: var(--card);
 }
 
