@@ -45,6 +45,11 @@
             "title": "Review Suggestions",
             "type": "array"
           },
+          "status": {
+            "default": "confirmed",
+            "title": "Status",
+            "type": "string"
+          },
           "summary": {
             "title": "Summary",
             "type": "string"
@@ -98,6 +103,58 @@
           "advice"
         ],
         "title": "AiWeekPlanResponse",
+        "type": "object"
+      },
+      "AutomationRunRead": {
+        "properties": {
+          "detail": {
+            "additionalProperties": true,
+            "title": "Detail",
+            "type": "object"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "job_name": {
+            "title": "Job Name",
+            "type": "string"
+          },
+          "run_at": {
+            "format": "date-time",
+            "title": "Run At",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "job_name",
+          "status",
+          "detail",
+          "run_at"
+        ],
+        "title": "AutomationRunRead",
+        "type": "object"
+      },
+      "AutomationRunsResponse": {
+        "properties": {
+          "runs": {
+            "items": {
+              "$ref": "#/components/schemas/AutomationRunRead"
+            },
+            "title": "Runs",
+            "type": "array"
+          }
+        },
+        "required": [
+          "runs"
+        ],
+        "title": "AutomationRunsResponse",
         "type": "object"
       },
       "AvailabilityExceptionInput": {
@@ -5142,6 +5199,76 @@
   },
   "openapi": "3.1.0",
   "paths": {
+    "/api/automation/runs": {
+      "get": {
+        "operationId": "list_automation_runs_api_automation_runs_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AutomationRunsResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List Automation Runs",
+        "tags": [
+          "automation"
+        ]
+      }
+    },
     "/api/calendar": {
       "get": {
         "operationId": "read_calendar_api_calendar_get",
@@ -6872,6 +6999,72 @@
           }
         ],
         "summary": "Generate Ai Week",
+        "tags": [
+          "plan"
+        ]
+      }
+    },
+    "/api/plan/ai-week/confirm": {
+      "post": {
+        "operationId": "confirm_ai_week_api_plan_ai_week_confirm_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AiWeekPlanRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiWeekPlanResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Confirm Ai Week",
         "tags": [
           "plan"
         ]
