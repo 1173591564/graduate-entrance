@@ -8,6 +8,10 @@ from graduate_entrance.core.config import Settings, get_settings
 from graduate_entrance.mastery.service import list_mastery_gaps
 from graduate_entrance.models.retro import RetroMessage
 from graduate_entrance.problems.insights import get_problem_insights
+from graduate_entrance.profile.learning_snapshot import (
+    build_learning_snapshot,
+    snapshot_text,
+)
 from graduate_entrance.profile.service import get_study_profile
 from graduate_entrance.scheduling.ai_week import generate_ai_week_plan
 from graduate_entrance.scheduling.service import get_weekly_stats
@@ -27,7 +31,8 @@ MAX_HISTORY_MESSAGES = 20
 
 SYSTEM_PROMPT = (
     "你是一名 11408 考研备考教练，正在和考生做每周复盘对话。"
-    "你会拿到本周执行数据、各科掌握度画像和薄弱知识点。"
+    "你会拿到本周执行数据、各科掌握度画像、薄弱知识点，以及跨模块学习画像快照"
+    "（单词/背诵/错题复习/作文素材的欠账情况）。取舍建议要考虑这些欠账。"
     "对话要求：直接、具体、口语化；先肯定做得好的地方，再指出问题和下周的取舍建议；"
     "回答控制在 200 字以内；如果考生表达了下周的时间变化或偏好，记住并在建议中体现；"
     "当考生确认方向后，提醒他点击「生成下周计划」落库。"
@@ -165,9 +170,13 @@ async def send_retro_message(
     session.add(user_message)
     await session.flush()
 
+    snapshot = await build_learning_snapshot(session, week_start + timedelta(days=6))
     chat_messages: list[dict[str, str]] = [
         {"role": "system", "content": SYSTEM_PROMPT},
-        {"role": "user", "content": _context_text(context)},
+        {
+            "role": "user",
+            "content": f"{_context_text(context)}\n\n{snapshot_text(snapshot)}",
+        },
         {"role": "assistant", "content": "收到，我已经了解你本周的数据，开始复盘吧。"},
     ]
     for message in history[-MAX_HISTORY_MESSAGES:]:

@@ -13,6 +13,10 @@ from graduate_entrance.ai import client as ai_client
 from graduate_entrance.core.config import Settings, get_settings
 from graduate_entrance.models.scheduling import AiWeekPlan
 from graduate_entrance.problems.insights import get_problem_insights
+from graduate_entrance.profile.learning_snapshot import (
+    build_learning_snapshot,
+    snapshot_text,
+)
 from graduate_entrance.scheduling.service import persist_plan, preview_plan
 from graduate_entrance.schemas.scheduling import (
     AiDailyFocus,
@@ -26,7 +30,8 @@ MAX_WEAK_POINTS = 6
 JSON_FENCE_PATTERN = re.compile(r"^```(?:json)?\s*(.*?)\s*```$", re.DOTALL)
 
 SYSTEM_PROMPT = (
-    "你是一名 11408 考研备考规划师。根据下周已排定的每日任务、每日可用时长和薄弱知识点，"
+    "你是一名 11408 考研备考规划师。根据下周已排定的每日任务、每日可用时长、薄弱知识点，"
+    "以及学习画像快照（单词/背诵/错题复习/作文素材的欠账情况），"
     "输出严格的 JSON 对象（不要用 Markdown 代码块包裹），字段如下：\n"
     '{"summary": "本周策略总结（120 字以内，指出重点科目与薄弱点安排）",\n'
     ' "daily_focus": [{"date": "YYYY-MM-DD", "focus": "当天学习重点与建议（40 字以内）"}],\n'
@@ -134,9 +139,11 @@ async def generate_ai_week_plan(
         f"遗忘 {point.forgot_reviews}/{point.total_reviews}，弱点分 {point.weakness_score}"
         for point in insights.knowledge_points[:MAX_WEAK_POINTS]
     )
+    snapshot = await build_learning_snapshot(session, week_start)
     user_text = (
         f"下周（{week_start} ~ {week_end}）已排定计划：\n{_plan_context(plan)}\n\n"
         f"薄弱知识点（按弱点分降序，可能为空）：\n{weak_lines or '（暂无数据）'}\n\n"
+        f"{snapshot_text(snapshot)}\n\n"
         "请输出 JSON。"
     )
     raw = await ai_client.complete_chat(
