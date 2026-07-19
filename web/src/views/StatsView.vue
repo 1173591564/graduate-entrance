@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 
 import { fetchWeeklyStats, type WeeklyStat, type WeeklyStatsSummary } from '../services/daily'
 
@@ -21,6 +21,18 @@ function formatMinutes(minutes: number): string {
 function formatRate(rate: number): string {
   return `${Math.round(rate * 1000) / 10}%`
 }
+
+function rateTier(rate: number): string {
+  if (rate >= 0.85) {
+    return 'tier-good'
+  }
+  if (rate >= 0.6) {
+    return 'tier-mid'
+  }
+  return 'tier-low'
+}
+
+const chartWeeks = computed(() => summary.value?.weeks.slice(-12) ?? [])
 
 function targetStatus(week: WeeklyStat): string {
   if (week.target_minutes === null) {
@@ -118,6 +130,30 @@ onMounted(() => loadStats())
         </article>
       </div>
 
+      <article
+        v-if="chartWeeks.length"
+        class="chart-card"
+      >
+        <h2>周执行率趋势</h2>
+        <div class="chart-bars">
+          <div
+            v-for="week in chartWeeks"
+            :key="week.week_start"
+            class="chart-bar"
+          >
+            <span class="chart-value">{{ formatRate(week.execution_rate) }}</span>
+            <div class="chart-track">
+              <div
+                class="chart-fill"
+                :class="rateTier(week.execution_rate)"
+                :style="{ height: `${Math.min(week.execution_rate, 1) * 100}%` }"
+              />
+            </div>
+            <span class="chart-label">{{ week.week_start.slice(5) }}</span>
+          </div>
+        </div>
+      </article>
+
       <div
         v-if="summary.weeks.length"
         class="week-list"
@@ -130,7 +166,10 @@ onMounted(() => loadStats())
         >
           <div class="week-heading">
             <h2>{{ week.week_start }} ~ {{ week.week_end }}</h2>
-            <span class="rate-badge">执行率 {{ formatRate(week.execution_rate) }}</span>
+            <span
+              class="rate-badge"
+              :class="rateTier(week.execution_rate)"
+            >执行率 {{ formatRate(week.execution_rate) }}</span>
           </div>
           <div class="week-meta">
             <span>计划 {{ formatMinutes(week.planned_minutes) }}</span>
@@ -182,14 +221,14 @@ onMounted(() => loadStats())
   margin: 0 0 8px;
   color: var(--deep);
   font-size: 13px;
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
 .stats-hero h1 {
   margin: 0;
-  font-size: clamp(32px, 5vw, 52px);
+  font-size: clamp(24px, 2.5vw, 30px);
 }
 
 .stats-hero p:last-child {
@@ -203,7 +242,7 @@ onMounted(() => loadStats())
   gap: 10px;
   padding: 14px;
   border: 1px solid var(--rule);
-  border-radius: 3px;
+  border-radius: var(--radius-md);
   background: white;
 }
 
@@ -212,17 +251,17 @@ onMounted(() => loadStats())
   gap: 6px;
   color: var(--ink-soft);
   font-size: 13px;
-  font-weight: 750;
+  font-weight: 600;
 }
 
 .range-control button {
   padding: 10px 16px;
   border: 0;
-  border-radius: 3px;
+  border-radius: var(--radius-md);
   color: white;
-  background: var(--deep);
+  background: var(--brand);
   cursor: pointer;
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .summary-grid {
@@ -236,7 +275,7 @@ onMounted(() => loadStats())
   gap: 8px;
   padding: 20px;
   border: 1px solid var(--rule);
-  border-radius: 3px;
+  border-radius: var(--radius-md);
   background: white;
 }
 
@@ -260,7 +299,7 @@ onMounted(() => loadStats())
   gap: 12px;
   padding: 22px;
   border: 1px solid var(--rule);
-  border-radius: 3px;
+  border-radius: var(--radius-md);
   background: white;
 }
 
@@ -285,10 +324,92 @@ onMounted(() => loadStats())
 .rate-badge {
   padding: 5px 9px;
   border-radius: 999px;
-  color: var(--deep);
+  color: var(--ink-soft);
   background: var(--paper-warm);
   font-size: 12px;
-  font-weight: 750;
+  font-weight: 600;
+}
+
+.rate-badge.tier-good {
+  color: var(--ok);
+  background: color-mix(in oklab, var(--ok) 10%, white);
+}
+
+.rate-badge.tier-mid {
+  color: var(--warn);
+  background: color-mix(in oklab, var(--warn) 10%, white);
+}
+
+.rate-badge.tier-low {
+  color: var(--danger);
+  background: color-mix(in oklab, var(--danger) 8%, white);
+}
+
+.chart-card {
+  display: grid;
+  gap: 16px;
+  padding: 22px;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-lg, 14px);
+  background: var(--surface, white);
+}
+
+.chart-card h2 {
+  margin: 0;
+  font-size: 15px;
+}
+
+.chart-bars {
+  display: flex;
+  align-items: stretch;
+  gap: 14px;
+  height: 180px;
+}
+
+.chart-bar {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.chart-value {
+  color: var(--ink-muted);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+.chart-track {
+  flex: 1;
+  display: flex;
+  align-items: flex-end;
+  width: 100%;
+  max-width: 48px;
+  border-radius: 6px;
+  background: var(--rule-soft);
+  overflow: hidden;
+}
+
+.chart-fill {
+  width: 100%;
+  border-radius: 6px 6px 0 0;
+  background: var(--brand, var(--deep));
+}
+
+.chart-fill.tier-mid {
+  background: var(--warn);
+}
+
+.chart-fill.tier-low {
+  background: var(--danger);
+}
+
+.chart-label {
+  color: var(--ink-muted);
+  font-size: 11px;
+  white-space: nowrap;
 }
 
 .week-meta {
@@ -299,11 +420,11 @@ onMounted(() => loadStats())
 
 .week-meta span {
   padding: 5px 9px;
-  border-radius: 3px;
+  border-radius: var(--radius-md);
   color: var(--ink-soft);
   background: var(--paper-warm);
   font-size: 12px;
-  font-weight: 750;
+  font-weight: 600;
 }
 
 .week-meta .warning-badge {
@@ -321,7 +442,7 @@ onMounted(() => loadStats())
 .progress-fill {
   height: 100%;
   border-radius: 999px;
-  background: var(--deep);
+  background: var(--brand, var(--deep));
 }
 
 .feedback,
@@ -329,7 +450,7 @@ onMounted(() => loadStats())
 .empty-state {
   margin: 0;
   padding: 16px 18px;
-  border-radius: 3px;
+  border-radius: var(--radius-md);
 }
 
 .feedback.error {

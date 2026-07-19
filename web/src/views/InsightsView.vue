@@ -281,14 +281,14 @@ onMounted(() => load())
   margin: 0 0 8px;
   color: var(--deep);
   font-size: 13px;
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
 .insights-hero h1 {
   margin: 0;
-  font-size: clamp(32px, 5vw, 52px);
+  font-size: clamp(24px, 2.5vw, 30px);
 }
 
 .insights-hero p:last-child {
@@ -307,7 +307,7 @@ onMounted(() => load())
   gap: 8px;
   padding: 20px;
   border: 1px solid var(--rule);
-  border-radius: 3px;
+  border-radius: var(--radius-md);
   background: white;
 }
 
@@ -332,7 +332,7 @@ onMounted(() => load())
   gap: 14px;
   padding: 22px;
   border: 1px solid var(--rule);
-  border-radius: 3px;
+  border-radius: var(--radius-md);
   background: white;
 }
 
@@ -382,7 +382,7 @@ onMounted(() => load())
 }
 
 .weakness-list .name {
-  font-weight: 750;
+  font-weight: 600;
 }
 
 .meta {
@@ -396,7 +396,7 @@ onMounted(() => load())
   margin-bottom: 6px;
   color: var(--ink-soft);
   font-size: 13px;
-  font-weight: 750;
+  font-weight: 600;
 }
 
 .bar-track {
@@ -483,7 +483,7 @@ onMounted(() => load())
 .empty-state {
   margin: 0;
   padding: 16px 18px;
-  border-radius: 3px;
+  border-radius: var(--radius-md);
 }
 
 .feedback.error {

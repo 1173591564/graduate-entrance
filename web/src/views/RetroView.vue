@@ -268,13 +268,13 @@ onMounted(async () => {
   margin: 0 0 8px;
   color: var(--deep);
   font-size: 14px;
-  font-weight: 750;
+  font-weight: 600;
   letter-spacing: 0.08em;
 }
 
 .retro-hero h1 {
   margin: 0;
-  font-size: clamp(28px, 3.2vw, 40px);
+  font-size: clamp(24px, 2.5vw, 30px);
   letter-spacing: -0.03em;
 }
 
@@ -288,15 +288,15 @@ onMounted(async () => {
   border: none;
   border-radius: 999px;
   color: white;
-  background: linear-gradient(90deg, var(--deep), var(--accent-cs));
-  font-weight: 800;
+  background: var(--brand);
+  font-weight: 700;
   cursor: pointer;
 }
 
 .state-card {
   padding: 28px;
   border: 1px solid var(--rule);
-  border-radius: 3px;
+  border-radius: var(--radius-md);
   background: white;
   color: var(--ink-soft);
 }
@@ -312,7 +312,7 @@ onMounted(async () => {
   gap: 16px;
   padding: 22px;
   border: 1px solid var(--rule);
-  border-radius: 3px;
+  border-radius: var(--radius-md);
   background: white;
 }
 
@@ -326,7 +326,7 @@ onMounted(async () => {
   display: block;
   color: var(--ink-muted);
   font-size: 13px;
-  font-weight: 750;
+  font-weight: 600;
 }
 
 .context-metrics strong {
@@ -342,7 +342,7 @@ onMounted(async () => {
 .weak-points span {
   color: var(--ink-muted);
   font-size: 13px;
-  font-weight: 750;
+  font-weight: 600;
 }
 
 .weak-points ul {
@@ -369,7 +369,7 @@ onMounted(async () => {
 .gap-suggestions > span {
   color: var(--ink-muted);
   font-size: 13px;
-  font-weight: 750;
+  font-weight: 600;
 }
 
 .gap-suggestions ul {
@@ -387,14 +387,14 @@ onMounted(async () => {
   padding: 8px 12px;
   border: 1px solid var(--rule);
   border-left: 3px solid var(--deep);
-  border-radius: 3px;
+  border-radius: var(--radius-md);
   background: var(--paper-warm);
   font-size: 13px;
 }
 
 .gap-subject {
   flex-shrink: 0;
-  font-weight: 800;
+  font-weight: 700;
   color: var(--deep);
 }
 
@@ -405,7 +405,7 @@ onMounted(async () => {
 .gap-score {
   flex-shrink: 0;
   color: var(--danger);
-  font-weight: 750;
+  font-weight: 600;
 }
 
 .message-list {
@@ -417,7 +417,7 @@ onMounted(async () => {
   overflow-y: auto;
   padding: 20px;
   border: 1px solid var(--rule);
-  border-radius: 3px;
+  border-radius: var(--radius-md);
   background: white;
 }
 
@@ -433,7 +433,7 @@ onMounted(async () => {
 .message p {
   margin: 0;
   padding: 12px 16px;
-  border-radius: 3px;
+  border-radius: var(--radius-md);
   line-height: 1.7;
   white-space: pre-wrap;
 }
@@ -443,7 +443,7 @@ onMounted(async () => {
 }
 
 .message.user p {
-  background: var(--deep);
+  background: var(--brand);
   color: white;
   border-bottom-right-radius: 4px;
 }
@@ -468,7 +468,7 @@ onMounted(async () => {
   flex: 1;
   padding: 12px 14px;
   border: 1px solid var(--rule);
-  border-radius: 3px;
+  border-radius: var(--radius-md);
   font: inherit;
   resize: vertical;
 }
@@ -478,8 +478,8 @@ onMounted(async () => {
   border: none;
   border-radius: 999px;
   color: white;
-  background: var(--deep);
-  font-weight: 800;
+  background: var(--brand);
+  font-weight: 700;
   cursor: pointer;
 }
 
@@ -491,7 +491,7 @@ onMounted(async () => {
 .plan-card {
   padding: 22px;
   border: 1px solid var(--rule);
-  border-radius: 3px;
+  border-radius: var(--radius-md);
   background: var(--paper-warm);
 }
 
