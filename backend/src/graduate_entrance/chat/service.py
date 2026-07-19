@@ -13,6 +13,7 @@ from sqlalchemy.orm import selectinload
 
 from graduate_entrance.ai import client as ai_client
 from graduate_entrance.ai import sandbox
+from graduate_entrance.chat.summarize import summarize_conversation
 from graduate_entrance.chat.topics import tag_message_topics
 from graduate_entrance.core.config import Settings, get_settings
 from graduate_entrance.models.chat import ChatConversation, ChatMessage, utc_now
@@ -53,8 +54,9 @@ RUN_PYTHON_TOOL: dict[str, Any] = {
         },
     },
 }
+SUMMARY_CONTEXT_PREFIX = "以下是本次对话较早内容的摘要，供你保持上下文连贯："
 TOOLS: list[dict[str, Any]] = [RUN_PYTHON_TOOL]
-_background_tasks: set[asyncio.Task[int]] = set()
+_background_tasks: set[asyncio.Task[Any]] = set()
 MAX_TOOL_ROUNDS = 5
 HISTORY_LIMIT = 20
 TITLE_MAX_CHARS = 30
@@ -268,6 +270,13 @@ async def send_message(
     session.add(user_message)
 
     payload: list[dict[str, Any]] = [{"role": "system", "content": SYSTEM_PROMPT}]
+    if conversation.summary:
+        payload.append(
+            {
+                "role": "system",
+                "content": f"{SUMMARY_CONTEXT_PREFIX}\n{conversation.summary}",
+            }
+        )
     payload.extend(_history_entry(message) for message in history)
     payload.append(_user_entry(settings, content, image_names))
     reply_text, steps = await _run_agent(payload, settings)
@@ -291,6 +300,12 @@ async def send_message(
         )
         _background_tasks.add(task)
         task.add_done_callback(_background_tasks.discard)
+        if len(history) >= HISTORY_LIMIT:
+            summary_task = asyncio.create_task(
+                summarize_conversation(conversation.id, settings)
+            )
+            _background_tasks.add(summary_task)
+            summary_task.add_done_callback(_background_tasks.discard)
     return ChatSendResponse(
         conversation=_conversation_read(conversation),
         user_message=_message_read(user_message),
