@@ -2530,6 +2530,11 @@
             "title": "Priority Score",
             "type": "number"
           },
+          "source": {
+            "default": "plan",
+            "title": "Source",
+            "type": "string"
+          },
           "status": {
             "enum": [
               "planned",

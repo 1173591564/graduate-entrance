@@ -88,6 +88,7 @@ class PlanTaskRead(BaseModel):
     planned_date: date
     est_minutes: int
     status: TaskStatus
+    source: str = "plan"
     actual_minutes: int | None = None
     done_at: datetime | None = None
     carry_count: int = 0

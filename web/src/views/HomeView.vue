@@ -2,7 +2,15 @@
 import { computed, onMounted, ref } from 'vue'
 
 import StatusBadge from '../components/StatusBadge.vue'
-import { fetchWeeklyStats, type WeeklyStatsSummary } from '../services/daily'
+import {
+  confirmAiWeekPlan,
+  fetchAiWeekAdvice,
+  fetchAutomationRuns,
+  fetchWeeklyStats,
+  type AiWeekAdvice,
+  type AutomationRun,
+  type WeeklyStatsSummary,
+} from '../services/daily'
 import { fetchServiceStatus } from '../services/health'
 import { fetchStudyProfile, type StudyProfile } from '../services/profile'
 
@@ -11,6 +19,55 @@ const profile = ref<StudyProfile | null>(null)
 const weekly = ref<WeeklyStatsSummary | null>(null)
 const loading = ref(true)
 const error = ref('')
+const automationRuns = ref<AutomationRun[]>([])
+const draftAdvice = ref<AiWeekAdvice | null>(null)
+const confirming = ref(false)
+
+const JOB_LABELS: Record<string, string> = {
+  weekly_plan_draft: '周计划草稿',
+  daily_mastery_watch: '掌握度监控',
+  daily_backlog_check: '欠账检查',
+}
+
+const STATUS_LABELS: Record<string, string> = {
+  success: '成功',
+  skipped: '无需动作',
+  failed: '失败',
+}
+
+function runSummary(run: AutomationRun): string {
+  const detail = run.detail
+  const alerts = detail.alerts
+  if (Array.isArray(alerts) && alerts.length > 0) {
+    return alerts.join('；')
+  }
+  const inserted = detail.inserted
+  if (Array.isArray(inserted) && inserted.length > 0) {
+    return `自动插入复习：${inserted.join('、')}`
+  }
+  if (typeof detail.reason === 'string') {
+    return detail.reason
+  }
+  if (typeof detail.error === 'string') {
+    return detail.error
+  }
+  return ''
+}
+
+async function confirmDraft(): Promise<void> {
+  if (!draftAdvice.value || confirming.value) {
+    return
+  }
+  confirming.value = true
+  try {
+    const result = await confirmAiWeekPlan(draftAdvice.value.week_start)
+    draftAdvice.value = result.advice.status === 'draft' ? result.advice : null
+  } catch {
+    // 保留草稿状态，用户可重试
+  } finally {
+    confirming.value = false
+  }
+}
 
 const hasGoals = computed(
   () => profile.value?.subjects.some((subject) => subject.target_score !== null) ?? false,
@@ -65,6 +122,21 @@ onMounted(async () => {
     ])
     profile.value = profileData
     weekly.value = weeklyData
+    const nextMonday = new Date(monday)
+    nextMonday.setDate(monday.getDate() + 7)
+    const [runsResult, adviceResult] = await Promise.allSettled([
+      fetchAutomationRuns(8),
+      fetchAiWeekAdvice(isoDate(nextMonday)),
+    ])
+    if (runsResult.status === 'fulfilled') {
+      automationRuns.value = runsResult.value.runs ?? []
+    }
+    if (
+      adviceResult.status === 'fulfilled' &&
+      adviceResult.value.status === 'draft'
+    ) {
+      draftAdvice.value = adviceResult.value
+    }
   } catch {
     error.value = '备考画像加载失败'
   } finally {
@@ -208,6 +280,45 @@ onMounted(async () => {
           </p>
         </article>
       </div>
+
+      <article
+        v-if="draftAdvice"
+        class="automation-card draft-card"
+      >
+        <header>
+          <h2>待确认：下周 AI 计划草稿（{{ draftAdvice.week_start }} 起）</h2>
+          <button
+            type="button"
+            class="confirm-btn"
+            :disabled="confirming"
+            @click="confirmDraft"
+          >
+            {{ confirming ? '确认中…' : '确认并落入计划' }}
+          </button>
+        </header>
+        <p>{{ draftAdvice.summary }}</p>
+      </article>
+
+      <article
+        v-if="automationRuns.length"
+        class="automation-card"
+      >
+        <h2>自动化状态</h2>
+        <ul class="run-list">
+          <li
+            v-for="run in automationRuns"
+            :key="run.id"
+          >
+            <span
+              class="run-status"
+              :class="`run-${run.status}`"
+            >{{ STATUS_LABELS[run.status] ?? run.status }}</span>
+            <span class="run-name">{{ JOB_LABELS[run.job_name] ?? run.job_name }}</span>
+            <span class="run-detail">{{ runSummary(run) }}</span>
+            <time>{{ run.run_at.slice(0, 16).replace('T', ' ') }}</time>
+          </li>
+        </ul>
+      </article>
     </template>
   </section>
 </template>
@@ -217,6 +328,108 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   gap: 28px;
+}
+
+.automation-card {
+  background: var(--card, #fff);
+  border: 1px solid var(--rule, #ececf0);
+  border-radius: var(--radius-lg, 14px);
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.automation-card h2 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.draft-card {
+  border-color: var(--brand, #3b5bfd);
+  background: var(--brand-soft, #eef1ff);
+}
+
+.draft-card header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.draft-card p {
+  margin: 0;
+  color: var(--ink-soft, #4b4f58);
+}
+
+.confirm-btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: var(--radius-sm, 8px);
+  background: var(--brand, #3b5bfd);
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.confirm-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.run-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.run-list li {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  font-size: 0.88rem;
+}
+
+.run-status {
+  flex-shrink: 0;
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  background: var(--surface-soft, #f0f1f4);
+  color: var(--ink-soft, #4b4f58);
+}
+
+.run-success {
+  background: color-mix(in srgb, var(--ok, #0da678) 12%, white);
+  color: var(--ok, #0da678);
+}
+
+.run-failed {
+  background: color-mix(in srgb, var(--danger, #e5484d) 12%, white);
+  color: var(--danger, #e5484d);
+}
+
+.run-name {
+  flex-shrink: 0;
+  font-weight: 600;
+}
+
+.run-detail {
+  color: var(--ink-soft, #4b4f58);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.run-list time {
+  margin-left: auto;
+  flex-shrink: 0;
+  color: var(--ink-muted, #9ca0a8);
+  font-size: 0.78rem;
 }
 
 .dash-hero {

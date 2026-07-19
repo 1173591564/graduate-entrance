@@ -113,6 +113,7 @@ class ScheduledTask(Base):
     planned_date: Mapped[date] = mapped_column(Date, index=True)
     est_minutes: Mapped[int]
     status: Mapped[str] = mapped_column(String(24), default="planned", index=True)
+    source: Mapped[str] = mapped_column(String(16), default="plan")
     actual_minutes: Mapped[int | None]
     done_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     carry_count: Mapped[int] = mapped_column(default=0)

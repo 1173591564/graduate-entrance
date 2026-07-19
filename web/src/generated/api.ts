@@ -2310,6 +2310,11 @@ export interface components {
              */
             priority_score: number;
             /**
+             * Source
+             * @default plan
+             */
+            source: string;
+            /**
              * Status
              * @enum {string}
              */
