@@ -70,7 +70,7 @@ class PomodoroService : Service() {
         tickJob = scope.launch {
             while (true) {
                 delay(1000)
-                val finished = PomodoroTimer.tick()
+                val finished = PomodoroTimer.sync()
                 if (finished) {
                     completeSession()
                     break
