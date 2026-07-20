@@ -65,6 +65,7 @@ export type MaterialType =
 
 export interface MaterialInput {
   subject_id: string | null
+  module_id?: string | null
   name: string
   material_type: MaterialType
   source: string

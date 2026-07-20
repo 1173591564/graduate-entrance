@@ -89,6 +89,7 @@ def material_read(material: Material) -> MaterialRead:
     return MaterialRead(
         id=material.id,
         subject_id=material.subject_id,
+        module_id=material.module_id,
         name=material.name,
         material_type=material.material_type,
         source=material.source,
@@ -455,6 +456,7 @@ async def create_material(session: AsyncSession, payload: MaterialInput) -> Mate
         await ensure_subjects_exist(session, [payload.subject_id])
     material = Material(
         subject_id=payload.subject_id,
+        module_id=payload.module_id,
         name=payload.name,
         material_type=payload.material_type,
         source=payload.source,
@@ -478,6 +480,7 @@ async def update_material(
     if payload.subject_id is not None:
         await ensure_subjects_exist(session, [payload.subject_id])
     material.subject_id = payload.subject_id
+    material.module_id = payload.module_id
     material.name = payload.name
     material.material_type = payload.material_type
     material.source = payload.source

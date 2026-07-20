@@ -20,12 +20,13 @@ from graduate_entrance.main import app
 from graduate_entrance.models.planning import (
     AvailabilityPeriod,
     AvailabilityRule,
+    Material,
     PlanPhase,
     PlanPhaseSubjectRatio,
     TaskTemplate,
     TaskTemplatePhase,
 )
-from graduate_entrance.models.scheduling import ScheduledTask
+from graduate_entrance.models.scheduling import ScheduledTask, TaskPoolItem
 from graduate_entrance.models.syllabus import (
     Chapter,
     KnowledgeDependency,
@@ -220,6 +221,42 @@ async def test_task_pool_generation_is_idempotent(
         "total": 3,
     }
     assert synchronized_page.json()["total"] == 3
+
+
+@pytest.mark.asyncio
+async def test_task_pool_resolves_module_scoped_material(
+    scheduling_context: SchedulingContext,
+) -> None:
+    material_id = uuid4()
+    async with scheduling_context.session_factory() as session:
+        module = await session.scalar(
+            select(SyllabusModule).where(
+                SyllabusModule.subject_id == SUBJECT_IDS["数学一"]
+            )
+        )
+        assert module is not None
+        session.add(
+            Material(
+                id=material_id,
+                subject_id=SUBJECT_IDS["数学一"],
+                module_id=module.id,
+                name="基础30讲·高等数学分册",
+                material_type="textbook",
+            )
+        )
+        await session.commit()
+
+    response = await scheduling_context.client.post(
+        "/api/planning/task-pool/generate"
+    )
+    assert response.status_code == 200
+
+    async with scheduling_context.session_factory() as session:
+        items = (await session.scalars(select(TaskPoolItem))).all()
+    math_items = [item for item in items if item.subject_id == SUBJECT_IDS["数学一"]]
+    other_items = [item for item in items if item.subject_id != SUBJECT_IDS["数学一"]]
+    assert math_items and all(item.material_id == material_id for item in math_items)
+    assert other_items and all(item.material_id is None for item in other_items)
 
 
 @pytest.mark.asyncio

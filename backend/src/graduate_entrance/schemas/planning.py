@@ -102,6 +102,7 @@ class AvailabilityExceptionRead(AvailabilityExceptionInput):
 
 class MaterialInput(BaseModel):
     subject_id: UUID | None = None
+    module_id: UUID | None = None
     name: str = Field(min_length=1, max_length=120)
     material_type: MaterialType
     source: str = Field(default="", max_length=240)
