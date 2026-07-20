@@ -1925,6 +1925,8 @@ export interface components {
              * @enum {string}
              */
             material_type: "textbook" | "exercise_book" | "past_paper" | "course" | "vocabulary" | "other";
+            /** Module Id */
+            module_id?: string | null;
             /** Name */
             name: string;
             /**
@@ -1962,6 +1964,8 @@ export interface components {
              * @enum {string}
              */
             material_type: "textbook" | "exercise_book" | "past_paper" | "course" | "vocabulary" | "other";
+            /** Module Id */
+            module_id?: string | null;
             /** Name */
             name: string;
             /**

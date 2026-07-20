@@ -1,5 +1,5 @@
 from collections.abc import AsyncIterator
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime, timedelta
 from decimal import Decimal
 from pathlib import Path
 from uuid import uuid4
@@ -468,18 +468,20 @@ async def test_insights_aggregates_weakness_causes_and_trend(client: AsyncClient
     await confirm_with_points(client, str(first["id"]), cause="concept")
     await confirm_with_points(client, str(second["id"]), cause="concept")
 
+    as_of = date.today()
+    week_start = as_of - timedelta(days=as_of.weekday())
     forgot = await client.post(
-        f"/api/problems/{first['id']}/review?as_of=2026-07-16",
+        f"/api/problems/{first['id']}/review?as_of={as_of.isoformat()}",
         json={"grade": "forgot"},
     )
     assert forgot.status_code == 200
     mastered = await client.post(
-        f"/api/problems/{second['id']}/review?as_of=2026-07-16",
+        f"/api/problems/{second['id']}/review?as_of={as_of.isoformat()}",
         json={"grade": "mastered"},
     )
     assert mastered.status_code == 200
 
-    response = await client.get("/api/stats/insights?as_of=2026-07-16")
+    response = await client.get(f"/api/stats/insights?as_of={as_of.isoformat()}")
     assert response.status_code == 200
     payload = response.json()
 
@@ -509,7 +511,7 @@ async def test_insights_aggregates_weakness_causes_and_trend(client: AsyncClient
     trend = payload["weekly_trend"]
     assert len(trend) == 8
     latest = trend[-1]
-    assert latest["week_start"] == "2026-07-13"
+    assert latest["week_start"] == week_start.isoformat()
     assert latest["reviews"] == 2
     assert latest["forgot"] == 1
     assert latest["mastered"] == 1

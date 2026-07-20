@@ -169,6 +169,11 @@ class Material(Base):
         ForeignKey("subjects.id", ondelete="SET NULL"),
         index=True,
     )
+    module_id: Mapped[UUID | None] = mapped_column(
+        ForeignKey("syllabus_modules.id", ondelete="SET NULL"),
+        index=True,
+        default=None,
+    )
     name: Mapped[str] = mapped_column(String(120))
     material_type: Mapped[str] = mapped_column(String(32))
     source: Mapped[str] = mapped_column(String(240), default="")

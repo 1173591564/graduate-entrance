@@ -141,6 +141,17 @@ async def generate_task_pool(session: AsyncSession) -> TaskPoolGenerationRespons
     for point, chapter, module in point_rows:
         points_by_subject[module.subject_id].append((point, chapter, module))
 
+    module_materials: dict[UUID, UUID] = {}
+    for material in (
+        await session.scalars(
+            select(Material)
+            .where(Material.active.is_(True), Material.module_id.is_not(None))
+            .order_by(Material.order, Material.name, Material.id)
+        )
+    ).all():
+        if material.module_id is not None:
+            module_materials.setdefault(material.module_id, material.id)
+
     specs: list[_PoolSpec] = []
     for template in templates:
         phase_ids = sorted(
@@ -162,7 +173,8 @@ async def generate_task_pool(session: AsyncSession) -> TaskPoolGenerationRespons
                         subject_id=template.subject_id,
                         knowledge_point_id=point.id,
                         task_template_id=template.id,
-                        material_id=template.material_id,
+                        material_id=template.material_id
+                        or module_materials.get(module.id),
                         title=f"{point.name} · {template.name}",
                         task_type=template.task_type,
                         est_minutes=template.default_est_minutes,
