@@ -51,6 +51,13 @@ class VocabDictationResponse(BaseModel):
     words: list[VocabWordRead]
 
 
+class VocabBulkEnrichStatus(BaseModel):
+    running: bool
+    processed: int
+    failed: int
+    remaining: int
+
+
 class VocabStatsResponse(BaseModel):
     total_count: int
     learned_count: int

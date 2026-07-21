@@ -1155,6 +1155,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/vocab/enrich/batch": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read Vocab Bulk Enrich */
+        get: operations["read_vocab_bulk_enrich_api_vocab_enrich_batch_get"];
+        put?: never;
+        /** Start Vocab Bulk Enrich */
+        post: operations["start_vocab_bulk_enrich_api_vocab_enrich_batch_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/vocab/stats": {
         parameters: {
             query?: never;
@@ -3204,6 +3222,17 @@ export interface components {
             message: string;
             /** Type */
             type: string;
+        };
+        /** VocabBulkEnrichStatus */
+        VocabBulkEnrichStatus: {
+            /** Failed */
+            failed: number;
+            /** Processed */
+            processed: number;
+            /** Remaining */
+            remaining: number;
+            /** Running */
+            running: boolean;
         };
         /** VocabDictationResponse */
         VocabDictationResponse: {
@@ -7332,6 +7361,100 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["VocabDictationResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    read_vocab_bulk_enrich_api_vocab_enrich_batch_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VocabBulkEnrichStatus"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    start_vocab_bulk_enrich_api_vocab_enrich_batch_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VocabBulkEnrichStatus"];
                 };
             };
             /** @description Unauthorized */
