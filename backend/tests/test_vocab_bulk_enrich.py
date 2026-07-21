@@ -1,13 +1,16 @@
 import json
 from pathlib import Path
 
+import httpx
 import pytest
+from fastapi import HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 from graduate_entrance.db.base import Base
 from graduate_entrance.models.vocab import VocabWord
 from graduate_entrance.vocab.bulk_enrich import (
+    _is_transient,
     parse_bulk_enrichment,
     run_bulk_enrich,
 )
@@ -49,6 +52,17 @@ def test_parse_bulk_enrichment_accepts_items_object() -> None:
 def test_parse_bulk_enrichment_rejects_non_array() -> None:
     with pytest.raises(ValueError):
         parse_bulk_enrichment('{"word": "radiate"}')
+
+
+def test_is_transient_classification() -> None:
+    # complete_chat 把 provider 503/超时包成 HTTPException(502)
+    assert _is_transient(HTTPException(status_code=502))
+    assert _is_transient(HTTPException(status_code=503))
+    assert _is_transient(HTTPException(status_code=429))
+    assert _is_transient(httpx.ConnectError("boom"))
+    # 非瞬时错误（如格式解析失败、4xx 客户端错误）不重试
+    assert not _is_transient(HTTPException(status_code=400))
+    assert not _is_transient(ValueError("AI 返回格式无法解析"))
 
 
 @pytest.mark.asyncio

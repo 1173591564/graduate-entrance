@@ -10,6 +10,7 @@ from dataclasses import dataclass
 from uuid import UUID
 
 import httpx
+from fastapi import HTTPException
 from sqlalchemy import ColumnElement, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
@@ -20,17 +21,22 @@ from graduate_entrance.schemas.vocab import VocabBulkEnrichStatus
 
 logger = logging.getLogger(__name__)
 
-BATCH_SIZE = 20
+# gpt-5.5 生成较慢，单批过大易触发网关超时/503，故批量放小
+BATCH_SIZE = 10
 # LLM 代理偶发 429/5xx（限流/过载），对这些瞬时错误退避重试
 TRANSIENT_RETRIES = 4
 TRANSIENT_BACKOFF_S = 2.0
+_TRANSIENT_STATUS = {429, 500, 502, 503, 504}
 
 
 def _is_transient(exc: Exception) -> bool:
     if isinstance(exc, httpx.TransportError):
         return True
     if isinstance(exc, httpx.HTTPStatusError):
-        return exc.response.status_code == 429 or exc.response.status_code >= 500
+        return exc.response.status_code in _TRANSIENT_STATUS
+    # complete_chat 把 provider 的 503/超时等统一包成 HTTPException(502)
+    if isinstance(exc, HTTPException):
+        return exc.status_code in _TRANSIENT_STATUS
     return False
 
 
