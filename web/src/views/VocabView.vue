@@ -46,6 +46,22 @@ async function load(): Promise<void> {
   }
 }
 
+function playPronunciation(word: string): void {
+  try {
+    const audio = new Audio(
+      `https://dict.youdao.com/dictvoice?audio=${encodeURIComponent(word)}&type=2`,
+    )
+    void Promise.resolve(audio.play()).catch(() => {})
+  } catch {
+    // 环境不支持音频播放时静默忽略
+  }
+}
+
+function reveal(word: VocabWord): void {
+  revealed.value = true
+  playPronunciation(word.word)
+}
+
 async function handleGrade(word: VocabWord, grade: VocabGrade): Promise<void> {
   grading.value = true
   try {
@@ -113,7 +129,7 @@ onMounted(() => load())
           v-if="!revealed"
           type="button"
           class="reveal-button"
-          @click="revealed = true"
+          @click="reveal(current)"
         >
           显示释义
         </button>
