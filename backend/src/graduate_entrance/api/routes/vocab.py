@@ -7,6 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from graduate_entrance.db.session import get_session
 from graduate_entrance.schemas.vocab import (
+    VocabBulkEnrichStatus,
     VocabDictationResponse,
     VocabGradeRequest,
     VocabGradeResult,
@@ -14,6 +15,7 @@ from graduate_entrance.schemas.vocab import (
     VocabTodayResponse,
     VocabWordRead,
 )
+from graduate_entrance.vocab.bulk_enrich import bulk_enrich_status, start_bulk_enrich
 from graduate_entrance.vocab.service import (
     DEFAULT_NEW_LIMIT,
     enrich_word,
@@ -51,6 +53,16 @@ async def read_vocab_dictation(
     as_of: Annotated[date | None, Query()] = None,
 ) -> VocabDictationResponse:
     return await vocab_dictation(session, as_of or date.today())
+
+
+@router.post("/vocab/enrich/batch", response_model=VocabBulkEnrichStatus)
+async def start_vocab_bulk_enrich() -> VocabBulkEnrichStatus:
+    return start_bulk_enrich()
+
+
+@router.get("/vocab/enrich/batch", response_model=VocabBulkEnrichStatus)
+async def read_vocab_bulk_enrich() -> VocabBulkEnrichStatus:
+    return bulk_enrich_status()
 
 
 @router.post("/vocab/{word_id}/enrich", response_model=VocabWordRead)
