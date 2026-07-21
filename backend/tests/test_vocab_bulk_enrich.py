@@ -37,6 +37,15 @@ def test_parse_bulk_enrichment_maps_by_word() -> None:
     assert len(parsed) == 2
 
 
+def test_parse_bulk_enrichment_accepts_items_object() -> None:
+    raw = (
+        '{"items": [{"word": "radiate", "phonetic": "/x/",'
+        ' "example_en": "A.", "example_zh": "甲。"}]}'
+    )
+    parsed = parse_bulk_enrichment(raw)
+    assert parsed["radiate"]["phonetic"] == "/x/"
+
+
 def test_parse_bulk_enrichment_rejects_non_array() -> None:
     with pytest.raises(ValueError):
         parse_bulk_enrichment('{"word": "radiate"}')
@@ -58,7 +67,9 @@ async def test_run_bulk_enrich_fills_words_and_skips_missing(
     calls: list[str] = []
 
     async def fake_complete_chat(
-        messages: list[dict[str, object]], settings: object = None
+        messages: list[dict[str, object]],
+        settings: object = None,
+        response_format: object = None,
     ) -> str:
         calls.append(str(messages[-1]["content"]))
         return json.dumps(
@@ -85,7 +96,8 @@ async def test_run_bulk_enrich_fills_words_and_skips_missing(
     )
 
     status = await run_bulk_enrich(factory)
-    assert len(calls) == 1
+    # 首批 + 针对未覆盖词（vague）的半批重试
+    assert len(calls) == 2
     assert status.running is False
     assert status.processed == 2
     assert status.failed == 1
