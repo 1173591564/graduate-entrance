@@ -228,6 +228,10 @@ private fun VocabCard(
     onGrade: (String) -> Unit,
 ) {
     val haptics = LocalHapticFeedback.current
+    val revealAndPlay = {
+        onReveal()
+        playPronunciation(word.word)
+    }
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
@@ -326,7 +330,7 @@ private fun VocabCard(
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable(onClick = onReveal),
+                            .clickable(onClick = revealAndPlay),
                         contentAlignment = Alignment.Center,
                     ) {
                         Column(
@@ -378,7 +382,7 @@ private fun VocabCard(
                     }
                 }
             } else {
-                Button(onClick = onReveal, modifier = Modifier.fillMaxWidth()) {
+                Button(onClick = revealAndPlay, modifier = Modifier.fillMaxWidth()) {
                     Text("显示释义")
                 }
             }
