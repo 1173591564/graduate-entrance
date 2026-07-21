@@ -9,6 +9,7 @@ import re
 from dataclasses import dataclass
 from uuid import UUID
 
+import httpx
 from sqlalchemy import ColumnElement, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
@@ -20,6 +21,34 @@ from graduate_entrance.schemas.vocab import VocabBulkEnrichStatus
 logger = logging.getLogger(__name__)
 
 BATCH_SIZE = 20
+# LLM 代理偶发 429/5xx（限流/过载），对这些瞬时错误退避重试
+TRANSIENT_RETRIES = 4
+TRANSIENT_BACKOFF_S = 2.0
+
+
+def _is_transient(exc: Exception) -> bool:
+    if isinstance(exc, httpx.TransportError):
+        return True
+    if isinstance(exc, httpx.HTTPStatusError):
+        return exc.response.status_code == 429 or exc.response.status_code >= 500
+    return False
+
+
+async def _complete_with_retry(messages: list[dict[str, str]]) -> str:
+    last_exc: Exception | None = None
+    for attempt in range(TRANSIENT_RETRIES):
+        try:
+            return await ai_client.complete_chat(
+                messages, response_format={"type": "json_object"}
+            )
+        except Exception as exc:  # noqa: BLE001 - 仅对瞬时错误重试，其余抛出
+            if not _is_transient(exc):
+                raise
+            last_exc = exc
+            await asyncio.sleep(TRANSIENT_BACKOFF_S * (2**attempt))
+    assert last_exc is not None
+    raise last_exc
+
 
 BULK_ENRICH_PROMPT = (
     "你是考研英语词汇助手。给定多个单词（每行一个，含释义），返回严格的 JSON 对象"
@@ -96,12 +125,11 @@ async def _count_pending(session: AsyncSession) -> int:
 async def enrich_batch(session: AsyncSession, words: list[VocabWord]) -> int:
     """Enrich one batch of words with a single LLM call; returns updated count."""
     lines = "\n".join(f"{word.word}（释义：{word.meaning}）" for word in words)
-    raw = await ai_client.complete_chat(
+    raw = await _complete_with_retry(
         [
             {"role": "system", "content": BULK_ENRICH_PROMPT},
             {"role": "user", "content": lines},
-        ],
-        response_format={"type": "json_object"},
+        ]
     )
     parsed = parse_bulk_enrichment(raw)
     updated = 0
