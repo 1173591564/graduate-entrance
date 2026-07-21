@@ -31,6 +31,7 @@ async def complete_chat(
     messages: list[dict[str, Any]],
     settings: Settings | None = None,
     reasoning_effort: str | None = None,
+    response_format: dict[str, Any] | None = None,
 ) -> str:
     """Call the configured OpenAI-compatible chat completions endpoint."""
     settings = settings or get_settings()
@@ -44,10 +45,19 @@ async def complete_chat(
     effort = reasoning_effort or settings.ai_reasoning_effort
     if effort:
         payload["reasoning_effort"] = effort
+    if response_format is not None:
+        payload["response_format"] = response_format
     headers = {"Authorization": f"Bearer {settings.ai_api_key.get_secret_value()}"}
     try:
         async with httpx.AsyncClient(timeout=settings.ai_timeout_seconds) as client:
             response = await client.post(url, json=payload, headers=headers)
+            if (
+                response_format is not None
+                and response.status_code in (400, 404, 422, 501)
+            ):
+                # provider 不支持 response_format 时退回普通请求
+                payload.pop("response_format")
+                response = await client.post(url, json=payload, headers=headers)
             response.raise_for_status()
             body = response.json()
     except (httpx.HTTPError, ValueError) as exc:

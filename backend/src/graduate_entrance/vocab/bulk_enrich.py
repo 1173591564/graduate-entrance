@@ -22,11 +22,11 @@ logger = logging.getLogger(__name__)
 BATCH_SIZE = 20
 
 BULK_ENRICH_PROMPT = (
-    "你是考研英语词汇助手。给定多个单词（每行一个，含释义），返回严格的 JSON 数组"
-    "（不要代码块、不要多余文字），每个元素格式："
-    '{"word": "原单词", "phonetic": "美式音标，含斜杠", '
-    '"example_en": "一句考研难度的英文例句", "example_zh": "该例句的中文翻译"}。'
-    "数组必须覆盖输入的所有单词。"
+    "你是考研英语词汇助手。给定多个单词（每行一个，含释义），返回严格的 JSON 对象"
+    "（不要代码块、不要多余文字），格式："
+    '{"items": [{"word": "原单词", "phonetic": "美式音标，含斜杠", '
+    '"example_en": "一句考研难度的英文例句", "example_zh": "该例句的中文翻译"}, ...]}。'
+    "items 必须覆盖输入的所有单词。"
 )
 
 
@@ -52,14 +52,18 @@ def _status() -> VocabBulkEnrichStatus:
 
 
 def parse_bulk_enrichment(raw: str) -> dict[str, dict[str, str]]:
-    """Parse the LLM JSON array into a mapping keyed by casefolded word."""
-    match = re.search(r"\[.*\]", raw, re.DOTALL)
+    """Parse the LLM JSON (array or {\"items\": [...]}) keyed by casefolded word."""
+    match = re.search(r"\[.*\]", raw, re.DOTALL) or re.search(
+        r"\{.*\}", raw, re.DOTALL
+    )
     if match is None:
         raise ValueError("AI 返回格式无法解析")
     try:
         data = json.loads(match.group(0))
     except ValueError as exc:
         raise ValueError("AI 返回格式无法解析") from exc
+    if isinstance(data, dict):
+        data = data.get("items")
     if not isinstance(data, list):
         raise ValueError("AI 返回格式无法解析")
     result: dict[str, dict[str, str]] = {}
@@ -96,7 +100,8 @@ async def enrich_batch(session: AsyncSession, words: list[VocabWord]) -> int:
         [
             {"role": "system", "content": BULK_ENRICH_PROMPT},
             {"role": "user", "content": lines},
-        ]
+        ],
+        response_format={"type": "json_object"},
     )
     parsed = parse_bulk_enrichment(raw)
     updated = 0
@@ -148,12 +153,27 @@ async def run_bulk_enrich(
                 except Exception:
                     logger.exception("bulk enrich batch failed")
                     updated = 0
-                still_pending = [
-                    word.id for word in words if not (word.phonetic and word.example_en)
+                pending = [
+                    word for word in words if not (word.phonetic and word.example_en)
                 ]
-                skipped.update(still_pending)
+                if pending and len(words) > 1:
+                    # 整批/部分失败时按半批重试一次，降低单次格式错误的影响面
+                    half = max(1, len(pending) // 2)
+                    for chunk in (pending[:half], pending[half:]):
+                        if not chunk:
+                            continue
+                        try:
+                            updated += await enrich_batch(session, chunk)
+                        except Exception:
+                            logger.exception("bulk enrich retry failed")
+                    pending = [
+                        word
+                        for word in words
+                        if not (word.phonetic and word.example_en)
+                    ]
+                skipped.update(word.id for word in pending)
                 _state.processed += updated
-                _state.failed += len(words) - updated
+                _state.failed += len(pending)
         async with factory() as session:
             _state.remaining = await _count_pending(session)
     finally:
