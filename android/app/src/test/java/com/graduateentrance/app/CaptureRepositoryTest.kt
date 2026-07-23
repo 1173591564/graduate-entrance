@@ -28,6 +28,8 @@ import com.graduateentrance.app.network.TaskUpdateRequest
 import com.graduateentrance.app.network.TodayDto
 import com.graduateentrance.app.network.TodayTaskDto
 import com.graduateentrance.app.network.VocabDictationDto
+import com.graduateentrance.app.network.VocabDictationResultDto
+import com.graduateentrance.app.network.VocabDictationResultRequest
 import com.graduateentrance.app.network.VocabGradeRequest
 import com.graduateentrance.app.network.VocabGradeResultDto
 import com.graduateentrance.app.network.VocabStatsDto
@@ -146,6 +148,10 @@ private class FakeCaptureApi : GraduateEntranceApi {
     ): VocabGradeResultDto = throw UnsupportedOperationException()
 
     override suspend fun vocabDictation(): VocabDictationDto = throw UnsupportedOperationException()
+
+    override suspend fun submitVocabDictationResult(
+        payload: VocabDictationResultRequest,
+    ): VocabDictationResultDto = throw UnsupportedOperationException()
 
     override suspend fun enrichVocabWord(wordId: String): VocabWordDto =
         throw UnsupportedOperationException()

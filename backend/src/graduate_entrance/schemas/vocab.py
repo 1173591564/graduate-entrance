@@ -33,6 +33,8 @@ class VocabTodayResponse(BaseModel):
     reviewed_today_count: int = Field(
         default=0, description="last_reviewed_on == date 的词数"
     )
+    dictation_total_today: int = Field(default=0, description="当日默写总词数")
+    dictation_correct_today: int = Field(default=0, description="当日默写写对词数")
 
 
 class VocabGradeRequest(BaseModel):
@@ -51,6 +53,18 @@ class VocabDictationResponse(BaseModel):
     words: list[VocabWordRead]
 
 
+class VocabDictationResultRequest(BaseModel):
+    correct_word_ids: list[UUID] = Field(default_factory=list)
+    wrong_word_ids: list[UUID] = Field(default_factory=list)
+    as_of: date | None = None
+
+
+class VocabDictationResultRead(BaseModel):
+    date: date
+    total: int
+    correct: int
+
+
 class VocabBulkEnrichStatus(BaseModel):
     running: bool
     processed: int
@@ -63,3 +77,5 @@ class VocabStatsResponse(BaseModel):
     learned_count: int
     due_count: int
     mastered_count: int = Field(description="reps >= 3 的词数")
+    dictation_total_today: int = Field(default=0, description="当日默写总词数")
+    dictation_correct_today: int = Field(default=0, description="当日默写写对词数")

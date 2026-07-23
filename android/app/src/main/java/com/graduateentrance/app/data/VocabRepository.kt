@@ -1,7 +1,11 @@
 package com.graduateentrance.app.data
 
 import com.graduateentrance.app.network.GraduateEntranceApi
+import com.graduateentrance.app.network.TaskCompletionRequest
+import com.graduateentrance.app.network.TodayTaskDto
 import com.graduateentrance.app.network.VocabDictationDto
+import com.graduateentrance.app.network.VocabDictationResultDto
+import com.graduateentrance.app.network.VocabDictationResultRequest
 import com.graduateentrance.app.network.VocabGradeRequest
 import com.graduateentrance.app.network.VocabGradeResultDto
 import com.graduateentrance.app.network.VocabTodayDto
@@ -25,6 +29,19 @@ sealed interface VocabDictationResult {
     data class Loaded(val dictation: VocabDictationDto) : VocabDictationResult
     data object Offline : VocabDictationResult
     data class Rejected(val code: Int) : VocabDictationResult
+}
+
+sealed interface VocabDictationSubmitResult {
+    data class Submitted(val result: VocabDictationResultDto) : VocabDictationSubmitResult
+    data object Offline : VocabDictationSubmitResult
+    data class Rejected(val code: Int) : VocabDictationSubmitResult
+}
+
+sealed interface DictationTaskCheckInResult {
+    data class Completed(val task: TodayTaskDto) : DictationTaskCheckInResult
+    data object NoTask : DictationTaskCheckInResult
+    data object Offline : DictationTaskCheckInResult
+    data class Rejected(val code: Int) : DictationTaskCheckInResult
 }
 
 sealed interface VocabEnrichResult {
@@ -59,6 +76,47 @@ class VocabRepository(private val api: GraduateEntranceApi) {
             VocabDictationResult.Offline
         } catch (error: HttpException) {
             VocabDictationResult.Rejected(error.code())
+        }
+
+    suspend fun submitDictation(
+        correctWordIds: List<String>,
+        wrongWordIds: List<String>,
+    ): VocabDictationSubmitResult =
+        try {
+            VocabDictationSubmitResult.Submitted(
+                api.submitVocabDictationResult(
+                    VocabDictationResultRequest(
+                        correctWordIds = correctWordIds,
+                        wrongWordIds = wrongWordIds,
+                    ),
+                ),
+            )
+        } catch (_: IOException) {
+            VocabDictationSubmitResult.Offline
+        } catch (error: HttpException) {
+            VocabDictationSubmitResult.Rejected(error.code())
+        }
+
+    suspend fun completeDictationTask(
+        date: String,
+        actualMinutes: Int,
+    ): DictationTaskCheckInResult =
+        try {
+            val today = api.today(date)
+            val task = today.tasks.firstOrNull {
+                it.studyModule == "vocab" && it.status == "pending"
+            }
+            if (task == null) {
+                DictationTaskCheckInResult.NoTask
+            } else {
+                DictationTaskCheckInResult.Completed(
+                    api.completeTask(task.id, TaskCompletionRequest(actualMinutes)),
+                )
+            }
+        } catch (_: IOException) {
+            DictationTaskCheckInResult.Offline
+        } catch (error: HttpException) {
+            DictationTaskCheckInResult.Rejected(error.code())
         }
 
     suspend fun enrich(wordId: String): VocabEnrichResult =

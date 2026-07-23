@@ -4,12 +4,15 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.graduateentrance.app.data.AppSettings
+import com.graduateentrance.app.data.DictationTaskCheckInResult
 import com.graduateentrance.app.data.VocabDictationResult
+import com.graduateentrance.app.data.VocabDictationSubmitResult
 import com.graduateentrance.app.data.VocabEnrichResult
 import com.graduateentrance.app.data.VocabGradeActionResult
 import com.graduateentrance.app.data.VocabLoadResult
 import com.graduateentrance.app.data.VocabRepository
 import com.graduateentrance.app.network.VocabWordDto
+import java.time.LocalDate
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -33,7 +36,14 @@ data class VocabUiState(
     val dictationIndex: Int = 0,
     val dictationInput: String = "",
     val dictationChecked: Boolean = false,
+    val dictationLastCorrect: Boolean = false,
     val dictationCorrectCount: Int = 0,
+    val dictationRound: Int = 1,
+    val dictationRetryQueue: List<VocabWordDto> = emptyList(),
+    val dictationFirstTotal: Int = 0,
+    val dictationTaskCheckedIn: Boolean = false,
+    val dictationTotalToday: Int = 0,
+    val dictationCorrectToday: Int = 0,
     val notice: String? = null,
     val error: String? = null,
 ) {
@@ -48,6 +58,10 @@ class VocabViewModel(private val repository: VocabRepository) : ViewModel() {
     val uiState: StateFlow<VocabUiState> = _uiState.asStateFlow()
 
     private val gradedWordIds = mutableSetOf<String>()
+    private val dictationCorrectIds = mutableSetOf<String>()
+    private val dictationWrongIds = mutableSetOf<String>()
+    private var dictationSubmitted = false
+    private var dictationStartMs = 0L
 
     init {
         refresh()
@@ -71,6 +85,8 @@ class VocabViewModel(private val repository: VocabRepository) : ViewModel() {
                             learnedCount = result.today.learnedCount,
                             totalCount = result.today.totalCount,
                             dueCount = result.today.dueCount,
+                            dictationTotalToday = result.today.dictationTotalToday,
+                            dictationCorrectToday = result.today.dictationCorrectToday,
                         )
                     }
                 }
@@ -112,6 +128,10 @@ class VocabViewModel(private val repository: VocabRepository) : ViewModel() {
 
     fun startDictation() {
         viewModelScope.launch {
+            dictationCorrectIds.clear()
+            dictationWrongIds.clear()
+            dictationSubmitted = false
+            dictationStartMs = System.currentTimeMillis()
             _uiState.update {
                 it.copy(
                     dictationActive = true,
@@ -120,14 +140,21 @@ class VocabViewModel(private val repository: VocabRepository) : ViewModel() {
                     dictationIndex = 0,
                     dictationInput = "",
                     dictationChecked = false,
+                    dictationLastCorrect = false,
                     dictationCorrectCount = 0,
+                    dictationRound = 1,
+                    dictationRetryQueue = emptyList(),
+                    dictationFirstTotal = 0,
+                    dictationTaskCheckedIn = false,
                 )
             }
             when (val result = repository.dictation()) {
                 is VocabDictationResult.Loaded -> _uiState.update {
+                    val words = result.dictation.words.shuffled()
                     it.copy(
                         dictationLoading = false,
-                        dictationWords = result.dictation.words.shuffled(),
+                        dictationWords = words,
+                        dictationFirstTotal = words.size,
                     )
                 }
                 VocabDictationResult.Offline -> _uiState.update {
@@ -149,6 +176,7 @@ class VocabViewModel(private val repository: VocabRepository) : ViewModel() {
     }
 
     fun exitDictation() {
+        submitDictationResultIfNeeded()
         _uiState.update { it.copy(dictationActive = false) }
     }
 
@@ -159,28 +187,119 @@ class VocabViewModel(private val repository: VocabRepository) : ViewModel() {
     fun checkDictation() {
         val state = _uiState.value
         val word = state.dictationCurrent ?: return
-        val correct = state.dictationInput.trim().equals(word.word, ignoreCase = true)
+        markDictation(
+            word = word,
+            correct = state.dictationInput.trim().equals(word.word, ignoreCase = true),
+        )
+    }
+
+    fun giveUpDictation() {
+        val word = _uiState.value.dictationCurrent ?: return
+        markDictation(word = word, correct = false)
+    }
+
+    private fun markDictation(word: VocabWordDto, correct: Boolean) {
+        val state = _uiState.value
+        if (state.dictationChecked) return
+        if (state.dictationRound == 1) {
+            if (correct) dictationCorrectIds.add(word.id) else dictationWrongIds.add(word.id)
+        }
         _uiState.update {
             it.copy(
                 dictationChecked = true,
-                dictationCorrectCount = it.dictationCorrectCount + if (correct) 1 else 0,
+                dictationLastCorrect = correct,
+                dictationCorrectCount = it.dictationCorrectCount +
+                    if (correct && it.dictationRound == 1) 1 else 0,
+                dictationRetryQueue = if (correct) {
+                    it.dictationRetryQueue
+                } else {
+                    it.dictationRetryQueue + word
+                },
             )
-        }
-        if (!correct) {
-            // 默写错词按「忘了」回灌调度，明天重新复习
-            viewModelScope.launch {
-                repository.grade(word.id, "forgot")
-            }
         }
     }
 
     fun nextDictation() {
-        _uiState.update {
-            it.copy(
-                dictationIndex = it.dictationIndex + 1,
-                dictationInput = "",
-                dictationChecked = false,
+        val state = _uiState.value
+        val roundFinished = state.dictationIndex + 1 >= state.dictationWords.size
+        if (!roundFinished) {
+            _uiState.update {
+                it.copy(
+                    dictationIndex = it.dictationIndex + 1,
+                    dictationInput = "",
+                    dictationChecked = false,
+                    dictationLastCorrect = false,
+                )
+            }
+            return
+        }
+        if (state.dictationRound == 1) {
+            submitDictationResultIfNeeded()
+        }
+        if (state.dictationRetryQueue.isNotEmpty()) {
+            _uiState.update {
+                it.copy(
+                    dictationWords = it.dictationRetryQueue.shuffled(),
+                    dictationRetryQueue = emptyList(),
+                    dictationRound = it.dictationRound + 1,
+                    dictationIndex = 0,
+                    dictationInput = "",
+                    dictationChecked = false,
+                    dictationLastCorrect = false,
+                )
+            }
+        } else {
+            _uiState.update {
+                it.copy(
+                    dictationIndex = it.dictationIndex + 1,
+                    dictationInput = "",
+                    dictationChecked = false,
+                    dictationLastCorrect = false,
+                )
+            }
+            completeDictationTaskIfAny()
+        }
+    }
+
+    private fun submitDictationResultIfNeeded() {
+        if (dictationSubmitted) return
+        if (dictationCorrectIds.isEmpty() && dictationWrongIds.isEmpty()) return
+        dictationSubmitted = true
+        viewModelScope.launch {
+            when (
+                val result = repository.submitDictation(
+                    dictationCorrectIds.toList(),
+                    dictationWrongIds.toList(),
+                )
+            ) {
+                is VocabDictationSubmitResult.Submitted -> _uiState.update {
+                    it.copy(
+                        dictationTotalToday = result.result.total,
+                        dictationCorrectToday = result.result.correct,
+                    )
+                }
+                VocabDictationSubmitResult.Offline -> _uiState.update {
+                    it.copy(notice = "网络不可用，默写结果未同步")
+                }
+                is VocabDictationSubmitResult.Rejected -> _uiState.update {
+                    it.copy(notice = "默写结果同步失败（HTTP ${result.code}）")
+                }
+            }
+        }
+    }
+
+    private fun completeDictationTaskIfAny() {
+        viewModelScope.launch {
+            val minutes = ((System.currentTimeMillis() - dictationStartMs) / 60000L)
+                .toInt()
+                .coerceAtLeast(1)
+            val result = repository.completeDictationTask(
+                LocalDate.now().toString(),
+                minutes,
             )
+            if (result is DictationTaskCheckInResult.Completed) {
+                _uiState.update { it.copy(dictationTaskCheckedIn = true) }
+            }
         }
     }
 

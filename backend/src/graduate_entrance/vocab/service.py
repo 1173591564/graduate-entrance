@@ -10,9 +10,11 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from graduate_entrance.ai import client as ai_client
-from graduate_entrance.models.vocab import VocabWord
+from graduate_entrance.models.vocab import VocabDictationLog, VocabWord
 from graduate_entrance.schemas.vocab import (
     VocabDictationResponse,
+    VocabDictationResultRead,
+    VocabDictationResultRequest,
     VocabGrade,
     VocabGradeResult,
     VocabStatsResponse,
@@ -25,6 +27,8 @@ MASTERED_REPS = 3
 MIN_EASE_FACTOR = 1.3
 GRADE_QUALITY: dict[VocabGrade, int] = {"forgot": 2, "vague": 3, "mastered": 5}
 EBBINGHAUS_INTERVALS = (1, 2, 4, 7, 15)
+DICTATION_EF_BONUS = 0.05
+MAX_EASE_FACTOR = 3.0
 
 
 def apply_vocab_srs(
@@ -146,6 +150,7 @@ async def vocab_today(
             .where(VocabWord.last_reviewed_on == as_of)
         )
     ).scalar_one()
+    dictation_total, dictation_correct = await _dictation_counts(session, as_of)
     return VocabTodayResponse(
         date=as_of,
         due_words=[_read(word) for word in due_words],
@@ -154,6 +159,8 @@ async def vocab_today(
         learned_count=learned,
         total_count=total,
         reviewed_today_count=reviewed_today,
+        dictation_total_today=dictation_total,
+        dictation_correct_today=dictation_correct,
     )
 
 
@@ -198,6 +205,64 @@ async def vocab_dictation(session: AsyncSession, as_of: date) -> VocabDictationR
         .all()
     )
     return VocabDictationResponse(date=as_of, words=[_read(word) for word in words])
+
+
+async def _dictation_counts(session: AsyncSession, as_of: date) -> tuple[int, int]:
+    row = (
+        await session.execute(
+            select(
+                func.coalesce(func.sum(VocabDictationLog.total), 0),
+                func.coalesce(func.sum(VocabDictationLog.correct), 0),
+            ).where(VocabDictationLog.dictated_on == as_of)
+        )
+    ).one()
+    return int(row[0]), int(row[1])
+
+
+async def submit_dictation_result(
+    session: AsyncSession,
+    payload: VocabDictationResultRequest,
+    as_of: date,
+) -> VocabDictationResultRead:
+    wrong_ids = set(payload.wrong_word_ids)
+    correct_ids = set(payload.correct_word_ids) - wrong_ids
+    total = len(correct_ids) + len(wrong_ids)
+    if total > 0:
+        all_ids = correct_ids | wrong_ids
+        words = (
+            (
+                await session.execute(
+                    select(VocabWord).where(VocabWord.id.in_(all_ids))
+                )
+            )
+            .scalars()
+            .all()
+        )
+        for word in words:
+            if word.id in wrong_ids:
+                next_ef, next_interval, next_reps = apply_vocab_srs(
+                    word.ef, word.interval_days, word.reps, "forgot"
+                )
+                word.ef = next_ef
+                word.interval_days = next_interval
+                word.reps = next_reps
+                word.due_date = as_of + timedelta(days=next_interval)
+            else:
+                word.ef = min(MAX_EASE_FACTOR, word.ef + DICTATION_EF_BONUS)
+        session.add(
+            VocabDictationLog(
+                dictated_on=as_of,
+                total=total,
+                correct=len(correct_ids),
+            )
+        )
+        await session.commit()
+    dictation_total, dictation_correct = await _dictation_counts(session, as_of)
+    return VocabDictationResultRead(
+        date=as_of,
+        total=dictation_total,
+        correct=dictation_correct,
+    )
 
 
 def _parse_enrichment(raw: str) -> dict[str, str]:
@@ -247,9 +312,12 @@ async def enrich_word(session: AsyncSession, word_id: UUID) -> VocabWordRead:
 
 async def vocab_stats(session: AsyncSession, as_of: date) -> VocabStatsResponse:
     total, learned, due, mastered = await _counts(session, as_of)
+    dictation_total, dictation_correct = await _dictation_counts(session, as_of)
     return VocabStatsResponse(
         total_count=total,
         learned_count=learned,
         due_count=due,
         mastered_count=mastered,
+        dictation_total_today=dictation_total,
+        dictation_correct_today=dictation_correct,
     )

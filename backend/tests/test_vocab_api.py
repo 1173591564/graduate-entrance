@@ -199,6 +199,8 @@ async def test_vocab_stats(client: AsyncClient) -> None:
         "learned_count": 0,
         "due_count": 0,
         "mastered_count": 0,
+        "dictation_total_today": 0,
+        "dictation_correct_today": 0,
     }
 
 
@@ -219,6 +221,59 @@ async def test_dictation_lists_words_reviewed_that_day(client: AsyncClient) -> N
 
     empty = await client.get("/api/vocab/dictation", params={"as_of": "2026-07-21"})
     assert empty.json()["words"] == []
+
+
+@pytest.mark.asyncio
+async def test_dictation_result_logs_and_regrades_wrong_words(
+    client: AsyncClient,
+) -> None:
+    today = await client.get("/api/vocab/today", params={"as_of": "2026-07-20"})
+    words = today.json()["new_words"]
+    correct_id, wrong_id = words[0]["id"], words[1]["id"]
+    for word_id in (correct_id, wrong_id):
+        await client.post(
+            f"/api/vocab/{word_id}/grade",
+            json={"grade": "mastered", "as_of": "2026-07-20"},
+        )
+
+    response = await client.post(
+        "/api/vocab/dictation/result",
+        json={
+            "correct_word_ids": [correct_id],
+            "wrong_word_ids": [wrong_id],
+            "as_of": "2026-07-20",
+        },
+    )
+    assert response.status_code == 200
+    body = response.json()
+    assert body == {"date": "2026-07-20", "total": 2, "correct": 1}
+
+    next_day = await client.get("/api/vocab/today", params={"as_of": "2026-07-21"})
+    due = {word["id"]: word for word in next_day.json()["due_words"]}
+    # wrong word reset to reps=0 and due tomorrow; correct word got an ease bonus
+    assert due[wrong_id]["reps"] == 0
+    assert due[correct_id]["reps"] == 1
+    assert due[correct_id]["ef"] > due[wrong_id]["ef"]
+
+    stats = await client.get("/api/vocab/stats", params={"as_of": "2026-07-20"})
+    stats_body = stats.json()
+    assert stats_body["dictation_total_today"] == 2
+    assert stats_body["dictation_correct_today"] == 1
+
+    refreshed = await client.get("/api/vocab/today", params={"as_of": "2026-07-20"})
+    refreshed_body = refreshed.json()
+    assert refreshed_body["dictation_total_today"] == 2
+    assert refreshed_body["dictation_correct_today"] == 1
+
+
+@pytest.mark.asyncio
+async def test_dictation_result_empty_submission_is_noop(client: AsyncClient) -> None:
+    response = await client.post(
+        "/api/vocab/dictation/result",
+        json={"as_of": "2026-07-20"},
+    )
+    assert response.status_code == 200
+    assert response.json() == {"date": "2026-07-20", "total": 0, "correct": 0}
 
 
 @pytest.mark.asyncio

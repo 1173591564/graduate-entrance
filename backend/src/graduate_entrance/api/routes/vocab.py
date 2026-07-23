@@ -9,6 +9,8 @@ from graduate_entrance.db.session import get_session
 from graduate_entrance.schemas.vocab import (
     VocabBulkEnrichStatus,
     VocabDictationResponse,
+    VocabDictationResultRead,
+    VocabDictationResultRequest,
     VocabGradeRequest,
     VocabGradeResult,
     VocabStatsResponse,
@@ -20,6 +22,7 @@ from graduate_entrance.vocab.service import (
     DEFAULT_NEW_LIMIT,
     enrich_word,
     grade_word,
+    submit_dictation_result,
     vocab_dictation,
     vocab_stats,
     vocab_today,
@@ -53,6 +56,14 @@ async def read_vocab_dictation(
     as_of: Annotated[date | None, Query()] = None,
 ) -> VocabDictationResponse:
     return await vocab_dictation(session, as_of or date.today())
+
+
+@router.post("/vocab/dictation/result", response_model=VocabDictationResultRead)
+async def submit_vocab_dictation_result(
+    session: Session,
+    payload: VocabDictationResultRequest,
+) -> VocabDictationResultRead:
+    return await submit_dictation_result(session, payload, payload.as_of or date.today())
 
 
 @router.post("/vocab/enrich/batch", response_model=VocabBulkEnrichStatus)

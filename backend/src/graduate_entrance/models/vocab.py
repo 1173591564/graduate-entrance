@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import UTC, date, datetime
-from uuid import UUID
+from uuid import UUID, uuid4
 
 from sqlalchemy import CheckConstraint, Date, DateTime, Float, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
@@ -41,3 +41,20 @@ class VocabWord(Base):
         default=utc_now,
         onupdate=utc_now,
     )
+
+
+class VocabDictationLog(Base):
+    __tablename__ = "vocab_dictation_logs"
+    __table_args__ = (
+        CheckConstraint("total >= 0", name="ck_vocab_dictation_logs_total"),
+        CheckConstraint(
+            "correct >= 0 AND correct <= total",
+            name="ck_vocab_dictation_logs_correct",
+        ),
+    )
+
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    dictated_on: Mapped[date] = mapped_column(Date, index=True)
+    total: Mapped[int] = mapped_column(default=0)
+    correct: Mapped[int] = mapped_column(default=0)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
