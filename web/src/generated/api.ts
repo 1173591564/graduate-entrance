@@ -1155,6 +1155,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/vocab/dictation/result": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Submit Vocab Dictation Result */
+        post: operations["submit_vocab_dictation_result_api_vocab_dictation_result_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/vocab/enrich/batch": {
         parameters: {
             query?: never;
@@ -3244,6 +3261,27 @@ export interface components {
             /** Words */
             words: components["schemas"]["VocabWordRead"][];
         };
+        /** VocabDictationResultRead */
+        VocabDictationResultRead: {
+            /** Correct */
+            correct: number;
+            /**
+             * Date
+             * Format: date
+             */
+            date: string;
+            /** Total */
+            total: number;
+        };
+        /** VocabDictationResultRequest */
+        VocabDictationResultRequest: {
+            /** As Of */
+            as_of?: string | null;
+            /** Correct Word Ids */
+            correct_word_ids?: string[];
+            /** Wrong Word Ids */
+            wrong_word_ids?: string[];
+        };
         /** VocabGradeRequest */
         VocabGradeRequest: {
             /** As Of */
@@ -3270,6 +3308,18 @@ export interface components {
         };
         /** VocabStatsResponse */
         VocabStatsResponse: {
+            /**
+             * Dictation Correct Today
+             * @description 当日默写写对词数
+             * @default 0
+             */
+            dictation_correct_today: number;
+            /**
+             * Dictation Total Today
+             * @description 当日默写总词数
+             * @default 0
+             */
+            dictation_total_today: number;
             /** Due Count */
             due_count: number;
             /** Learned Count */
@@ -3289,6 +3339,18 @@ export interface components {
              * Format: date
              */
             date: string;
+            /**
+             * Dictation Correct Today
+             * @description 当日默写写对词数
+             * @default 0
+             */
+            dictation_correct_today: number;
+            /**
+             * Dictation Total Today
+             * @description 当日默写总词数
+             * @default 0
+             */
+            dictation_total_today: number;
             /** Due Count */
             due_count: number;
             /** Due Words */
@@ -7361,6 +7423,57 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["VocabDictationResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    submit_vocab_dictation_result_api_vocab_dictation_result_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VocabDictationResultRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VocabDictationResultRead"];
                 };
             };
             /** @description Unauthorized */

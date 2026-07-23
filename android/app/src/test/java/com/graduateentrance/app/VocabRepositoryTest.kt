@@ -1,6 +1,8 @@
 package com.graduateentrance.app
 
+import com.graduateentrance.app.data.DictationTaskCheckInResult
 import com.graduateentrance.app.data.VocabDictationResult
+import com.graduateentrance.app.data.VocabDictationSubmitResult
 import com.graduateentrance.app.data.VocabEnrichResult
 import com.graduateentrance.app.data.VocabGradeActionResult
 import com.graduateentrance.app.data.VocabLoadResult
@@ -28,6 +30,8 @@ import com.graduateentrance.app.network.TaskUpdateRequest
 import com.graduateentrance.app.network.TodayDto
 import com.graduateentrance.app.network.TodayTaskDto
 import com.graduateentrance.app.network.VocabDictationDto
+import com.graduateentrance.app.network.VocabDictationResultDto
+import com.graduateentrance.app.network.VocabDictationResultRequest
 import com.graduateentrance.app.network.VocabGradeRequest
 import com.graduateentrance.app.network.VocabGradeResultDto
 import com.graduateentrance.app.network.VocabStatsDto
@@ -64,14 +68,22 @@ private class FakeVocabApi : GraduateEntranceApi {
     var offline = false
     var rejectWith: Int? = null
     var todayResponse = VocabTodayDto("2026-07-17", emptyList(), emptyList(), 0, 0, 0, 0)
+    var planTasks = listOf<TodayTaskDto>()
     val gradeCalls = mutableListOf<Pair<String, String>>()
+    val dictationResultCalls = mutableListOf<VocabDictationResultRequest>()
+    val completeTaskCalls = mutableListOf<Pair<String, Int>>()
 
     override suspend fun ping(): ServiceStatus = ServiceStatus("ok", "test", "test")
 
-    override suspend fun today(date: String): TodayDto = TodayDto(date, 0, 0, 0, emptyList())
+    override suspend fun today(date: String): TodayDto = TodayDto(date, 0, 0, 0, planTasks)
 
-    override suspend fun completeTask(taskId: String, payload: TaskCompletionRequest): TodayTaskDto =
-        throw UnsupportedOperationException()
+    override suspend fun completeTask(taskId: String, payload: TaskCompletionRequest): TodayTaskDto {
+        completeTaskCalls.add(taskId to payload.actualMinutes)
+        return planTasks.first { it.id == taskId }.copy(
+            status = "done",
+            actualMinutes = payload.actualMinutes,
+        )
+    }
 
     override suspend fun updateTask(taskId: String, payload: TaskUpdateRequest): TodayTaskDto =
         throw UnsupportedOperationException()
@@ -145,6 +157,18 @@ private class FakeVocabApi : GraduateEntranceApi {
     override suspend fun vocabDictation(): VocabDictationDto {
         maybeFail()
         return VocabDictationDto("2026-07-17", listOf(word("d1", reps = 1)))
+    }
+
+    override suspend fun submitVocabDictationResult(
+        payload: VocabDictationResultRequest,
+    ): VocabDictationResultDto {
+        maybeFail()
+        dictationResultCalls.add(payload)
+        return VocabDictationResultDto(
+            date = "2026-07-17",
+            total = payload.correctWordIds.size + payload.wrongWordIds.size,
+            correct = payload.correctWordIds.size,
+        )
     }
 
     override suspend fun enrichVocabWord(wordId: String): VocabWordDto {
@@ -251,6 +275,65 @@ class VocabRepositoryTest {
         api.offline = true
 
         assertTrue(VocabRepository(api).dictation() is VocabDictationResult.Offline)
+    }
+
+    @Test
+    fun submitDictationSendsResultAndReturnsTotals() = runTest {
+        val api = FakeVocabApi()
+
+        val result = VocabRepository(api).submitDictation(listOf("c1", "c2"), listOf("w1"))
+
+        assertTrue(result is VocabDictationSubmitResult.Submitted)
+        result as VocabDictationSubmitResult.Submitted
+        assertEquals(3, result.result.total)
+        assertEquals(2, result.result.correct)
+        assertEquals(listOf("w1"), api.dictationResultCalls.single().wrongWordIds)
+    }
+
+    @Test
+    fun submitDictationReturnsOfflineOnIoError() = runTest {
+        val api = FakeVocabApi()
+        api.offline = true
+
+        assertTrue(
+            VocabRepository(api).submitDictation(listOf("c1"), emptyList())
+                is VocabDictationSubmitResult.Offline,
+        )
+    }
+
+    @Test
+    fun completeDictationTaskCompletesPendingVocabTask() = runTest {
+        val api = FakeVocabApi()
+        api.planTasks = listOf(
+            TodayTaskDto(
+                id = "t1",
+                subjectName = "英语",
+                knowledgePointName = "",
+                title = "背单词",
+                plannedDate = "2026-07-17",
+                estMinutes = 30,
+                status = "pending",
+                actualMinutes = null,
+                carryCount = 0,
+                order = 1,
+                studyModule = "vocab",
+            ),
+        )
+
+        val result = VocabRepository(api).completeDictationTask("2026-07-17", 12)
+
+        assertTrue(result is DictationTaskCheckInResult.Completed)
+        assertEquals(listOf("t1" to 12), api.completeTaskCalls)
+    }
+
+    @Test
+    fun completeDictationTaskReturnsNoTaskWhenNoPendingVocabTask() = runTest {
+        val api = FakeVocabApi()
+
+        assertTrue(
+            VocabRepository(api).completeDictationTask("2026-07-17", 5)
+                is DictationTaskCheckInResult.NoTask,
+        )
     }
 
     @Test

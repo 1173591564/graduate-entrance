@@ -229,6 +229,8 @@ data class VocabTodayDto(
     @SerializedName("learned_count") val learnedCount: Int,
     @SerializedName("total_count") val totalCount: Int,
     @SerializedName("reviewed_today_count") val reviewedTodayCount: Int,
+    @SerializedName("dictation_total_today") val dictationTotalToday: Int = 0,
+    @SerializedName("dictation_correct_today") val dictationCorrectToday: Int = 0,
 )
 
 data class VocabGradeRequest(
@@ -244,6 +246,17 @@ data class VocabGradeResultDto(
 data class VocabDictationDto(
     val date: String,
     val words: List<VocabWordDto>,
+)
+
+data class VocabDictationResultRequest(
+    @SerializedName("correct_word_ids") val correctWordIds: List<String>,
+    @SerializedName("wrong_word_ids") val wrongWordIds: List<String>,
+)
+
+data class VocabDictationResultDto(
+    val date: String,
+    val total: Int,
+    val correct: Int,
 )
 
 data class VocabStatsDto(
@@ -375,6 +388,11 @@ interface GraduateEntranceApi {
 
     @GET("api/vocab/dictation")
     suspend fun vocabDictation(): VocabDictationDto
+
+    @POST("api/vocab/dictation/result")
+    suspend fun submitVocabDictationResult(
+        @Body payload: VocabDictationResultRequest,
+    ): VocabDictationResultDto
 
     @POST("api/vocab/{wordId}/enrich")
     suspend fun enrichVocabWord(

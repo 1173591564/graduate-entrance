@@ -33,6 +33,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -164,6 +165,12 @@ fun VocabScreen(viewModel: VocabViewModel) {
                     verticalArrangement = Arrangement.spacedBy(14.dp),
                 ) {
                     VocabSessionHeader(state)
+                    if (state.gradedCount > 0 || state.dictationTotalToday > 0) {
+                        DictationPromptCard(
+                            state = state,
+                            onStart = viewModel::startDictation,
+                        )
+                    }
                     val current = state.current
                     if (current == null) {
                         AppEmptyState(
@@ -214,6 +221,43 @@ private fun VocabSessionHeader(state: VocabUiState) {
                 progress = { progress },
                 modifier = Modifier.fillMaxWidth(),
             )
+        }
+    }
+}
+
+@Composable
+private fun DictationPromptCard(state: VocabUiState, onStart: () -> Unit) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.secondaryContainer,
+        ),
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Icon(
+                Icons.Outlined.EditNote,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSecondaryContainer,
+            )
+            Text(
+                text = if (state.dictationTotalToday > 0) {
+                    "今日已默写 ${state.dictationCorrectToday} / ${state.dictationTotalToday} 对"
+                } else {
+                    "今天已背 ${state.gradedCount} 个词，默写一遍更牢固"
+                },
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSecondaryContainer,
+                modifier = Modifier.weight(1f),
+            )
+            Button(onClick = onStart) {
+                Text(if (state.dictationTotalToday > 0) "再默一轮" else "去默写")
+            }
         }
     }
 }
@@ -404,7 +448,7 @@ private fun DictationScreen(state: VocabUiState, viewModel: VocabViewModel) {
             TopAppBar(
                 title = {
                     Column {
-                        Text("今日默写")
+                        Text(if (state.dictationRound > 1) "错词重默 · 第 ${state.dictationRound} 轮" else "今日默写")
                         Text(
                             text = if (state.dictationWords.isEmpty()) {
                                 "根据释义写出单词"
@@ -447,7 +491,18 @@ private fun DictationScreen(state: VocabUiState, viewModel: VocabViewModel) {
                 ) {
                     AppEmptyState(
                         title = "默写完成",
-                        body = "共 ${state.dictationWords.size} 个，写对 ${state.dictationCorrectCount} 个。",
+                        body = buildString {
+                            append(
+                                "共 ${state.dictationFirstTotal} 个，首轮写对 " +
+                                    "${state.dictationCorrectCount} 个。",
+                            )
+                            if (state.dictationRound > 1) {
+                                append("\n错词已全部重默过关，明天还会再考。")
+                            }
+                            if (state.dictationTaskCheckedIn) {
+                                append("\n已自动打卡今日默写任务。")
+                            }
+                        },
                         icon = Icons.Outlined.CheckCircle,
                     )
                     Button(
@@ -472,7 +527,7 @@ private fun DictationCard(
     word: VocabWordDto,
     viewModel: VocabViewModel,
 ) {
-    val correct = state.dictationInput.trim().equals(word.word, ignoreCase = true)
+    val correct = state.dictationLastCorrect
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
@@ -532,12 +587,23 @@ private fun DictationCard(
                     )
                 }
             } else {
-                Button(
-                    onClick = viewModel::checkDictation,
-                    enabled = state.dictationInput.isNotBlank(),
+                Row(
                     modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    Text("检查")
+                    OutlinedButton(
+                        onClick = viewModel::giveUpDictation,
+                        modifier = Modifier.weight(1f),
+                    ) {
+                        Text("不会")
+                    }
+                    Button(
+                        onClick = viewModel::checkDictation,
+                        enabled = state.dictationInput.isNotBlank(),
+                        modifier = Modifier.weight(2f),
+                    ) {
+                        Text("检查")
+                    }
                 }
             }
         }

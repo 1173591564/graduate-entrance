@@ -4824,6 +4824,64 @@
         "title": "VocabDictationResponse",
         "type": "object"
       },
+      "VocabDictationResultRead": {
+        "properties": {
+          "correct": {
+            "title": "Correct",
+            "type": "integer"
+          },
+          "date": {
+            "format": "date",
+            "title": "Date",
+            "type": "string"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "date",
+          "total",
+          "correct"
+        ],
+        "title": "VocabDictationResultRead",
+        "type": "object"
+      },
+      "VocabDictationResultRequest": {
+        "properties": {
+          "as_of": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "As Of"
+          },
+          "correct_word_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Correct Word Ids",
+            "type": "array"
+          },
+          "wrong_word_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Wrong Word Ids",
+            "type": "array"
+          }
+        },
+        "title": "VocabDictationResultRequest",
+        "type": "object"
+      },
       "VocabGradeRequest": {
         "properties": {
           "as_of": {
@@ -4884,6 +4942,18 @@
       },
       "VocabStatsResponse": {
         "properties": {
+          "dictation_correct_today": {
+            "default": 0,
+            "description": "当日默写写对词数",
+            "title": "Dictation Correct Today",
+            "type": "integer"
+          },
+          "dictation_total_today": {
+            "default": 0,
+            "description": "当日默写总词数",
+            "title": "Dictation Total Today",
+            "type": "integer"
+          },
           "due_count": {
             "title": "Due Count",
             "type": "integer"
@@ -4917,6 +4987,18 @@
             "format": "date",
             "title": "Date",
             "type": "string"
+          },
+          "dictation_correct_today": {
+            "default": 0,
+            "description": "当日默写写对词数",
+            "title": "Dictation Correct Today",
+            "type": "integer"
+          },
+          "dictation_total_today": {
+            "default": 0,
+            "description": "当日默写总词数",
+            "title": "Dictation Total Today",
+            "type": "integer"
           },
           "due_count": {
             "title": "Due Count",
@@ -10878,6 +10960,72 @@
           }
         ],
         "summary": "Read Vocab Dictation",
+        "tags": [
+          "vocab"
+        ]
+      }
+    },
+    "/api/vocab/dictation/result": {
+      "post": {
+        "operationId": "submit_vocab_dictation_result_api_vocab_dictation_result_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VocabDictationResultRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VocabDictationResultRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Submit Vocab Dictation Result",
         "tags": [
           "vocab"
         ]
