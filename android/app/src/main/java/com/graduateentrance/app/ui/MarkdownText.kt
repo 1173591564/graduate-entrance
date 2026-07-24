@@ -1,6 +1,7 @@
 package com.graduateentrance.app.ui
 
 import android.content.Context
+import android.graphics.Typeface
 import android.widget.TextView
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
@@ -36,6 +37,9 @@ fun MarkdownText(
     markdown: String,
     modifier: Modifier = Modifier,
     style: TextStyle = LocalTextStyle.current,
+    serif: Boolean = false,
+    lineSpacingMultiplier: Float = 1f,
+    justify: Boolean = false,
     onLongClick: (() -> Unit)? = null,
 ) {
     val context = LocalContext.current
@@ -57,6 +61,15 @@ fun MarkdownText(
         update = { view ->
             view.textSize = fontSizeSp
             view.setTextColor(textColor.toArgb())
+            view.typeface = if (serif) Typeface.SERIF else Typeface.DEFAULT
+            view.setLineSpacing(0f, lineSpacingMultiplier)
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                view.justificationMode = if (justify) {
+                    android.text.Layout.JUSTIFICATION_MODE_INTER_WORD
+                } else {
+                    android.text.Layout.JUSTIFICATION_MODE_NONE
+                }
+            }
             if (onLongClick != null) {
                 view.setOnLongClickListener {
                     onLongClick()

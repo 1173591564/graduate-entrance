@@ -10,6 +10,10 @@ object AppSettings {
     private const val KEY_TOKEN = "api_token"
     private const val KEY_VOCAB_NEW_LIMIT = "vocab_new_limit"
     const val DEFAULT_VOCAB_NEW_LIMIT = 20
+    private const val KEY_READER_FONT_SCALE = "reader_font_scale"
+    private const val KEY_READER_THEME = "reader_theme"
+    const val DEFAULT_READER_FONT_SCALE = 1.0f
+    const val DEFAULT_READER_THEME = "paper"
 
     @Volatile
     private var prefs: SharedPreferences? = null
@@ -40,6 +44,20 @@ object AppSettings {
             ?: DEFAULT_VOCAB_NEW_LIMIT
         set(value) {
             prefs?.edit()?.putInt(KEY_VOCAB_NEW_LIMIT, value.coerceIn(0, 200))?.apply()
+        }
+
+    var readerFontScale: Float
+        get() = prefs?.getFloat(KEY_READER_FONT_SCALE, DEFAULT_READER_FONT_SCALE)
+            ?: DEFAULT_READER_FONT_SCALE
+        set(value) {
+            prefs?.edit()?.putFloat(KEY_READER_FONT_SCALE, value.coerceIn(0.8f, 1.6f))?.apply()
+        }
+
+    var readerTheme: String
+        get() = prefs?.getString(KEY_READER_THEME, DEFAULT_READER_THEME)?.takeIf { it.isNotBlank() }
+            ?: DEFAULT_READER_THEME
+        set(value) {
+            prefs?.edit()?.putString(KEY_READER_THEME, value)?.apply()
         }
 
     private fun normalizeBaseUrl(value: String): String {
