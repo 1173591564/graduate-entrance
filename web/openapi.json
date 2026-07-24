@@ -1812,6 +1812,235 @@
         "title": "ModuleRead",
         "type": "object"
       },
+      "PaperAnnotationCreate": {
+        "properties": {
+          "block_index": {
+            "minimum": 0.0,
+            "title": "Block Index",
+            "type": "integer"
+          },
+          "color": {
+            "default": "yellow",
+            "enum": [
+              "yellow",
+              "green",
+              "blue",
+              "red"
+            ],
+            "title": "Color",
+            "type": "string"
+          },
+          "excerpt": {
+            "default": "",
+            "title": "Excerpt",
+            "type": "string"
+          },
+          "note": {
+            "default": "",
+            "title": "Note",
+            "type": "string"
+          }
+        },
+        "required": [
+          "block_index"
+        ],
+        "title": "PaperAnnotationCreate",
+        "type": "object"
+      },
+      "PaperAnnotationList": {
+        "properties": {
+          "annotations": {
+            "items": {
+              "$ref": "#/components/schemas/PaperAnnotationRead"
+            },
+            "title": "Annotations",
+            "type": "array"
+          }
+        },
+        "required": [
+          "annotations"
+        ],
+        "title": "PaperAnnotationList",
+        "type": "object"
+      },
+      "PaperAnnotationRead": {
+        "properties": {
+          "block_index": {
+            "title": "Block Index",
+            "type": "integer"
+          },
+          "color": {
+            "enum": [
+              "yellow",
+              "green",
+              "blue",
+              "red"
+            ],
+            "title": "Color",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "excerpt": {
+            "title": "Excerpt",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "note": {
+            "title": "Note",
+            "type": "string"
+          },
+          "paper_id": {
+            "format": "uuid",
+            "title": "Paper Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "paper_id",
+          "block_index",
+          "excerpt",
+          "note",
+          "color",
+          "created_at"
+        ],
+        "title": "PaperAnnotationRead",
+        "type": "object"
+      },
+      "PaperAnnotationUpdate": {
+        "properties": {
+          "color": {
+            "anyOf": [
+              {
+                "enum": [
+                  "yellow",
+                  "green",
+                  "blue",
+                  "red"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Color"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          }
+        },
+        "title": "PaperAnnotationUpdate",
+        "type": "object"
+      },
+      "PaperBlock": {
+        "properties": {
+          "level": {
+            "default": 0,
+            "maximum": 6.0,
+            "minimum": 0.0,
+            "title": "Level",
+            "type": "integer"
+          },
+          "md": {
+            "title": "Md",
+            "type": "string"
+          },
+          "type": {
+            "enum": [
+              "heading",
+              "paragraph"
+            ],
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "md"
+        ],
+        "title": "PaperBlock",
+        "type": "object"
+      },
+      "PaperContentResponse": {
+        "properties": {
+          "blocks": {
+            "items": {
+              "$ref": "#/components/schemas/PaperBlock"
+            },
+            "title": "Blocks",
+            "type": "array"
+          },
+          "paper": {
+            "$ref": "#/components/schemas/PaperRead"
+          },
+          "source": {
+            "enum": [
+              "ar5iv",
+              "pdf"
+            ],
+            "title": "Source",
+            "type": "string"
+          },
+          "toc": {
+            "items": {
+              "$ref": "#/components/schemas/PaperTocEntry"
+            },
+            "title": "Toc",
+            "type": "array"
+          }
+        },
+        "required": [
+          "paper",
+          "source",
+          "blocks",
+          "toc"
+        ],
+        "title": "PaperContentResponse",
+        "type": "object"
+      },
+      "PaperContentUpload": {
+        "properties": {
+          "blocks": {
+            "items": {
+              "$ref": "#/components/schemas/PaperBlock"
+            },
+            "minItems": 1,
+            "title": "Blocks",
+            "type": "array"
+          },
+          "source": {
+            "enum": [
+              "ar5iv",
+              "pdf"
+            ],
+            "title": "Source",
+            "type": "string"
+          }
+        },
+        "required": [
+          "source",
+          "blocks"
+        ],
+        "title": "PaperContentUpload",
+        "type": "object"
+      },
       "PaperGroup": {
         "properties": {
           "category": {
@@ -1870,6 +2099,11 @@
               }
             ],
             "title": "Finished On"
+          },
+          "has_content": {
+            "default": false,
+            "title": "Has Content",
+            "type": "boolean"
           },
           "has_file": {
             "title": "Has File",
@@ -2066,6 +2300,29 @@
           "total_count"
         ],
         "title": "PaperSyncResult",
+        "type": "object"
+      },
+      "PaperTocEntry": {
+        "properties": {
+          "block_index": {
+            "title": "Block Index",
+            "type": "integer"
+          },
+          "level": {
+            "title": "Level",
+            "type": "integer"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "title",
+          "level",
+          "block_index"
+        ],
+        "title": "PaperTocEntry",
         "type": "object"
       },
       "PaperTodayResponse": {
@@ -6586,6 +6843,143 @@
         ]
       }
     },
+    "/api/papers/annotations/{annotation_id}": {
+      "delete": {
+        "operationId": "remove_paper_annotation_api_papers_annotations__annotation_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "annotation_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Annotation Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Remove Paper Annotation",
+        "tags": [
+          "papers"
+        ]
+      },
+      "patch": {
+        "operationId": "patch_paper_annotation_api_papers_annotations__annotation_id__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "annotation_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Annotation Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PaperAnnotationUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaperAnnotationRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Patch Paper Annotation",
+        "tags": [
+          "papers"
+        ]
+      }
+    },
     "/api/papers/stats": {
       "get": {
         "operationId": "read_paper_stats_api_papers_stats_get",
@@ -6778,6 +7172,294 @@
           }
         ],
         "summary": "Read Paper Today",
+        "tags": [
+          "papers"
+        ]
+      }
+    },
+    "/api/papers/{paper_id}/annotations": {
+      "get": {
+        "operationId": "read_paper_annotations_api_papers__paper_id__annotations_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "paper_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Paper Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaperAnnotationList"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Read Paper Annotations",
+        "tags": [
+          "papers"
+        ]
+      },
+      "post": {
+        "operationId": "create_paper_annotation_api_papers__paper_id__annotations_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "paper_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Paper Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PaperAnnotationCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaperAnnotationRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Create Paper Annotation",
+        "tags": [
+          "papers"
+        ]
+      }
+    },
+    "/api/papers/{paper_id}/content": {
+      "get": {
+        "operationId": "read_paper_content_api_papers__paper_id__content_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "paper_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Paper Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaperContentResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Read Paper Content",
+        "tags": [
+          "papers"
+        ]
+      },
+      "put": {
+        "operationId": "put_paper_content_api_papers__paper_id__content_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "paper_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Paper Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PaperContentUpload"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaperContentResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Put Paper Content",
         "tags": [
           "papers"
         ]

@@ -2,13 +2,20 @@ from __future__ import annotations
 
 import uuid
 from datetime import date
+from typing import Any
 
 from fastapi import HTTPException, status
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from graduate_entrance.models.papers import Paper
+from graduate_entrance.models.papers import Paper, PaperAnnotation, PaperContent
 from graduate_entrance.schemas.papers import (
+    PaperAnnotationCreate,
+    PaperAnnotationList,
+    PaperAnnotationRead,
+    PaperAnnotationUpdate,
+    PaperContentResponse,
+    PaperContentUpload,
     PaperGroup,
     PaperListResponse,
     PaperRead,
@@ -17,6 +24,7 @@ from graduate_entrance.schemas.papers import (
     PaperStatusResult,
     PaperSyncItem,
     PaperSyncResult,
+    PaperTocEntry,
     PaperTodayResponse,
 )
 
@@ -34,7 +42,7 @@ def _title_from_path(rel_path: str) -> str:
     return tail.strip()
 
 
-def _read(paper: Paper) -> PaperRead:
+def _read(paper: Paper, *, has_content: bool = False) -> PaperRead:
     return PaperRead(
         id=paper.id,
         rel_path=paper.rel_path,
@@ -43,9 +51,23 @@ def _read(paper: Paper) -> PaperRead:
         size_bytes=paper.size_bytes,
         status=paper.status,
         has_file=paper.stored_filename is not None,
+        has_content=has_content,
         started_on=paper.started_on,
         finished_on=paper.finished_on,
     )
+
+
+async def _content_ids(session: AsyncSession) -> set[uuid.UUID]:
+    rows = (await session.execute(select(PaperContent.paper_id))).scalars().all()
+    return set(rows)
+
+
+async def _has_content(session: AsyncSession, paper_id: uuid.UUID) -> bool:
+    return (
+        await session.execute(
+            select(PaperContent.paper_id).where(PaperContent.paper_id == paper_id)
+        )
+    ).scalar_one_or_none() is not None
 
 
 async def _stats(session: AsyncSession) -> PaperStatsResponse:
@@ -115,11 +137,12 @@ async def list_papers(session: AsyncSession) -> PaperListResponse:
         .scalars()
         .all()
     )
+    content_ids = await _content_ids(session)
     groups: list[PaperGroup] = []
     for paper in papers:
         if not groups or groups[-1].category != paper.category:
             groups.append(PaperGroup(category=paper.category, papers=[]))
-        groups[-1].papers.append(_read(paper))
+        groups[-1].papers.append(_read(paper, has_content=paper.id in content_ids))
     return PaperListResponse(groups=groups, stats=await _stats(session))
 
 
@@ -142,9 +165,12 @@ async def paper_today(session: AsyncSession, as_of: date) -> PaperTodayResponse:
                 .limit(1)
             )
         ).scalar_one_or_none()
+    paper_read = None
+    if pick is not None:
+        paper_read = _read(pick, has_content=await _has_content(session, pick.id))
     return PaperTodayResponse(
         date=as_of,
-        paper=_read(pick) if pick is not None else None,
+        paper=paper_read,
         stats=await _stats(session),
     )
 
@@ -170,7 +196,9 @@ async def update_status(
         paper.finished_on = None
     await session.commit()
     await session.refresh(paper)
-    return PaperStatusResult(paper=_read(paper))
+    return PaperStatusResult(
+        paper=_read(paper, has_content=await _has_content(session, paper.id))
+    )
 
 
 async def paper_stats(session: AsyncSession) -> PaperStatsResponse:
@@ -193,4 +221,147 @@ async def attach_file(
     paper.stored_filename = stored_filename
     await session.commit()
     await session.refresh(paper)
-    return _read(paper)
+    return _read(paper, has_content=await _has_content(session, paper.id))
+
+
+def _toc(blocks: list[dict[str, Any]]) -> list[PaperTocEntry]:
+    return [
+        PaperTocEntry(
+            title=str(block.get("md", "")),
+            level=int(block.get("level", 0) or 0),
+            block_index=index,
+        )
+        for index, block in enumerate(blocks)
+        if block.get("type") == "heading"
+    ]
+
+
+async def upload_content(
+    session: AsyncSession,
+    paper_id: uuid.UUID,
+    payload: PaperContentUpload,
+) -> PaperContentResponse:
+    paper = await get_paper(session, paper_id)
+    blocks = [block.model_dump() for block in payload.blocks]
+    content = await session.get(PaperContent, paper_id)
+    if content is None:
+        content = PaperContent(paper_id=paper_id, source=payload.source, blocks=blocks)
+        session.add(content)
+    else:
+        content.source = payload.source
+        content.blocks = blocks
+    await session.commit()
+    await session.refresh(content)
+    return PaperContentResponse(
+        paper=_read(paper, has_content=True),
+        source=payload.source,
+        blocks=payload.blocks,
+        toc=_toc(blocks),
+    )
+
+
+async def read_content(
+    session: AsyncSession,
+    paper_id: uuid.UUID,
+) -> PaperContentResponse:
+    paper = await get_paper(session, paper_id)
+    content = await session.get(PaperContent, paper_id)
+    if content is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="论文正文尚未解析"
+        )
+    return PaperContentResponse(
+        paper=_read(paper, has_content=True),
+        source=content.source,
+        blocks=content.blocks,
+        toc=_toc(content.blocks),
+    )
+
+
+def _annotation_read(annotation: PaperAnnotation) -> PaperAnnotationRead:
+    return PaperAnnotationRead(
+        id=annotation.id,
+        paper_id=annotation.paper_id,
+        block_index=annotation.block_index,
+        excerpt=annotation.excerpt,
+        note=annotation.note,
+        color=annotation.color,
+        created_at=annotation.created_at,
+    )
+
+
+async def list_annotations(
+    session: AsyncSession,
+    paper_id: uuid.UUID,
+) -> PaperAnnotationList:
+    await get_paper(session, paper_id)
+    annotations = (
+        (
+            await session.execute(
+                select(PaperAnnotation)
+                .where(PaperAnnotation.paper_id == paper_id)
+                .order_by(PaperAnnotation.block_index, PaperAnnotation.created_at)
+            )
+        )
+        .scalars()
+        .all()
+    )
+    return PaperAnnotationList(
+        annotations=[_annotation_read(annotation) for annotation in annotations]
+    )
+
+
+async def create_annotation(
+    session: AsyncSession,
+    paper_id: uuid.UUID,
+    payload: PaperAnnotationCreate,
+) -> PaperAnnotationRead:
+    await get_paper(session, paper_id)
+    content = await session.get(PaperContent, paper_id)
+    if content is None or payload.block_index >= len(content.blocks):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="段落不存在"
+        )
+    annotation = PaperAnnotation(
+        paper_id=paper_id,
+        block_index=payload.block_index,
+        excerpt=payload.excerpt,
+        note=payload.note,
+        color=payload.color,
+    )
+    session.add(annotation)
+    await session.commit()
+    await session.refresh(annotation)
+    return _annotation_read(annotation)
+
+
+async def update_annotation(
+    session: AsyncSession,
+    annotation_id: uuid.UUID,
+    payload: PaperAnnotationUpdate,
+) -> PaperAnnotationRead:
+    annotation = await session.get(PaperAnnotation, annotation_id)
+    if annotation is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="标注不存在"
+        )
+    if payload.note is not None:
+        annotation.note = payload.note
+    if payload.color is not None:
+        annotation.color = payload.color
+    await session.commit()
+    await session.refresh(annotation)
+    return _annotation_read(annotation)
+
+
+async def delete_annotation(
+    session: AsyncSession,
+    annotation_id: uuid.UUID,
+) -> None:
+    annotation = await session.get(PaperAnnotation, annotation_id)
+    if annotation is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="标注不存在"
+        )
+    await session.delete(annotation)
+    await session.commit()

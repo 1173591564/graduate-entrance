@@ -11,6 +11,11 @@ import com.graduateentrance.app.network.ChatSendResultDto
 import com.graduateentrance.app.network.DueReviewsDto
 import com.graduateentrance.app.network.ExtractionResultDto
 import com.graduateentrance.app.network.GraduateEntranceApi
+import com.graduateentrance.app.network.PaperAnnotationCreateRequest
+import com.graduateentrance.app.network.PaperAnnotationDto
+import com.graduateentrance.app.network.PaperAnnotationListDto
+import com.graduateentrance.app.network.PaperAnnotationUpdateRequest
+import com.graduateentrance.app.network.PaperContentDto
 import com.graduateentrance.app.network.PaperListDto
 import com.graduateentrance.app.network.PaperStatusRequest
 import com.graduateentrance.app.network.PaperStatusResultDto
@@ -88,6 +93,25 @@ private class FakeDao : TodayDao {
 }
 
 private class FakeApi : GraduateEntranceApi {
+
+    override suspend fun paperContent(paperId: String): PaperContentDto =
+        throw UnsupportedOperationException()
+
+    override suspend fun paperAnnotations(paperId: String): PaperAnnotationListDto =
+        throw UnsupportedOperationException()
+
+    override suspend fun createPaperAnnotation(
+        paperId: String,
+        payload: PaperAnnotationCreateRequest,
+    ): PaperAnnotationDto = throw UnsupportedOperationException()
+
+    override suspend fun updatePaperAnnotation(
+        annotationId: String,
+        payload: PaperAnnotationUpdateRequest,
+    ): PaperAnnotationDto = throw UnsupportedOperationException()
+
+    override suspend fun deletePaperAnnotation(annotationId: String): Response<Unit> =
+        throw UnsupportedOperationException()
     var offline = false
     var todayResponse: TodayDto? = null
     var rejectWith: Int? = null

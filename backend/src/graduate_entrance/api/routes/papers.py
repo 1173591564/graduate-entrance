@@ -12,14 +12,26 @@ from graduate_entrance.core.config import get_settings
 from graduate_entrance.db.session import get_session
 from graduate_entrance.papers.service import (
     attach_file,
+    create_annotation,
+    delete_annotation,
     get_paper,
+    list_annotations,
     list_papers,
     paper_stats,
     paper_today,
+    read_content,
     sync_papers,
+    update_annotation,
     update_status,
+    upload_content,
 )
 from graduate_entrance.schemas.papers import (
+    PaperAnnotationCreate,
+    PaperAnnotationList,
+    PaperAnnotationRead,
+    PaperAnnotationUpdate,
+    PaperContentResponse,
+    PaperContentUpload,
     PaperListResponse,
     PaperRead,
     PaperStatsResponse,
@@ -114,3 +126,58 @@ async def read_paper_file(session: Session, paper_id: UUID) -> FileResponse:
     if not path.is_file():
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="PDF 未上传")
     return FileResponse(path, media_type="application/pdf", filename=f"{paper.title}.pdf")
+
+
+@router.put("/papers/{paper_id}/content", response_model=PaperContentResponse)
+async def put_paper_content(
+    session: Session,
+    paper_id: UUID,
+    payload: PaperContentUpload,
+) -> PaperContentResponse:
+    return await upload_content(session, paper_id, payload)
+
+
+@router.get("/papers/{paper_id}/content", response_model=PaperContentResponse)
+async def read_paper_content(session: Session, paper_id: UUID) -> PaperContentResponse:
+    return await read_content(session, paper_id)
+
+
+@router.get("/papers/{paper_id}/annotations", response_model=PaperAnnotationList)
+async def read_paper_annotations(
+    session: Session,
+    paper_id: UUID,
+) -> PaperAnnotationList:
+    return await list_annotations(session, paper_id)
+
+
+@router.post(
+    "/papers/{paper_id}/annotations",
+    response_model=PaperAnnotationRead,
+    status_code=status.HTTP_201_CREATED,
+)
+async def create_paper_annotation(
+    session: Session,
+    paper_id: UUID,
+    payload: PaperAnnotationCreate,
+) -> PaperAnnotationRead:
+    return await create_annotation(session, paper_id, payload)
+
+
+@router.patch(
+    "/papers/annotations/{annotation_id}",
+    response_model=PaperAnnotationRead,
+)
+async def patch_paper_annotation(
+    session: Session,
+    annotation_id: UUID,
+    payload: PaperAnnotationUpdate,
+) -> PaperAnnotationRead:
+    return await update_annotation(session, annotation_id, payload)
+
+
+@router.delete(
+    "/papers/annotations/{annotation_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+async def remove_paper_annotation(session: Session, annotation_id: UUID) -> None:
+    await delete_annotation(session, annotation_id)
