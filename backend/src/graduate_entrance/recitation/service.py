@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import uuid
-from datetime import date
+from datetime import date, timedelta
 
 from fastapi import HTTPException, status
 from sqlalchemy import func, select
@@ -17,8 +17,12 @@ from graduate_entrance.schemas.recitation import (
     RecitationStatsResponse,
     RecitationSubject,
     RecitationTodayResponse,
+    ReciteGrade,
     ReciteResult,
 )
+from graduate_entrance.vocab.service import apply_vocab_srs
+
+NEW_QUEUE_LIMIT = 3
 
 RECITATION_NAMESPACE = uuid.UUID("f3b8a2d6-4e17-5c90-8b2a-9d6e1f0c3a55")
 
@@ -37,6 +41,10 @@ def _read(item: RecitationItem, as_of: date) -> RecitationRead:
         recite_count=item.recite_count,
         last_recited_on=item.last_recited_on,
         recited_today=item.last_recited_on == as_of,
+        ef=item.ef,
+        interval_days=item.interval_days,
+        reps=item.reps,
+        due_date=item.due_date,
     )
 
 
@@ -53,6 +61,13 @@ async def _stats(
         total_count=len(items),
         recited_today=sum(1 for item in items if item.last_recited_on == as_of),
         never_recited=sum(1 for item in items if item.last_recited_on is None),
+        due_count=sum(
+            1
+            for item in items
+            if item.last_recited_on != as_of
+            and item.due_date is not None
+            and item.due_date <= as_of
+        ),
     )
 
 
@@ -127,27 +142,46 @@ async def item_today(
     base = select(RecitationItem)
     if subject is not None:
         base = base.where(RecitationItem.subject == subject)
-    recited = (
-        await session.execute(
-            base.where(RecitationItem.last_recited_on == as_of)
-            .order_by(RecitationItem.order_index)
-            .limit(1)
-        )
-    ).scalar_one_or_none()
-    pick = recited
-    if pick is None:
-        pick = (
+    due_items = (
+        (
             await session.execute(
-                base.order_by(
-                    RecitationItem.recite_count,
-                    RecitationItem.last_recited_on.asc().nulls_first(),
-                    RecitationItem.order_index,
-                ).limit(1)
+                base.where(
+                    RecitationItem.last_recited_on != as_of,
+                    RecitationItem.due_date.is_not(None),
+                    RecitationItem.due_date <= as_of,
+                ).order_by(RecitationItem.due_date, RecitationItem.order_index)
+            )
+        )
+        .scalars()
+        .all()
+    )
+    new_items = (
+        (
+            await session.execute(
+                base.where(RecitationItem.last_recited_on.is_(None))
+                .order_by(RecitationItem.order_index)
+                .limit(NEW_QUEUE_LIMIT)
+            )
+        )
+        .scalars()
+        .all()
+    )
+    queue = [_read(item, as_of) for item in [*due_items, *new_items]]
+    pick = queue[0] if queue else None
+    if pick is None:
+        recited = (
+            await session.execute(
+                base.where(RecitationItem.last_recited_on == as_of)
+                .order_by(RecitationItem.order_index)
+                .limit(1)
             )
         ).scalar_one_or_none()
+        if recited is not None:
+            pick = _read(recited, as_of)
     return RecitationTodayResponse(
         date=as_of,
-        item=_read(pick, as_of) if pick is not None else None,
+        item=pick,
+        queue=queue,
         stats=await _stats(session, subject, as_of),
     )
 
@@ -157,6 +191,7 @@ async def recite(
     item_id: uuid.UUID,
     as_of: date,
     undo: bool,
+    grade: ReciteGrade | None = None,
 ) -> ReciteResult:
     item = await session.get(RecitationItem, item_id)
     if item is None:
@@ -165,10 +200,20 @@ async def recite(
         if item.last_recited_on == as_of:
             item.recite_count = max(0, item.recite_count - 1)
             item.last_recited_on = None
+            item.due_date = as_of
     else:
-        if item.last_recited_on != as_of:
+        first_today = item.last_recited_on != as_of
+        if first_today:
             item.recite_count += 1
         item.last_recited_on = as_of
+        if first_today or grade is not None:
+            next_ef, next_interval, next_reps = apply_vocab_srs(
+                item.ef, item.interval_days, item.reps, grade or "mastered"
+            )
+            item.ef = next_ef
+            item.interval_days = next_interval
+            item.reps = next_reps
+            item.due_date = as_of + timedelta(days=next_interval)
     await session.commit()
     await session.refresh(item)
     return ReciteResult(item=_read(item, as_of))

@@ -32,6 +32,10 @@ class RecitationItem(Base):
     order_index: Mapped[int] = mapped_column(default=0, index=True)
     recite_count: Mapped[int] = mapped_column(default=0)
     last_recited_on: Mapped[date | None] = mapped_column(Date)
+    ef: Mapped[float] = mapped_column(default=2.5)
+    interval_days: Mapped[int] = mapped_column(default=0)
+    reps: Mapped[int] = mapped_column(default=0)
+    due_date: Mapped[date | None] = mapped_column(Date, index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),

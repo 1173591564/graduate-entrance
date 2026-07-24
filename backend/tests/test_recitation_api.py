@@ -85,7 +85,7 @@ async def test_list_filters_by_subject(client: AsyncClient) -> None:
 
 
 @pytest.mark.asyncio
-async def test_today_prefers_already_recited_item(client: AsyncClient) -> None:
+async def test_today_returns_queue_of_pending_items(client: AsyncClient) -> None:
     await client.post("/api/recitations/import", json=IMPORT_PAYLOAD)
 
     today = (
@@ -94,19 +94,13 @@ async def test_today_prefers_already_recited_item(client: AsyncClient) -> None:
             params={"subject": "politics", "as_of": "2026-07-17"},
         )
     ).json()
+    assert [item["title"] for item in today["queue"]] == ["对立统一规律", "实践与认识"]
     assert today["item"]["title"] == "对立统一规律"
 
-    second_id = None
-    listing = (await client.get("/api/recitations", params={"subject": "politics"})).json()
-    for group in listing["groups"]:
-        for item in group["items"]:
-            if item["title"] == "实践与认识":
-                second_id = item["id"]
-    assert second_id is not None
-
+    first_id = today["queue"][0]["id"]
     await client.post(
-        f"/api/recitations/{second_id}/recite",
-        json={"as_of": "2026-07-17"},
+        f"/api/recitations/{first_id}/recite",
+        json={"as_of": "2026-07-17", "grade": "mastered"},
     )
     today_after = (
         await client.get(
@@ -114,9 +108,60 @@ async def test_today_prefers_already_recited_item(client: AsyncClient) -> None:
             params={"subject": "politics", "as_of": "2026-07-17"},
         )
     ).json()
+    assert [item["title"] for item in today_after["queue"]] == ["实践与认识"]
     assert today_after["item"]["title"] == "实践与认识"
-    assert today_after["item"]["recited_today"] is True
     assert today_after["stats"]["recited_today"] == 1
+
+    await client.post(
+        f"/api/recitations/{today_after['queue'][0]['id']}/recite",
+        json={"as_of": "2026-07-17", "grade": "mastered"},
+    )
+    today_done = (
+        await client.get(
+            "/api/recitations/today",
+            params={"subject": "politics", "as_of": "2026-07-17"},
+        )
+    ).json()
+    assert today_done["queue"] == []
+    assert today_done["item"]["recited_today"] is True
+
+
+@pytest.mark.asyncio
+async def test_grades_drive_srs_schedule(client: AsyncClient) -> None:
+    await client.post("/api/recitations/import", json=IMPORT_PAYLOAD)
+    listing = (await client.get("/api/recitations", params={"subject": "politics"})).json()
+    items = [item for group in listing["groups"] for item in group["items"]]
+    mastered_id, forgot_id = items[0]["id"], items[1]["id"]
+
+    mastered = (
+        await client.post(
+            f"/api/recitations/{mastered_id}/recite",
+            json={"as_of": "2026-07-17", "grade": "mastered"},
+        )
+    ).json()["item"]
+    assert mastered["reps"] == 1
+    assert mastered["interval_days"] == 1
+    assert mastered["due_date"] == "2026-07-18"
+
+    forgot = (
+        await client.post(
+            f"/api/recitations/{forgot_id}/recite",
+            json={"as_of": "2026-07-17", "grade": "forgot"},
+        )
+    ).json()["item"]
+    assert forgot["reps"] == 0
+    assert forgot["due_date"] == "2026-07-18"
+    assert forgot["ef"] < mastered["ef"]
+
+    # 到期后重新进入队列，到期条目排在新条目前
+    next_day = (
+        await client.get(
+            "/api/recitations/today",
+            params={"subject": "politics", "as_of": "2026-07-18"},
+        )
+    ).json()
+    assert {item["id"] for item in next_day["queue"]} == {mastered_id, forgot_id}
+    assert next_day["stats"]["due_count"] == 2
 
 
 @pytest.mark.asyncio
@@ -150,6 +195,7 @@ async def test_recite_and_undo(client: AsyncClient) -> None:
     ).json()
     assert undone["item"]["recite_count"] == 0
     assert undone["item"]["last_recited_on"] is None
+    assert undone["item"]["due_date"] == "2026-07-17"
 
 
 @pytest.mark.asyncio

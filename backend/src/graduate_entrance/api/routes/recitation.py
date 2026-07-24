@@ -67,4 +67,10 @@ async def recite_item(
     item_id: UUID,
     payload: ReciteRequest,
 ) -> ReciteResult:
-    return await recite(session, item_id, payload.as_of or date.today(), payload.undo)
+    return await recite(
+        session,
+        item_id,
+        payload.as_of or date.today(),
+        payload.undo,
+        payload.grade,
+    )

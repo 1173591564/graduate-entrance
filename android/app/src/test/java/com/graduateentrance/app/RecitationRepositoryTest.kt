@@ -1,5 +1,6 @@
 package com.graduateentrance.app
 
+import com.graduateentrance.app.data.DictationTaskCheckInResult
 import com.graduateentrance.app.data.RecitationLoadResult
 import com.graduateentrance.app.data.RecitationRepository
 import com.graduateentrance.app.data.ReciteActionResult
@@ -66,15 +67,24 @@ private class FakeRecitationApi : GraduateEntranceApi {
     var offline = false
     var rejectWith: Int? = null
     var listResponse = RecitationListDto(emptyList(), emptyStats)
-    var todayResponse = RecitationTodayDto("2026-07-17", null, emptyStats)
-    val reciteCalls = mutableListOf<Pair<String, Boolean>>()
+    var todayResponse = RecitationTodayDto("2026-07-17", null, emptyList(), emptyStats)
+    var todayTasks = TodayDto("2026-07-17", 0, 0, 0, emptyList())
+    val reciteCalls = mutableListOf<Pair<String, String?>>()
+    val completedTasks = mutableListOf<Pair<String, Int>>()
 
     override suspend fun ping(): ServiceStatus = ServiceStatus("ok", "test", "test")
 
-    override suspend fun today(date: String): TodayDto = TodayDto(date, 0, 0, 0, emptyList())
+    override suspend fun today(date: String): TodayDto {
+        maybeFail()
+        return todayTasks
+    }
 
-    override suspend fun completeTask(taskId: String, payload: TaskCompletionRequest): TodayTaskDto =
-        throw UnsupportedOperationException()
+    override suspend fun completeTask(taskId: String, payload: TaskCompletionRequest): TodayTaskDto {
+        maybeFail()
+        completedTasks.add(taskId to payload.actualMinutes)
+        val task = todayTasks.tasks.first { it.id == taskId }
+        return task.copy(status = "done")
+    }
 
     override suspend fun updateTask(taskId: String, payload: TaskUpdateRequest): TodayTaskDto =
         throw UnsupportedOperationException()
@@ -130,7 +140,7 @@ private class FakeRecitationApi : GraduateEntranceApi {
 
     override suspend fun reciteItem(itemId: String, payload: ReciteRequest): ReciteResultDto {
         maybeFail()
-        reciteCalls.add(itemId to payload.undo)
+        reciteCalls.add(itemId to payload.grade)
         return ReciteResultDto(item(itemId, recitedToday = !payload.undo))
     }
 
@@ -173,7 +183,7 @@ class RecitationRepositoryTest {
     fun loadReturnsTodayGroupsAndStats() = runTest {
         val api = FakeRecitationApi()
         val stats = RecitationStatsDto(2, 1, 0)
-        api.todayResponse = RecitationTodayDto("2026-07-17", item("r1"), stats)
+        api.todayResponse = RecitationTodayDto("2026-07-17", item("r1"), listOf(item("r1")), stats)
         api.listResponse = RecitationListDto(
             listOf(RecitationGroupDto("马原", listOf(item("r1"), item("r2")))),
             stats,
@@ -185,6 +195,7 @@ class RecitationRepositoryTest {
         assertTrue(result is RecitationLoadResult.Loaded)
         result as RecitationLoadResult.Loaded
         assertEquals("r1", result.today?.id)
+        assertEquals(listOf("r1"), result.queue.map { it.id })
         assertEquals(listOf("马原"), result.groups.map { it.category })
         assertEquals(2, result.stats.totalCount)
     }
@@ -211,17 +222,52 @@ class RecitationRepositoryTest {
     }
 
     @Test
-    fun reciteSendsUndoFlag() = runTest {
+    fun reciteSendsGrade() = runTest {
         val api = FakeRecitationApi()
         val repository = RecitationRepository(api)
 
-        val done = repository.recite("r1", undo = false)
-        val undone = repository.recite("r1", undo = true)
+        val done = repository.recite("r1", undo = false, grade = "mastered")
+        val plain = repository.recite("r1", undo = true)
 
         assertTrue(done is ReciteActionResult.Updated)
         assertTrue((done as ReciteActionResult.Updated).item.recitedToday)
-        assertTrue(undone is ReciteActionResult.Updated)
-        assertEquals(listOf("r1" to false, "r1" to true), api.reciteCalls)
+        assertTrue(plain is ReciteActionResult.Updated)
+        assertEquals(listOf("r1" to "mastered", "r1" to null), api.reciteCalls)
+    }
+
+    @Test
+    fun completeMemorizationTaskCompletesPendingRecitationTask() = runTest {
+        val api = FakeRecitationApi()
+        val task = TodayTaskDto(
+            id = "t1",
+            subjectName = "政治",
+            knowledgePointName = "马原",
+            title = "背诵",
+            plannedDate = "2026-07-17",
+            estMinutes = 20,
+            status = "pending",
+            actualMinutes = null,
+            carryCount = 0,
+            order = 0,
+            studyModule = "recitation",
+        )
+        api.todayTasks = TodayDto("2026-07-17", 1, 0, 20, listOf(task))
+        val repository = RecitationRepository(api)
+
+        val result = repository.completeMemorizationTask("2026-07-17", 5)
+
+        assertTrue(result is DictationTaskCheckInResult.Completed)
+        assertEquals(listOf("t1" to 5), api.completedTasks)
+    }
+
+    @Test
+    fun completeMemorizationTaskReturnsNoTaskWhenNonePending() = runTest {
+        val api = FakeRecitationApi()
+        val repository = RecitationRepository(api)
+
+        val result = repository.completeMemorizationTask("2026-07-17", 5)
+
+        assertTrue(result is DictationTaskCheckInResult.NoTask)
     }
 
     @Test

@@ -7,6 +7,7 @@ from uuid import UUID
 from pydantic import BaseModel, Field
 
 RecitationSubject = Literal["politics", "english", "math", "cs408"]
+ReciteGrade = Literal["forgot", "vague", "mastered"]
 
 
 class RecitationImportItem(BaseModel):
@@ -35,6 +36,10 @@ class RecitationRead(BaseModel):
     recite_count: int
     last_recited_on: date | None
     recited_today: bool
+    ef: float = 2.5
+    interval_days: int = 0
+    reps: int = 0
+    due_date: date | None = None
 
 
 class RecitationGroup(BaseModel):
@@ -46,6 +51,7 @@ class RecitationStatsResponse(BaseModel):
     total_count: int
     recited_today: int
     never_recited: int
+    due_count: int = 0
 
 
 class RecitationListResponse(BaseModel):
@@ -56,12 +62,14 @@ class RecitationListResponse(BaseModel):
 class RecitationTodayResponse(BaseModel):
     date: date
     item: RecitationRead | None
+    queue: list[RecitationRead] = Field(default_factory=list)
     stats: RecitationStatsResponse
 
 
 class ReciteRequest(BaseModel):
     as_of: date | None = None
     undo: bool = False
+    grade: ReciteGrade | None = None
 
 
 class ReciteResult(BaseModel):

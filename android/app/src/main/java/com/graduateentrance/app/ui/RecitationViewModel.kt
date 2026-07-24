@@ -3,12 +3,14 @@ package com.graduateentrance.app.ui
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.graduateentrance.app.data.DictationTaskCheckInResult
 import com.graduateentrance.app.data.RecitationLoadResult
 import com.graduateentrance.app.data.RecitationRepository
 import com.graduateentrance.app.data.ReciteActionResult
 import com.graduateentrance.app.network.RecitationGroupDto
 import com.graduateentrance.app.network.RecitationItemDto
 import com.graduateentrance.app.network.RecitationStatsDto
+import java.time.LocalDate
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -19,19 +21,29 @@ data class RecitationUiState(
     val loading: Boolean = true,
     val subject: String = "politics",
     val today: RecitationItemDto? = null,
+    val queue: List<RecitationItemDto> = emptyList(),
+    val revealed: Boolean = false,
+    val queueGradedCount: Int = 0,
+    val queueInitialSize: Int = 0,
+    val taskCheckedIn: Boolean = false,
     val groups: List<RecitationGroupDto> = emptyList(),
     val stats: RecitationStatsDto? = null,
     val busy: Set<String> = emptySet(),
     val expanded: Set<String> = emptySet(),
     val notice: String? = null,
     val error: String? = null,
-)
+) {
+    val queueCurrent: RecitationItemDto? get() = queue.firstOrNull()
+}
 
 class RecitationViewModel(
     private val repository: RecitationRepository,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(RecitationUiState())
     val uiState: StateFlow<RecitationUiState> = _uiState.asStateFlow()
+
+    private var sessionStartMs = System.currentTimeMillis()
+    private var taskCheckInAttempted = false
 
     init {
         refresh()
@@ -45,6 +57,10 @@ class RecitationViewModel(
                     it.copy(
                         loading = false,
                         today = result.today,
+                        queue = result.queue,
+                        revealed = false,
+                        queueGradedCount = 0,
+                        queueInitialSize = result.queue.size,
                         groups = result.groups,
                         stats = result.stats,
                     )
@@ -63,6 +79,71 @@ class RecitationViewModel(
         if (_uiState.value.subject == subject) return
         _uiState.update { it.copy(subject = subject, expanded = emptySet()) }
         refresh()
+    }
+
+    fun reveal() {
+        _uiState.update { it.copy(revealed = true) }
+    }
+
+    fun gradeCurrent(grade: String) {
+        val item = _uiState.value.queueCurrent ?: return
+        viewModelScope.launch {
+            _uiState.update { it.copy(busy = it.busy + item.id, notice = null) }
+            when (val result = repository.recite(item.id, undo = false, grade = grade)) {
+                is ReciteActionResult.Updated -> {
+                    val updated = result.item
+                    val remaining = _uiState.value.queue.drop(1)
+                    _uiState.update {
+                        it.copy(
+                            busy = it.busy - item.id,
+                            queue = remaining,
+                            revealed = false,
+                            queueGradedCount = it.queueGradedCount + 1,
+                            today = if (it.today?.id == updated.id) updated else it.today,
+                            groups = it.groups.map { group ->
+                                group.copy(
+                                    items = group.items.map { row ->
+                                        if (row.id == updated.id) updated else row
+                                    },
+                                )
+                            },
+                            stats = it.stats?.copy(
+                                recitedToday = it.stats.recitedToday +
+                                    if (!item.recitedToday) 1 else 0,
+                            ),
+                        )
+                    }
+                    if (remaining.isEmpty()) {
+                        completeMemorizationTaskIfAny()
+                    }
+                }
+                ReciteActionResult.Offline -> _uiState.update {
+                    it.copy(busy = it.busy - item.id, notice = "网络不可用，未保存")
+                }
+                is ReciteActionResult.Rejected -> _uiState.update {
+                    it.copy(busy = it.busy - item.id, notice = "提交失败（HTTP ${result.code}）")
+                }
+            }
+        }
+    }
+
+    private fun completeMemorizationTaskIfAny() {
+        if (taskCheckInAttempted) return
+        taskCheckInAttempted = true
+        viewModelScope.launch {
+            val minutes = ((System.currentTimeMillis() - sessionStartMs) / 60000L)
+                .toInt()
+                .coerceAtLeast(1)
+            val result = repository.completeMemorizationTask(
+                LocalDate.now().toString(),
+                minutes,
+            )
+            if (result is DictationTaskCheckInResult.Completed) {
+                _uiState.update {
+                    it.copy(taskCheckedIn = true, notice = "已自动打卡今日背诵任务")
+                }
+            }
+        }
     }
 
     fun recite(itemId: String, undo: Boolean = false) {
