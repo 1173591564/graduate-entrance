@@ -175,6 +175,7 @@ data class RecitationItemDto(
     @SerializedName("recite_count") val reciteCount: Int,
     @SerializedName("last_recited_on") val lastRecitedOn: String?,
     @SerializedName("recited_today") val recitedToday: Boolean,
+    @SerializedName("due_date") val dueDate: String? = null,
 )
 
 data class RecitationStatsDto(

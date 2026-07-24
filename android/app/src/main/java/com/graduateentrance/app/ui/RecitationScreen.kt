@@ -1,5 +1,6 @@
 package com.graduateentrance.app.ui
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -8,13 +9,17 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.AutoStories
+import androidx.compose.material.icons.outlined.ExpandLess
+import androidx.compose.material.icons.outlined.ExpandMore
 import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -44,6 +49,7 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.graduateentrance.app.network.RecitationGroupDto
 import com.graduateentrance.app.network.RecitationItemDto
 
 private val subjectLabels = listOf(
@@ -64,6 +70,15 @@ fun RecitationScreen(viewModel: RecitationViewModel) {
             snackbarHostState.showSnackbar(it)
             viewModel.consumeNotice()
         }
+    }
+
+    if (state.detailId != null) {
+        RecitationDetailScreen(
+            state = state,
+            viewModel = viewModel,
+            snackbarHostState = snackbarHostState,
+        )
+        return
     }
 
     Scaffold(
@@ -166,20 +181,69 @@ private fun RecitationContent(
                 )
             }
         }
+        Text(
+            text = "知识体系",
+            style = MaterialTheme.typography.titleSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
         state.groups.forEach { group ->
-            Text(
-                text = group.category,
-                style = MaterialTheme.typography.titleSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            CategoryNavCard(
+                group = group,
+                expanded = group.category in state.expanded,
+                onToggle = { viewModel.toggleExpanded(group.category) },
+                onOpenItem = { viewModel.openDetail(it) },
             )
-            group.items.forEach { item ->
-                RecitationRow(
-                    item = item,
-                    busy = item.id in state.busy,
-                    expanded = item.id in state.expanded,
-                    onToggle = { viewModel.toggleExpanded(item.id) },
-                    onRecite = { undo -> viewModel.recite(item.id, undo) },
+        }
+    }
+}
+
+@Composable
+private fun CategoryNavCard(
+    group: RecitationGroupDto,
+    expanded: Boolean,
+    onToggle: () -> Unit,
+    onOpenItem: (String) -> Unit,
+) {
+    val recited = group.items.count { it.recitedToday }
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .animateContentSize(),
+    ) {
+        Column(modifier = Modifier.padding(14.dp)) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable(onClick = onToggle),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = group.category,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                    Text(
+                        text = "${group.items.size} 条 · 今日已背 $recited",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                Icon(
+                    imageVector = if (expanded) {
+                        Icons.Outlined.ExpandLess
+                    } else {
+                        Icons.Outlined.ExpandMore
+                    },
+                    contentDescription = if (expanded) "收起" else "展开",
                 )
+            }
+            if (expanded) {
+                Spacer(Modifier.height(6.dp))
+                group.items.forEach { item ->
+                    RecitationRow(item = item, onOpen = { onOpenItem(item.id) })
+                }
             }
         }
     }
@@ -380,60 +444,185 @@ private fun ReciteButton(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun RecitationDetailScreen(
+    state: RecitationUiState,
+    viewModel: RecitationViewModel,
+    snackbarHostState: SnackbarHostState,
+) {
+    BackHandler(onBack = viewModel::closeDetail)
+    val item = state.detailItem
+    Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+        topBar = {
+            TopAppBar(
+                title = {
+                    Column {
+                        Text("背诵详情")
+                        item?.let {
+                            Text(
+                                text = "${it.category} · 第 ${state.detailIndex + 1}/${state.allItems.size} 条",
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    }
+                },
+                navigationIcon = {
+                    IconButton(onClick = viewModel::closeDetail) {
+                        Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = "返回")
+                    }
+                },
+            )
+        },
+    ) { innerPadding ->
+        if (item == null) {
+            AppLoading(label = "正在加载", modifier = Modifier.padding(innerPadding))
+            return@Scaffold
+        }
+        val busy = item.id in state.busy
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .padding(horizontal = 16.dp)
+                .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                AppStatusChip(
+                    label = if (item.recitedToday) "今日已背" else "待背诵",
+                    tone = if (item.recitedToday) NoticeTone.SUCCESS else NoticeTone.WARNING,
+                )
+                AppStatusChip(label = "已背 ${item.reciteCount} 次", tone = NoticeTone.OFFLINE)
+                item.dueDate?.let {
+                    AppStatusChip(label = "下次复习 $it", tone = NoticeTone.OFFLINE)
+                }
+            }
+            Text(
+                text = item.title,
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.SemiBold,
+            )
+            if (state.detailSelfTest && !state.detailRevealed) {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    ),
+                ) {
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp),
+                    ) {
+                        Text(
+                            text = "自测中：先尝试回忆内容，再展开对答案",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        Button(
+                            onClick = viewModel::revealDetail,
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            Text("想好了，对答案")
+                        }
+                    }
+                }
+            } else {
+                MarkdownText(
+                    markdown = item.contentMd,
+                    style = MaterialTheme.typography.bodyLarge,
+                )
+            }
+            if (state.detailSelfTest && state.detailRevealed) {
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedButton(
+                        onClick = { viewModel.gradeDetail("forgot") },
+                        enabled = !busy,
+                        modifier = Modifier.weight(1f),
+                    ) {
+                        Text("忘了")
+                    }
+                    OutlinedButton(
+                        onClick = { viewModel.gradeDetail("vague") },
+                        enabled = !busy,
+                        modifier = Modifier.weight(1f),
+                    ) {
+                        Text("模糊")
+                    }
+                    Button(
+                        onClick = { viewModel.gradeDetail("mastered") },
+                        enabled = !busy,
+                        modifier = Modifier.weight(1f),
+                    ) {
+                        Text("记得")
+                    }
+                }
+            } else if (!state.detailSelfTest) {
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Button(
+                        onClick = viewModel::startDetailSelfTest,
+                        modifier = Modifier.weight(1f),
+                    ) {
+                        Text("自测一遍")
+                    }
+                    ReciteButton(
+                        recitedToday = item.recitedToday,
+                        busy = busy,
+                        doneLabel = "撤销打卡",
+                        pendingLabel = "背完打卡",
+                        onRecite = { undo -> viewModel.recite(item.id, undo) },
+                    )
+                }
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                TextButton(
+                    onClick = { viewModel.moveDetail(-1) },
+                    enabled = state.detailIndex > 0,
+                ) {
+                    Text("上一条")
+                }
+                TextButton(
+                    onClick = { viewModel.moveDetail(1) },
+                    enabled = state.detailIndex in 0 until state.allItems.size - 1,
+                ) {
+                    Text("下一条")
+                }
+            }
+            Spacer(Modifier.width(1.dp))
+        }
+    }
+}
+
 @Composable
 private fun RecitationRow(
     item: RecitationItemDto,
-    busy: Boolean,
-    expanded: Boolean,
-    onToggle: () -> Unit,
-    onRecite: (Boolean) -> Unit,
+    onOpen: () -> Unit,
 ) {
-    Card(
+    Row(
         modifier = Modifier
             .fillMaxWidth()
-            .animateContentSize(),
+            .clickable(onClick = onOpen)
+            .padding(vertical = 10.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        Column(
-            modifier = Modifier.padding(14.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable(onClick = onToggle),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    text = item.title,
-                    style = MaterialTheme.typography.bodyLarge,
-                    modifier = Modifier.weight(1f),
-                )
-                Spacer(Modifier.width(10.dp))
-                if (item.recitedToday) {
-                    AppStatusChip(label = "今日已背", tone = NoticeTone.SUCCESS)
-                } else {
-                    AppStatusChip(label = "${item.reciteCount} 次", tone = NoticeTone.OFFLINE)
-                }
-            }
-            if (expanded) {
-                MarkdownText(
-                    markdown = item.contentMd,
-                    style = MaterialTheme.typography.bodyMedium,
-                )
-            }
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                TextButton(onClick = onToggle) {
-                    Text(if (expanded) "收起" else "展开")
-                }
-                ReciteButton(
-                    recitedToday = item.recitedToday,
-                    busy = busy,
-                    doneLabel = "撤销",
-                    pendingLabel = "打卡",
-                    onRecite = onRecite,
-                )
-            }
+        Text(
+            text = item.title,
+            style = MaterialTheme.typography.bodyLarge,
+            modifier = Modifier.weight(1f),
+        )
+        Spacer(Modifier.width(10.dp))
+        if (item.recitedToday) {
+            AppStatusChip(label = "今日已背", tone = NoticeTone.SUCCESS)
+        } else if (item.reciteCount == 0) {
+            AppStatusChip(label = "未背", tone = NoticeTone.WARNING)
+        } else {
+            AppStatusChip(label = "已背 ${item.reciteCount} 次", tone = NoticeTone.OFFLINE)
         }
     }
 }

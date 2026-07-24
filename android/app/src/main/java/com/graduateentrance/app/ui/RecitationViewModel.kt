@@ -32,8 +32,17 @@ data class RecitationUiState(
     val expanded: Set<String> = emptySet(),
     val notice: String? = null,
     val error: String? = null,
+    val detailId: String? = null,
+    val detailSelfTest: Boolean = false,
+    val detailRevealed: Boolean = false,
 ) {
     val queueCurrent: RecitationItemDto? get() = queue.firstOrNull()
+
+    val allItems: List<RecitationItemDto> get() = groups.flatMap { it.items }
+
+    val detailItem: RecitationItemDto? get() = allItems.firstOrNull { it.id == detailId }
+
+    val detailIndex: Int get() = allItems.indexOfFirst { it.id == detailId }
 }
 
 class RecitationViewModel(
@@ -87,18 +96,23 @@ class RecitationViewModel(
 
     fun gradeCurrent(grade: String) {
         val item = _uiState.value.queueCurrent ?: return
+        gradeItem(item, grade)
+    }
+
+    private fun gradeItem(item: RecitationItemDto, grade: String) {
         viewModelScope.launch {
             _uiState.update { it.copy(busy = it.busy + item.id, notice = null) }
             when (val result = repository.recite(item.id, undo = false, grade = grade)) {
                 is ReciteActionResult.Updated -> {
                     val updated = result.item
-                    val remaining = _uiState.value.queue.drop(1)
+                    val wasQueued = _uiState.value.queue.any { it.id == item.id }
+                    val remaining = _uiState.value.queue.filterNot { it.id == item.id }
                     _uiState.update {
                         it.copy(
                             busy = it.busy - item.id,
                             queue = remaining,
                             revealed = false,
-                            queueGradedCount = it.queueGradedCount + 1,
+                            queueGradedCount = it.queueGradedCount + if (wasQueued) 1 else 0,
                             today = if (it.today?.id == updated.id) updated else it.today,
                             groups = it.groups.map { group ->
                                 group.copy(
@@ -111,9 +125,11 @@ class RecitationViewModel(
                                 recitedToday = it.stats.recitedToday +
                                     if (!item.recitedToday) 1 else 0,
                             ),
+                            detailSelfTest = false,
+                            detailRevealed = false,
                         )
                     }
-                    if (remaining.isEmpty()) {
+                    if (wasQueued && remaining.isEmpty()) {
                         completeMemorizationTaskIfAny()
                     }
                 }
@@ -125,6 +141,42 @@ class RecitationViewModel(
                 }
             }
         }
+    }
+
+    fun openDetail(itemId: String) {
+        _uiState.update {
+            it.copy(detailId = itemId, detailSelfTest = false, detailRevealed = false)
+        }
+    }
+
+    fun closeDetail() {
+        _uiState.update {
+            it.copy(detailId = null, detailSelfTest = false, detailRevealed = false)
+        }
+    }
+
+    fun moveDetail(delta: Int) {
+        val state = _uiState.value
+        val items = state.allItems
+        val index = state.detailIndex
+        if (index < 0) return
+        val next = items.getOrNull(index + delta) ?: return
+        _uiState.update {
+            it.copy(detailId = next.id, detailSelfTest = false, detailRevealed = false)
+        }
+    }
+
+    fun startDetailSelfTest() {
+        _uiState.update { it.copy(detailSelfTest = true, detailRevealed = false) }
+    }
+
+    fun revealDetail() {
+        _uiState.update { it.copy(detailRevealed = true) }
+    }
+
+    fun gradeDetail(grade: String) {
+        val item = _uiState.value.detailItem ?: return
+        gradeItem(item, grade)
     }
 
     private fun completeMemorizationTaskIfAny() {
