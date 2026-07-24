@@ -67,6 +67,19 @@ fun PapersScreen(viewModel: PapersViewModel) {
         }
     }
 
+    state.reader?.let { reader ->
+        BackHandler(onBack = viewModel::closeReader)
+        PaperReaderScreen(
+            state = reader,
+            onClose = viewModel::closeReader,
+            onSaveProgress = viewModel::saveReadingProgress,
+            onAddAnnotation = viewModel::addAnnotation,
+            onUpdateAnnotation = viewModel::updateAnnotation,
+            onDeleteAnnotation = viewModel::deleteAnnotation,
+        )
+        return
+    }
+
     state.viewer?.let { viewer ->
         BackHandler(onBack = viewModel::closeViewer)
         PdfViewerScreen(
@@ -146,6 +159,7 @@ fun PapersScreen(viewModel: PapersViewModel) {
                             busy = today.id in state.busy,
                             onStatus = { viewModel.setStatus(today.id, it) },
                             onOpen = { viewModel.openPaper(today) },
+                            onRead = { viewModel.openReader(today) },
                         )
                     }
                     state.groups.forEach { group ->
@@ -160,6 +174,7 @@ fun PapersScreen(viewModel: PapersViewModel) {
                                 busy = paper.id in state.busy,
                                 onStatus = { viewModel.setStatus(paper.id, it) },
                                 onOpen = { viewModel.openPaper(paper) },
+                                onRead = { viewModel.openReader(paper) },
                             )
                         }
                     }
@@ -176,6 +191,7 @@ private fun TodayPaperCard(
     busy: Boolean,
     onStatus: (String) -> Unit,
     onOpen: () -> Unit,
+    onRead: () -> Unit,
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -201,7 +217,13 @@ private fun TodayPaperCard(
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.SemiBold,
             )
-            PaperActions(paper = paper, busy = busy, onStatus = onStatus, onOpen = onOpen)
+            PaperActions(
+                paper = paper,
+                busy = busy,
+                onStatus = onStatus,
+                onOpen = onOpen,
+                onRead = onRead,
+            )
         }
     }
 }
@@ -212,6 +234,7 @@ private fun PaperRow(
     busy: Boolean,
     onStatus: (String) -> Unit,
     onOpen: () -> Unit,
+    onRead: () -> Unit,
 ) {
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(
@@ -234,7 +257,13 @@ private fun PaperRow(
                     tone = statusTone(paper.status),
                 )
             }
-            PaperActions(paper = paper, busy = busy, onStatus = onStatus, onOpen = onOpen)
+            PaperActions(
+                paper = paper,
+                busy = busy,
+                onStatus = onStatus,
+                onOpen = onOpen,
+                onRead = onRead,
+            )
         }
     }
 }
@@ -246,6 +275,7 @@ private fun PaperActions(
     busy: Boolean,
     onStatus: (String) -> Unit,
     onOpen: () -> Unit,
+    onRead: () -> Unit,
 ) {
     val haptics = LocalHapticFeedback.current
     FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -274,6 +304,11 @@ private fun PaperActions(
         if (paper.status != "unread") {
             TextButton(onClick = { onStatus("unread") }, enabled = !busy) {
                 Text("重置")
+            }
+        }
+        if (paper.hasContent == true) {
+            Button(onClick = onRead, enabled = !busy) {
+                Text("阅读")
             }
         }
         if (paper.hasFile) {

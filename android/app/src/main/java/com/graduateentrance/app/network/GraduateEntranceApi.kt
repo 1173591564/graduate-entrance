@@ -131,6 +131,7 @@ data class PaperDto(
     @SerializedName("size_bytes") val sizeBytes: Long,
     val status: String,
     @SerializedName("has_file") val hasFile: Boolean,
+    @SerializedName("has_content") val hasContent: Boolean? = null,
     @SerializedName("started_on") val startedOn: String?,
     @SerializedName("finished_on") val finishedOn: String?,
 )
@@ -164,6 +165,51 @@ data class PaperStatusRequest(
 
 data class PaperStatusResultDto(
     val paper: PaperDto,
+)
+
+data class PaperBlockDto(
+    val type: String,
+    val md: String,
+    val level: Int? = null,
+)
+
+data class PaperTocEntryDto(
+    val title: String,
+    val level: Int,
+    @SerializedName("block_index") val blockIndex: Int,
+)
+
+data class PaperContentDto(
+    val paper: PaperDto,
+    val source: String,
+    val blocks: List<PaperBlockDto>? = null,
+    val toc: List<PaperTocEntryDto>? = null,
+)
+
+data class PaperAnnotationDto(
+    val id: String,
+    @SerializedName("paper_id") val paperId: String,
+    @SerializedName("block_index") val blockIndex: Int,
+    val excerpt: String,
+    val note: String,
+    val color: String,
+    @SerializedName("created_at") val createdAt: String,
+)
+
+data class PaperAnnotationListDto(
+    val annotations: List<PaperAnnotationDto>? = null,
+)
+
+data class PaperAnnotationCreateRequest(
+    @SerializedName("block_index") val blockIndex: Int,
+    val excerpt: String,
+    val note: String,
+    val color: String,
+)
+
+data class PaperAnnotationUpdateRequest(
+    val note: String? = null,
+    val color: String? = null,
 )
 
 data class RecitationItemDto(
@@ -366,6 +412,29 @@ interface GraduateEntranceApi {
     @Streaming
     @GET("api/papers/{paperId}/file")
     suspend fun downloadPaper(@Path("paperId") paperId: String): ResponseBody
+
+    @GET("api/papers/{paperId}/content")
+    suspend fun paperContent(@Path("paperId") paperId: String): PaperContentDto
+
+    @GET("api/papers/{paperId}/annotations")
+    suspend fun paperAnnotations(@Path("paperId") paperId: String): PaperAnnotationListDto
+
+    @POST("api/papers/{paperId}/annotations")
+    suspend fun createPaperAnnotation(
+        @Path("paperId") paperId: String,
+        @Body payload: PaperAnnotationCreateRequest,
+    ): PaperAnnotationDto
+
+    @PATCH("api/papers/annotations/{annotationId}")
+    suspend fun updatePaperAnnotation(
+        @Path("annotationId") annotationId: String,
+        @Body payload: PaperAnnotationUpdateRequest,
+    ): PaperAnnotationDto
+
+    @DELETE("api/papers/annotations/{annotationId}")
+    suspend fun deletePaperAnnotation(
+        @Path("annotationId") annotationId: String,
+    ): Response<Unit>
 
     @GET("api/recitations")
     suspend fun recitations(@Query("subject") subject: String?): RecitationListDto

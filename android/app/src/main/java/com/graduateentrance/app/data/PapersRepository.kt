@@ -1,10 +1,15 @@
 package com.graduateentrance.app.data
 
 import com.graduateentrance.app.network.GraduateEntranceApi
+import com.graduateentrance.app.network.PaperAnnotationCreateRequest
+import com.graduateentrance.app.network.PaperAnnotationDto
+import com.graduateentrance.app.network.PaperAnnotationUpdateRequest
+import com.graduateentrance.app.network.PaperBlockDto
 import com.graduateentrance.app.network.PaperDto
 import com.graduateentrance.app.network.PaperGroupDto
 import com.graduateentrance.app.network.PaperStatsDto
 import com.graduateentrance.app.network.PaperStatusRequest
+import com.graduateentrance.app.network.PaperTocEntryDto
 import java.io.File
 import java.io.IOException
 import kotlinx.coroutines.CoroutineDispatcher
@@ -32,6 +37,23 @@ sealed interface PaperDownloadResult {
     data class Ready(val file: File) : PaperDownloadResult
     data object Offline : PaperDownloadResult
     data class Rejected(val code: Int) : PaperDownloadResult
+}
+
+sealed interface PaperContentResult {
+    data class Loaded(
+        val blocks: List<PaperBlockDto>,
+        val toc: List<PaperTocEntryDto>,
+        val annotations: List<PaperAnnotationDto>,
+    ) : PaperContentResult
+    data object Offline : PaperContentResult
+    data class Rejected(val code: Int) : PaperContentResult
+}
+
+sealed interface PaperAnnotationResult {
+    data class Saved(val annotation: PaperAnnotationDto) : PaperAnnotationResult
+    data object Deleted : PaperAnnotationResult
+    data object Offline : PaperAnnotationResult
+    data class Rejected(val code: Int) : PaperAnnotationResult
 }
 
 class PapersRepository(
@@ -75,5 +97,72 @@ class PapersRepository(
             } catch (error: HttpException) {
                 PaperDownloadResult.Rejected(error.code())
             }
+        }
+
+    suspend fun content(paperId: String): PaperContentResult =
+        try {
+            val content = api.paperContent(paperId)
+            val annotations = api.paperAnnotations(paperId)
+            PaperContentResult.Loaded(
+                content.blocks.orEmpty(),
+                content.toc.orEmpty(),
+                annotations.annotations.orEmpty(),
+            )
+        } catch (_: IOException) {
+            PaperContentResult.Offline
+        } catch (error: HttpException) {
+            PaperContentResult.Rejected(error.code())
+        }
+
+    suspend fun addAnnotation(
+        paperId: String,
+        blockIndex: Int,
+        excerpt: String,
+        note: String,
+        color: String,
+    ): PaperAnnotationResult =
+        try {
+            PaperAnnotationResult.Saved(
+                api.createPaperAnnotation(
+                    paperId,
+                    PaperAnnotationCreateRequest(blockIndex, excerpt, note, color),
+                ),
+            )
+        } catch (_: IOException) {
+            PaperAnnotationResult.Offline
+        } catch (error: HttpException) {
+            PaperAnnotationResult.Rejected(error.code())
+        }
+
+    suspend fun updateAnnotation(
+        annotationId: String,
+        note: String?,
+        color: String?,
+    ): PaperAnnotationResult =
+        try {
+            PaperAnnotationResult.Saved(
+                api.updatePaperAnnotation(
+                    annotationId,
+                    PaperAnnotationUpdateRequest(note, color),
+                ),
+            )
+        } catch (_: IOException) {
+            PaperAnnotationResult.Offline
+        } catch (error: HttpException) {
+            PaperAnnotationResult.Rejected(error.code())
+        }
+
+    suspend fun deleteAnnotation(annotationId: String): PaperAnnotationResult =
+        try {
+            val response = api.deletePaperAnnotation(annotationId)
+            if (response.isSuccessful) {
+                PaperAnnotationResult.Deleted
+            } else {
+                PaperAnnotationResult.Rejected(response.code())
+            }
+        } catch (_: IOException) {
+            PaperAnnotationResult.Offline
+        } catch (error: HttpException) {
+            PaperAnnotationResult.Rejected(error.code())
         }
 }

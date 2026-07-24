@@ -245,6 +245,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/papers/annotations/{annotation_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Remove Paper Annotation */
+        delete: operations["remove_paper_annotation_api_papers_annotations__annotation_id__delete"];
+        options?: never;
+        head?: never;
+        /** Patch Paper Annotation */
+        patch: operations["patch_paper_annotation_api_papers_annotations__annotation_id__patch"];
+        trace?: never;
+    };
     "/api/papers/stats": {
         parameters: {
             query?: never;
@@ -289,6 +307,42 @@ export interface paths {
         /** Read Paper Today */
         get: operations["read_paper_today_api_papers_today_get"];
         put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/papers/{paper_id}/annotations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read Paper Annotations */
+        get: operations["read_paper_annotations_api_papers__paper_id__annotations_get"];
+        put?: never;
+        /** Create Paper Annotation */
+        post: operations["create_paper_annotation_api_papers__paper_id__annotations_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/papers/{paper_id}/content": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read Paper Content */
+        get: operations["read_paper_content_api_papers__paper_id__content_get"];
+        /** Put Paper Content */
+        put: operations["put_paper_content_api_papers__paper_id__content_put"];
         post?: never;
         delete?: never;
         options?: never;
@@ -2027,6 +2081,106 @@ export interface components {
             /** Order */
             order: number;
         };
+        /** PaperAnnotationCreate */
+        PaperAnnotationCreate: {
+            /** Block Index */
+            block_index: number;
+            /**
+             * Color
+             * @default yellow
+             * @enum {string}
+             */
+            color: "yellow" | "green" | "blue" | "red";
+            /**
+             * Excerpt
+             * @default
+             */
+            excerpt: string;
+            /**
+             * Note
+             * @default
+             */
+            note: string;
+        };
+        /** PaperAnnotationList */
+        PaperAnnotationList: {
+            /** Annotations */
+            annotations: components["schemas"]["PaperAnnotationRead"][];
+        };
+        /** PaperAnnotationRead */
+        PaperAnnotationRead: {
+            /** Block Index */
+            block_index: number;
+            /**
+             * Color
+             * @enum {string}
+             */
+            color: "yellow" | "green" | "blue" | "red";
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Excerpt */
+            excerpt: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Note */
+            note: string;
+            /**
+             * Paper Id
+             * Format: uuid
+             */
+            paper_id: string;
+        };
+        /** PaperAnnotationUpdate */
+        PaperAnnotationUpdate: {
+            /** Color */
+            color?: ("yellow" | "green" | "blue" | "red") | null;
+            /** Note */
+            note?: string | null;
+        };
+        /** PaperBlock */
+        PaperBlock: {
+            /**
+             * Level
+             * @default 0
+             */
+            level: number;
+            /** Md */
+            md: string;
+            /**
+             * Type
+             * @enum {string}
+             */
+            type: "heading" | "paragraph";
+        };
+        /** PaperContentResponse */
+        PaperContentResponse: {
+            /** Blocks */
+            blocks: components["schemas"]["PaperBlock"][];
+            paper: components["schemas"]["PaperRead"];
+            /**
+             * Source
+             * @enum {string}
+             */
+            source: "ar5iv" | "pdf";
+            /** Toc */
+            toc: components["schemas"]["PaperTocEntry"][];
+        };
+        /** PaperContentUpload */
+        PaperContentUpload: {
+            /** Blocks */
+            blocks: components["schemas"]["PaperBlock"][];
+            /**
+             * Source
+             * @enum {string}
+             */
+            source: "ar5iv" | "pdf";
+        };
         /** PaperGroup */
         PaperGroup: {
             /** Category */
@@ -2046,6 +2200,11 @@ export interface components {
             category: string;
             /** Finished On */
             finished_on: string | null;
+            /**
+             * Has Content
+             * @default false
+             */
+            has_content: boolean;
             /** Has File */
             has_file: boolean;
             /**
@@ -2125,6 +2284,15 @@ export interface components {
             total_count: number;
             /** Updated */
             updated: number;
+        };
+        /** PaperTocEntry */
+        PaperTocEntry: {
+            /** Block Index */
+            block_index: number;
+            /** Level */
+            level: number;
+            /** Title */
+            title: string;
         };
         /** PaperTodayResponse */
         PaperTodayResponse: {
@@ -4365,6 +4533,106 @@ export interface operations {
             };
         };
     };
+    remove_paper_annotation_api_papers_annotations__annotation_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                annotation_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    patch_paper_annotation_api_papers_annotations__annotation_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                annotation_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PaperAnnotationUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaperAnnotationRead"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
     read_paper_stats_api_papers_stats_get: {
         parameters: {
             query?: never;
@@ -4481,6 +4749,210 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PaperTodayResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    read_paper_annotations_api_papers__paper_id__annotations_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                paper_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaperAnnotationList"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    create_paper_annotation_api_papers__paper_id__annotations_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                paper_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PaperAnnotationCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaperAnnotationRead"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    read_paper_content_api_papers__paper_id__content_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                paper_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaperContentResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    put_paper_content_api_papers__paper_id__content_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                paper_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PaperContentUpload"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaperContentResponse"];
                 };
             };
             /** @description Unauthorized */
