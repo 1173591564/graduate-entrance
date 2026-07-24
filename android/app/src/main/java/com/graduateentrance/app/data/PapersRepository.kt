@@ -41,20 +41,42 @@ sealed interface PaperDownloadResult {
 
 sealed interface PaperContentResult {
     data class Loaded(
-        val blocks: List<PaperBlockDto>,
-        val toc: List<PaperTocEntryDto>,
-        val annotations: List<PaperAnnotationDto>,
+        val blocks: List<PaperContentBlock>,
+        val toc: List<PaperContentTocEntry>,
+        val annotations: List<PaperContentAnnotation>,
     ) : PaperContentResult
     data object Offline : PaperContentResult
     data class Rejected(val code: Int) : PaperContentResult
 }
 
 sealed interface PaperAnnotationResult {
-    data class Saved(val annotation: PaperAnnotationDto) : PaperAnnotationResult
+    data class Saved(val annotation: PaperContentAnnotation) : PaperAnnotationResult
     data object Deleted : PaperAnnotationResult
     data object Offline : PaperAnnotationResult
     data class Rejected(val code: Int) : PaperAnnotationResult
 }
+
+data class PaperContentBlock(
+    val type: String,
+    val md: String,
+    val level: Int,
+)
+
+data class PaperContentTocEntry(
+    val title: String,
+    val level: Int,
+    val blockIndex: Int,
+)
+
+data class PaperContentAnnotation(
+    val id: String,
+    val paperId: String,
+    val blockIndex: Int,
+    val excerpt: String,
+    val note: String,
+    val color: String,
+    val createdAt: String,
+)
 
 class PapersRepository(
     private val api: GraduateEntranceApi,
@@ -104,9 +126,15 @@ class PapersRepository(
             val content = api.paperContent(paperId)
             val annotations = api.paperAnnotations(paperId)
             PaperContentResult.Loaded(
-                content.blocks.orEmpty(),
-                content.toc.orEmpty(),
-                annotations.annotations.orEmpty(),
+                content.blocks.orEmpty()
+                    .filterNotNull()
+                    .mapNotNull { it.toContentBlockOrNull() },
+                content.toc.orEmpty()
+                    .filterNotNull()
+                    .mapNotNull { it.toContentTocEntryOrNull() },
+                annotations.annotations.orEmpty()
+                    .filterNotNull()
+                    .mapNotNull { it.toContentAnnotationOrNull() },
             )
         } catch (_: IOException) {
             PaperContentResult.Offline
@@ -126,7 +154,7 @@ class PapersRepository(
                 api.createPaperAnnotation(
                     paperId,
                     PaperAnnotationCreateRequest(blockIndex, excerpt, note, color),
-                ),
+                ).toContentAnnotation(),
             )
         } catch (_: IOException) {
             PaperAnnotationResult.Offline
@@ -144,7 +172,7 @@ class PapersRepository(
                 api.updatePaperAnnotation(
                     annotationId,
                     PaperAnnotationUpdateRequest(note, color),
-                ),
+                ).toContentAnnotation(),
             )
         } catch (_: IOException) {
             PaperAnnotationResult.Offline
@@ -166,3 +194,54 @@ class PapersRepository(
             PaperAnnotationResult.Rejected(error.code())
         }
 }
+
+private fun PaperBlockDto?.toContentBlockOrNull(): PaperContentBlock? {
+    val block = this ?: return null
+    val type = block.type?.trim().orEmpty()
+    val md = block.md?.trim().orEmpty()
+    if (type.isBlank() || md.isBlank()) return null
+    return PaperContentBlock(type = type, md = md, level = block.level ?: 0)
+}
+
+private fun PaperTocEntryDto?.toContentTocEntryOrNull(): PaperContentTocEntry? {
+    val entry = this ?: return null
+    val title = entry.title?.trim().orEmpty()
+    val level = entry.level ?: 0
+    val blockIndex = entry.blockIndex ?: return null
+    if (title.isBlank()) return null
+    return PaperContentTocEntry(title = title, level = level, blockIndex = blockIndex)
+}
+
+private fun PaperAnnotationDto?.toContentAnnotationOrNull(): PaperContentAnnotation? {
+    val annotation = this ?: return null
+    val id = annotation.id?.trim().orEmpty()
+    val paperId = annotation.paperId?.trim().orEmpty()
+    val excerpt = annotation.excerpt?.trim().orEmpty()
+    val note = annotation.note?.trim().orEmpty()
+    val color = annotation.color?.trim().orEmpty()
+    val createdAt = annotation.createdAt?.trim().orEmpty()
+    val blockIndex = annotation.blockIndex ?: return null
+    if (id.isBlank() || paperId.isBlank() || excerpt.isBlank() || color.isBlank() || createdAt.isBlank()) {
+        return null
+    }
+    return PaperContentAnnotation(
+        id = id,
+        paperId = paperId,
+        blockIndex = blockIndex,
+        excerpt = excerpt,
+        note = note,
+        color = color,
+        createdAt = createdAt,
+    )
+}
+
+private fun PaperAnnotationDto.toContentAnnotation(): PaperContentAnnotation =
+    PaperContentAnnotation(
+        id = id.orEmpty(),
+        paperId = paperId.orEmpty(),
+        blockIndex = blockIndex ?: 0,
+        excerpt = excerpt.orEmpty(),
+        note = note.orEmpty(),
+        color = color.orEmpty(),
+        createdAt = createdAt.orEmpty(),
+    )

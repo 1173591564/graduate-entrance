@@ -4,7 +4,7 @@ import android.content.Context
 import android.graphics.Typeface
 import android.view.View
 import android.widget.TextView
-import com.graduateentrance.app.network.PaperBlockDto
+import com.graduateentrance.app.data.PaperContentBlock
 import io.noties.markwon.Markwon
 import io.noties.markwon.ext.latex.JLatexMathPlugin
 import io.noties.markwon.inlineparser.MarkwonInlineParserPlugin
@@ -111,7 +111,7 @@ private fun splitToFit(
  * last item on a page.
  */
 internal fun paginateBlocks(
-    blocks: List<PaperBlockDto>,
+    blocks: List<PaperContentBlock>,
     pageHeightPx: Int,
     measureParagraph: (String) -> Int,
     measureHeading: (String, Int) -> Int,
@@ -131,7 +131,7 @@ internal fun paginateBlocks(
 
     blocks.forEachIndexed { index, block ->
         if (block.type == "heading") {
-            val level = block.level ?: 2
+            val level = block.level
             val height = measureHeading(block.md, level)
             // Avoid orphan headings stranded at the bottom of a page.
             if (used > 0 && used + height > pageHeightPx - pageHeightPx / 6) {
@@ -187,9 +187,9 @@ internal fun paginateBlocks(
     return if (pages.isEmpty()) listOf(emptyList()) else pages
 }
 
-private fun PaperBlockDto.toWholeItem(index: Int): PageItem =
+private fun PaperContentBlock.toWholeItem(index: Int): PageItem =
     if (type == "heading") {
-        PageItem.Heading(index, level ?: 2, md)
+        PageItem.Heading(index, level, md)
     } else {
         PageItem.Paragraph(index, md)
     }

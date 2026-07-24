@@ -68,9 +68,9 @@ import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.graduateentrance.app.data.AppSettings
-import com.graduateentrance.app.network.PaperAnnotationDto
-import com.graduateentrance.app.network.PaperBlockDto
-import com.graduateentrance.app.network.PaperTocEntryDto
+import com.graduateentrance.app.data.PaperContentAnnotation
+import com.graduateentrance.app.data.PaperContentBlock
+import com.graduateentrance.app.data.PaperContentTocEntry
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 
@@ -158,7 +158,7 @@ private fun headingTextStyle(level: Int): TextStyle = TextStyle(
     },
 )
 
-private fun estimateMinutes(blocks: List<PaperBlockDto>): Int {
+private fun estimateMinutes(blocks: List<PaperContentBlock>): Int {
     val words = blocks.sumOf { block -> block.md.split(Regex("\\s+")).count { it.isNotBlank() } }
     return (words / 200.0).let { if (it < 1) 1 else Math.round(it).toInt() }
 }
@@ -457,9 +457,9 @@ private fun BoxScope.ReaderChrome(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun TocSheet(
-    toc: List<PaperTocEntryDto>,
+    toc: List<PaperContentTocEntry>,
     palette: ReaderPalette,
-    onSelect: (PaperTocEntryDto) -> Unit,
+    onSelect: (PaperContentTocEntry) -> Unit,
     onDismiss: () -> Unit,
 ) {
     ModalBottomSheet(onDismissRequest = onDismiss, containerColor = palette.chrome) {
@@ -602,7 +602,7 @@ private fun ReaderColophon(
 @Composable
 private fun PagedBlock(
     item: PageItem,
-    annotations: List<PaperAnnotationDto>,
+    annotations: List<PaperContentAnnotation>,
     palette: ReaderPalette,
     fontScale: Float,
     onLongClick: () -> Unit,
@@ -769,8 +769,8 @@ private fun TypeSettingsSheet(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun AnnotationSheet(
-    block: PaperBlockDto,
-    annotations: List<PaperAnnotationDto>,
+    block: PaperContentBlock,
+    annotations: List<PaperContentAnnotation>,
     onDismiss: () -> Unit,
     onAdd: (note: String, color: String) -> Unit,
     onUpdate: (annotationId: String, note: String?, color: String?) -> Unit,
