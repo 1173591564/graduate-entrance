@@ -3296,10 +3296,32 @@
             "title": "Content Md",
             "type": "string"
           },
+          "due_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Due Date"
+          },
+          "ef": {
+            "default": 2.5,
+            "title": "Ef",
+            "type": "number"
+          },
           "id": {
             "format": "uuid",
             "title": "Id",
             "type": "string"
+          },
+          "interval_days": {
+            "default": 0,
+            "title": "Interval Days",
+            "type": "integer"
           },
           "last_recited_on": {
             "anyOf": [
@@ -3320,6 +3342,11 @@
           "recited_today": {
             "title": "Recited Today",
             "type": "boolean"
+          },
+          "reps": {
+            "default": 0,
+            "title": "Reps",
+            "type": "integer"
           },
           "subject": {
             "enum": [
@@ -3351,6 +3378,11 @@
       },
       "RecitationStatsResponse": {
         "properties": {
+          "due_count": {
+            "default": 0,
+            "title": "Due Count",
+            "type": "integer"
+          },
           "never_recited": {
             "title": "Never Recited",
             "type": "integer"
@@ -3388,6 +3420,13 @@
                 "type": "null"
               }
             ]
+          },
+          "queue": {
+            "items": {
+              "$ref": "#/components/schemas/RecitationRead"
+            },
+            "title": "Queue",
+            "type": "array"
           },
           "stats": {
             "$ref": "#/components/schemas/RecitationStatsResponse"
@@ -5314,6 +5353,22 @@
               }
             ],
             "title": "As Of"
+          },
+          "grade": {
+            "anyOf": [
+              {
+                "enum": [
+                  "forgot",
+                  "vague",
+                  "mastered"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Grade"
           },
           "undo": {
             "default": false,

@@ -2626,17 +2626,34 @@ export interface components {
             category: string;
             /** Content Md */
             content_md: string;
+            /** Due Date */
+            due_date?: string | null;
+            /**
+             * Ef
+             * @default 2.5
+             */
+            ef: number;
             /**
              * Id
              * Format: uuid
              */
             id: string;
+            /**
+             * Interval Days
+             * @default 0
+             */
+            interval_days: number;
             /** Last Recited On */
             last_recited_on: string | null;
             /** Recite Count */
             recite_count: number;
             /** Recited Today */
             recited_today: boolean;
+            /**
+             * Reps
+             * @default 0
+             */
+            reps: number;
             /**
              * Subject
              * @enum {string}
@@ -2647,6 +2664,11 @@ export interface components {
         };
         /** RecitationStatsResponse */
         RecitationStatsResponse: {
+            /**
+             * Due Count
+             * @default 0
+             */
+            due_count: number;
             /** Never Recited */
             never_recited: number;
             /** Recited Today */
@@ -2662,6 +2684,8 @@ export interface components {
              */
             date: string;
             item: components["schemas"]["RecitationRead"] | null;
+            /** Queue */
+            queue?: components["schemas"]["RecitationRead"][];
             stats: components["schemas"]["RecitationStatsResponse"];
         };
         /** ReciteResponse */
@@ -3484,6 +3508,8 @@ export interface components {
         graduate_entrance__schemas__recitation__ReciteRequest: {
             /** As Of */
             as_of?: string | null;
+            /** Grade */
+            grade?: ("forgot" | "vague" | "mastered") | null;
             /**
              * Undo
              * @default false

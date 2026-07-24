@@ -152,12 +152,19 @@ private fun RecitationContent(
             icon = Icons.Outlined.AutoStories,
         )
     } else {
-        state.today?.let { today ->
-            TodayRecitationCard(
-                item = today,
-                busy = today.id in state.busy,
-                onRecite = { undo -> viewModel.recite(today.id, undo) },
+        when {
+            state.queue.isNotEmpty() -> QueueRecitationCard(
+                state = state,
+                viewModel = viewModel,
             )
+            state.queueInitialSize > 0 -> QueueDoneCard(state = state)
+            else -> state.today?.let { today ->
+                TodayRecitationCard(
+                    item = today,
+                    busy = today.id in state.busy,
+                    onRecite = { undo -> viewModel.recite(today.id, undo) },
+                )
+            }
         }
         state.groups.forEach { group ->
             Text(
@@ -174,6 +181,119 @@ private fun RecitationContent(
                     onRecite = { undo -> viewModel.recite(item.id, undo) },
                 )
             }
+        }
+    }
+}
+
+@Composable
+private fun QueueRecitationCard(
+    state: RecitationUiState,
+    viewModel: RecitationViewModel,
+) {
+    val item = state.queueCurrent ?: return
+    val busy = item.id in state.busy
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+        ),
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text("今日应背", style = MaterialTheme.typography.titleMedium)
+                Spacer(Modifier.width(10.dp))
+                AppStatusChip(
+                    label = "第 ${state.queueGradedCount + 1}/${state.queueInitialSize} 条",
+                    tone = NoticeTone.WARNING,
+                )
+                if (item.reciteCount > 0) {
+                    Spacer(Modifier.width(8.dp))
+                    AppStatusChip(label = "到期复习", tone = NoticeTone.OFFLINE)
+                }
+            }
+            Text(
+                text = "${item.category} · 已背 ${item.reciteCount} 次",
+                style = MaterialTheme.typography.labelMedium,
+            )
+            Text(
+                text = item.title,
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.SemiBold,
+            )
+            if (!state.revealed) {
+                Text(
+                    text = "先尝试回忆内容，再展开对答案",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Button(
+                    onClick = viewModel::reveal,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text("想好了，对答案")
+                }
+            } else {
+                MarkdownText(
+                    markdown = item.contentMd,
+                    style = MaterialTheme.typography.bodyLarge,
+                )
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedButton(
+                        onClick = { viewModel.gradeCurrent("forgot") },
+                        enabled = !busy,
+                        modifier = Modifier.weight(1f),
+                    ) {
+                        Text("忘了")
+                    }
+                    OutlinedButton(
+                        onClick = { viewModel.gradeCurrent("vague") },
+                        enabled = !busy,
+                        modifier = Modifier.weight(1f),
+                    ) {
+                        Text("模糊")
+                    }
+                    Button(
+                        onClick = { viewModel.gradeCurrent("mastered") },
+                        enabled = !busy,
+                        modifier = Modifier.weight(1f),
+                    ) {
+                        Text("记得")
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun QueueDoneCard(state: RecitationUiState) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+        ),
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text("今日应背完成", style = MaterialTheme.typography.titleMedium)
+                Spacer(Modifier.width(10.dp))
+                AppStatusChip(label = "已背 ${state.queueGradedCount} 条", tone = NoticeTone.SUCCESS)
+            }
+            Text(
+                text = if (state.taskCheckedIn) {
+                    "已自动打卡今日背诵任务，明天到期的内容会自动出现"
+                } else {
+                    "到期复习和新内容会按记忆曲线自动安排到后续日期"
+                },
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
     }
 }

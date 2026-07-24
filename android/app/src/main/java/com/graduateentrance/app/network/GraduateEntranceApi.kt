@@ -181,6 +181,7 @@ data class RecitationStatsDto(
     @SerializedName("total_count") val totalCount: Int,
     @SerializedName("recited_today") val recitedToday: Int,
     @SerializedName("never_recited") val neverRecited: Int,
+    @SerializedName("due_count") val dueCount: Int = 0,
 )
 
 data class RecitationGroupDto(
@@ -196,11 +197,13 @@ data class RecitationListDto(
 data class RecitationTodayDto(
     val date: String,
     val item: RecitationItemDto?,
+    val queue: List<RecitationItemDto> = emptyList(),
     val stats: RecitationStatsDto,
 )
 
 data class ReciteRequest(
     val undo: Boolean = false,
+    val grade: String? = null,
 )
 
 data class ReciteResultDto(
