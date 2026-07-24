@@ -198,7 +198,7 @@ data class RecitationListDto(
 data class RecitationTodayDto(
     val date: String,
     val item: RecitationItemDto?,
-    val queue: List<RecitationItemDto> = emptyList(),
+    val queue: List<RecitationItemDto>? = null,
     val stats: RecitationStatsDto,
 )
 

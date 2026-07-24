@@ -31,7 +31,12 @@ class RecitationRepository(private val api: GraduateEntranceApi) {
         try {
             val today = api.recitationToday(subject)
             val list = api.recitations(subject)
-            RecitationLoadResult.Loaded(today.item, today.queue, list.groups, list.stats)
+            RecitationLoadResult.Loaded(
+                today.item,
+                today.queue.orEmpty(),
+                list.groups,
+                list.stats,
+            )
         } catch (_: IOException) {
             RecitationLoadResult.Offline
         } catch (error: HttpException) {
