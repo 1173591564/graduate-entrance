@@ -57,7 +57,6 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.graduateentrance.app.network.PaperDto
 import com.graduateentrance.app.network.PaperStatsDto
 
@@ -167,15 +166,6 @@ fun PapersScreen(viewModel: PapersViewModel) {
                 ) {
                     Spacer(Modifier.height(2.dp))
                     state.stats?.let { ShelfProgressCard(it) }
-                    state.today?.let { today ->
-                        TodayPaperCard(
-                            paper = today,
-                            busy = today.id in state.busy,
-                            onStatus = { viewModel.setStatus(today.id, it) },
-                            onOpen = { viewModel.openPaper(today) },
-                            onRead = { viewModel.openReader(today) },
-                        )
-                    }
                     state.groups.forEach { group ->
                         Row(
                             modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
@@ -280,87 +270,6 @@ private fun StatPill(label: String, value: Int) {
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f),
         )
-    }
-}
-
-@Composable
-private fun TodayPaperCard(
-    paper: PaperDto,
-    busy: Boolean,
-    onStatus: (String) -> Unit,
-    onOpen: () -> Unit,
-    onRead: () -> Unit,
-) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant,
-        ),
-    ) {
-        Row(modifier = Modifier.fillMaxWidth()) {
-            Box(
-                modifier = Modifier
-                    .width(6.dp)
-                    .height(160.dp)
-                    .background(MaterialTheme.colorScheme.primary),
-            )
-            Column(
-                modifier = Modifier.padding(18.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp),
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        Icons.AutoMirrored.Outlined.MenuBook,
-                        contentDescription = null,
-                        modifier = Modifier.size(16.dp),
-                        tint = MaterialTheme.colorScheme.primary,
-                    )
-                    Spacer(Modifier.width(6.dp))
-                    Text(
-                        text = "今日一篇",
-                        style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.primary,
-                    )
-                    Spacer(Modifier.width(10.dp))
-                    AppStatusChip(
-                        label = statusLabels[paper.status] ?: paper.status,
-                        tone = statusTone(paper.status),
-                    )
-                }
-                Text(
-                    text = paper.category.uppercase(),
-                    style = MaterialTheme.typography.labelSmall.copy(letterSpacing = 2.sp),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                Text(
-                    text = paper.title,
-                    style = MaterialTheme.typography.titleLarge.copy(
-                        fontFamily = FontFamily.Serif,
-                        fontWeight = FontWeight.Bold,
-                    ),
-                )
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    if (paper.hasContent == true) {
-                        Button(onClick = onRead, enabled = !busy) {
-                            Icon(
-                                Icons.AutoMirrored.Outlined.MenuBook,
-                                contentDescription = null,
-                                modifier = Modifier.size(18.dp),
-                            )
-                            Spacer(Modifier.width(8.dp))
-                            Text("开始阅读")
-                        }
-                    }
-                    if (paper.hasFile) {
-                        PdfIconButton(busy = busy, onClick = onOpen)
-                    }
-                    StatusMenuButton(paper = paper, busy = busy, onStatus = onStatus)
-                }
-            }
-        }
     }
 }
 
