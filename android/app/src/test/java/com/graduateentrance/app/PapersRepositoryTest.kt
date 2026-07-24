@@ -233,6 +233,39 @@ class PapersRepositoryTest {
     }
 
     @Test
+    fun loadSanitizesMalformedPaperListPayload() = runTest {
+        val api = FakePapersApi()
+        api.todayResponse = PaperTodayDto(
+            date = null,
+            paper = PaperDto(id = null, title = null, category = null),
+            stats = null,
+        )
+        api.listResponse = PaperListDto(
+            groups = listOf(
+                PaperGroupDto(
+                    category = null,
+                    papers = listOf(
+                        PaperDto(id = null),
+                        PaperDto(id = "p1", title = null, category = null, status = null),
+                    ),
+                ),
+                PaperGroupDto(category = "空组", papers = null),
+            ),
+            stats = null,
+        )
+
+        val result = PapersRepository(api).load()
+
+        assertTrue(result is PapersLoadResult.Loaded)
+        result as PapersLoadResult.Loaded
+        assertTrue(result.today == null)
+        assertEquals(1, result.groups.size)
+        assertEquals("未分类", result.groups.single().category)
+        assertEquals("未命名论文", result.groups.single().papers.single().title)
+        assertEquals(0, result.stats.totalCount)
+    }
+
+    @Test
     fun contentReturnsBlocksTocAndAnnotations() = runTest {
         val api = FakePapersApi()
         api.contentResponse = PaperContentDto(

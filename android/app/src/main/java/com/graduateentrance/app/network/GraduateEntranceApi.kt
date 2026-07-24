@@ -124,39 +124,39 @@ data class ReviewResultDto(
 )
 
 data class PaperDto(
-    val id: String,
-    @SerializedName("rel_path") val relPath: String,
-    val title: String,
-    val category: String,
-    @SerializedName("size_bytes") val sizeBytes: Long,
-    val status: String,
-    @SerializedName("has_file") val hasFile: Boolean,
+    val id: String? = null,
+    @SerializedName("rel_path") val relPath: String? = null,
+    val title: String? = null,
+    val category: String? = null,
+    @SerializedName("size_bytes") val sizeBytes: Long? = null,
+    val status: String? = null,
+    @SerializedName("has_file") val hasFile: Boolean? = null,
     @SerializedName("has_content") val hasContent: Boolean? = null,
-    @SerializedName("started_on") val startedOn: String?,
-    @SerializedName("finished_on") val finishedOn: String?,
+    @SerializedName("started_on") val startedOn: String? = null,
+    @SerializedName("finished_on") val finishedOn: String? = null,
 )
 
 data class PaperStatsDto(
-    @SerializedName("total_count") val totalCount: Int,
-    @SerializedName("unread_count") val unreadCount: Int,
-    @SerializedName("reading_count") val readingCount: Int,
-    @SerializedName("done_count") val doneCount: Int,
+    @SerializedName("total_count") val totalCount: Int? = null,
+    @SerializedName("unread_count") val unreadCount: Int? = null,
+    @SerializedName("reading_count") val readingCount: Int? = null,
+    @SerializedName("done_count") val doneCount: Int? = null,
 )
 
 data class PaperGroupDto(
-    val category: String,
-    val papers: List<PaperDto>,
+    val category: String? = null,
+    val papers: List<PaperDto>? = null,
 )
 
 data class PaperListDto(
-    val groups: List<PaperGroupDto>,
-    val stats: PaperStatsDto,
+    val groups: List<PaperGroupDto>? = null,
+    val stats: PaperStatsDto? = null,
 )
 
 data class PaperTodayDto(
-    val date: String,
-    val paper: PaperDto?,
-    val stats: PaperStatsDto,
+    val date: String? = null,
+    val paper: PaperDto? = null,
+    val stats: PaperStatsDto? = null,
 )
 
 data class PaperStatusRequest(
@@ -164,7 +164,7 @@ data class PaperStatusRequest(
 )
 
 data class PaperStatusResultDto(
-    val paper: PaperDto,
+    val paper: PaperDto? = null,
 )
 
 data class PaperBlockDto(
@@ -180,8 +180,8 @@ data class PaperTocEntryDto(
 )
 
 data class PaperContentDto(
-    val paper: PaperDto,
-    val source: String,
+    val paper: PaperDto? = null,
+    val source: String? = null,
     val blocks: List<PaperBlockDto>? = null,
     val toc: List<PaperTocEntryDto>? = null,
 )

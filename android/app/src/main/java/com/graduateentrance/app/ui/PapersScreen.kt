@@ -57,8 +57,8 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.graduateentrance.app.network.PaperDto
-import com.graduateentrance.app.network.PaperStatsDto
+import com.graduateentrance.app.data.PaperItem
+import com.graduateentrance.app.data.PaperStats
 
 private val statusLabels = mapOf("unread" to "未读", "reading" to "在读", "done" to "已读")
 
@@ -203,7 +203,7 @@ fun PapersScreen(viewModel: PapersViewModel) {
 }
 
 @Composable
-private fun ShelfProgressCard(stats: PaperStatsDto) {
+private fun ShelfProgressCard(stats: PaperStats) {
     val ratio = if (stats.totalCount > 0) {
         stats.doneCount.toFloat() / stats.totalCount
     } else {
@@ -275,18 +275,18 @@ private fun StatPill(label: String, value: Int) {
 
 @Composable
 private fun PaperRow(
-    paper: PaperDto,
+    paper: PaperItem,
     busy: Boolean,
     onStatus: (String) -> Unit,
     onOpen: () -> Unit,
     onRead: () -> Unit,
 ) {
-    val clickable = paper.hasContent == true || paper.hasFile
+    val clickable = paper.hasContent || paper.hasFile
     Card(
         modifier = Modifier.fillMaxWidth().let {
             if (clickable) {
                 it.clickable(enabled = !busy) {
-                    if (paper.hasContent == true) onRead() else onOpen()
+                    if (paper.hasContent) onRead() else onOpen()
                 }
             } else {
                 it
@@ -325,7 +325,7 @@ private fun PaperRow(
                             else -> MaterialTheme.colorScheme.onSurfaceVariant
                         },
                     )
-                    if (paper.hasContent == true) {
+                    if (paper.hasContent) {
                         Text(
                             text = " · 可精读",
                             style = MaterialTheme.typography.labelSmall,
@@ -362,7 +362,7 @@ private fun PdfIconButton(busy: Boolean, onClick: () -> Unit) {
 
 @Composable
 private fun StatusMenuButton(
-    paper: PaperDto,
+    paper: PaperItem,
     busy: Boolean,
     onStatus: (String) -> Unit,
 ) {

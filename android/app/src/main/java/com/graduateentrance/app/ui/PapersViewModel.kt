@@ -9,13 +9,13 @@ import com.graduateentrance.app.data.PaperContentBlock
 import com.graduateentrance.app.data.PaperContentTocEntry
 import com.graduateentrance.app.data.PaperContentResult
 import com.graduateentrance.app.data.PaperDownloadResult
+import com.graduateentrance.app.data.PaperGroup
+import com.graduateentrance.app.data.PaperItem
+import com.graduateentrance.app.data.PaperStats
 import com.graduateentrance.app.data.PaperStatusResult
 import com.graduateentrance.app.data.PapersLoadResult
 import com.graduateentrance.app.data.PapersRepository
 import com.graduateentrance.app.data.ReadingProgressStore
-import com.graduateentrance.app.network.PaperDto
-import com.graduateentrance.app.network.PaperGroupDto
-import com.graduateentrance.app.network.PaperStatsDto
 import java.io.File
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -25,9 +25,9 @@ import kotlinx.coroutines.launch
 
 data class PapersUiState(
     val loading: Boolean = true,
-    val today: PaperDto? = null,
-    val groups: List<PaperGroupDto> = emptyList(),
-    val stats: PaperStatsDto? = null,
+    val today: PaperItem? = null,
+    val groups: List<PaperGroup> = emptyList(),
+    val stats: PaperStats? = null,
     val busy: Set<String> = emptySet(),
     val notice: String? = null,
     val error: String? = null,
@@ -38,7 +38,7 @@ data class PapersUiState(
 data class PdfViewerTarget(val file: File, val title: String)
 
 data class ReaderState(
-    val paper: PaperDto,
+    val paper: PaperItem,
     val loading: Boolean = true,
     val blocks: List<PaperContentBlock> = emptyList(),
     val toc: List<PaperContentTocEntry> = emptyList(),
@@ -98,7 +98,7 @@ class PapersViewModel(
         }
     }
 
-    fun openPaper(paper: PaperDto) {
+    fun openPaper(paper: PaperItem) {
         viewModelScope.launch {
             _uiState.update { it.copy(busy = it.busy + paper.id, notice = null) }
             val target = File(File(cacheDir, "papers"), "${paper.id}.pdf")
@@ -126,7 +126,7 @@ class PapersViewModel(
         _uiState.update { it.copy(viewer = null) }
     }
 
-    fun openReader(paper: PaperDto) {
+    fun openReader(paper: PaperItem) {
         _uiState.update {
             it.copy(
                 reader = ReaderState(
