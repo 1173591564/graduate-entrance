@@ -5,10 +5,12 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -18,7 +20,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -41,7 +44,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -53,19 +55,22 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
-import androidx.compose.ui.input.nestedscroll.NestedScrollSource
-import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.graduateentrance.app.data.AppSettings
 import com.graduateentrance.app.network.PaperAnnotationDto
 import com.graduateentrance.app.network.PaperBlockDto
+import com.graduateentrance.app.network.PaperTocEntryDto
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 
@@ -127,6 +132,32 @@ private val readerPalettes = listOf(
 private fun paletteFor(key: String): ReaderPalette =
     readerPalettes.firstOrNull { it.key == key } ?: readerPalettes.first()
 
+private val ReaderHPadding = 26.dp
+private val ReaderTopInset = 78.dp
+private val ReaderBottomInset = 62.dp
+private val ReaderParaGap = 14.dp
+private val ReaderHeadingTopGap = 20.dp
+private val ReaderHeadingBottomGap = 6.dp
+private const val ReaderLineSpacing = 1.5f
+private const val ReaderBaseFontSp = 18f
+
+private fun bodyFontSp(fontScale: Float): Float = ReaderBaseFontSp * fontScale
+
+private fun headingTextStyle(level: Int): TextStyle = TextStyle(
+    fontFamily = FontFamily.Serif,
+    fontWeight = FontWeight.Bold,
+    fontSize = when (level) {
+        1 -> 24.sp
+        2 -> 21.sp
+        else -> 18.sp
+    },
+    lineHeight = when (level) {
+        1 -> 32.sp
+        2 -> 28.sp
+        else -> 25.sp
+    },
+)
+
 private fun estimateMinutes(blocks: List<PaperBlockDto>): Int {
     val words = blocks.sumOf { block -> block.md.split(Regex("\\s+")).count { it.isNotBlank() } }
     return (words / 200.0).let { if (it < 1) 1 else Math.round(it).toInt() }
@@ -143,7 +174,6 @@ fun PaperReaderScreen(
     onDeleteAnnotation: (annotationId: String) -> Unit,
     onMarkDone: () -> Unit = {},
 ) {
-    val listState = rememberLazyListState()
     val scope = rememberCoroutineScope()
     var showToc by remember { mutableStateOf(false) }
     var showTypeSheet by remember { mutableStateOf(false) }
@@ -155,199 +185,157 @@ fun PaperReaderScreen(
     var paletteKey by remember { mutableStateOf(AppSettings.readerTheme) }
     val palette = paletteFor(paletteKey)
 
-    LaunchedEffect(state.blocks.isNotEmpty()) {
-        if (state.blocks.isNotEmpty() && state.initialBlockIndex > 0) {
-            listState.scrollToItem(state.initialBlockIndex.coerceAtMost(state.blocks.size - 1))
-        }
-    }
-
-    LaunchedEffect(state.blocks.isNotEmpty()) {
-        if (state.blocks.isEmpty()) return@LaunchedEffect
-        snapshotFlow { listState.firstVisibleItemIndex }
-            .distinctUntilChanged()
-            .collect { onSaveProgress(it) }
-    }
-
-    // Hide the chrome while reading forward, reveal it when scrolling back or at the top.
-    val nestedScroll = remember {
-        object : NestedScrollConnection {
-            override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
-                if (available.y < -6f) chromeVisible = false
-                else if (available.y > 6f) chromeVisible = true
-                return Offset.Zero
-            }
-        }
-    }
-    LaunchedEffect(listState) {
-        snapshotFlow { listState.firstVisibleItemIndex }
-            .collect { if (it == 0) chromeVisible = true }
-    }
-
-    val progress by remember(state.blocks.size) {
-        derivedStateOf {
-            val total = state.blocks.size
-            if (total <= 1) {
-                if (state.loading) 0f else 1f
-            } else {
-                (listState.firstVisibleItemIndex.toFloat() / (total - 1)).coerceIn(0f, 1f)
-            }
-        }
-    }
     val minutes = remember(state.blocks) { estimateMinutes(state.blocks) }
+    val context = LocalContext.current
+    val density = LocalDensity.current
+    val textMeasurer = rememberTextMeasurer()
 
     Box(modifier = Modifier.fillMaxSize().background(palette.background)) {
         when {
             state.loading -> ReaderMessage("正在翻开这一篇…", palette)
             state.error != null -> ReaderError(state.error, palette, onClose)
-            else -> LazyColumn(
-                state = listState,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .nestedScroll(nestedScroll),
-                contentPadding = PaddingValues(
-                    start = 26.dp,
-                    end = 26.dp,
-                    top = 72.dp,
-                    bottom = 96.dp,
-                ),
-            ) {
-                item(key = "cover") {
-                    ReaderCover(
-                        category = state.paper.category,
-                        title = state.paper.title,
-                        minutes = minutes,
-                        blocks = state.blocks.size,
-                        palette = palette,
-                    )
+            state.blocks.isEmpty() -> ReaderMessage("这一篇还没有正文", palette)
+            else -> BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+                val widthPx = with(density) {
+                    (maxWidth - ReaderHPadding * 2).roundToPx().coerceAtLeast(1)
                 }
-                items(count = state.blocks.size, key = { it }) { index ->
-                    ReaderBlock(
-                        block = state.blocks[index],
-                        annotations = state.annotations.filter { it.blockIndex == index },
-                        palette = palette,
-                        fontScale = fontScale,
-                        onLongClick = { annotationTarget = index },
-                    )
+                val pageHeightPx = with(density) {
+                    (maxHeight - ReaderTopInset - ReaderBottomInset).roundToPx().coerceAtLeast(1)
                 }
-                item(key = "colophon") {
-                    ReaderColophon(
-                        palette = palette,
-                        done = markedDone,
-                        onMarkDone = {
-                            markedDone = true
-                            onMarkDone()
+                val paraGapPx = with(density) { ReaderParaGap.roundToPx() }
+                val headingGapPx = with(density) {
+                    (ReaderHeadingTopGap + ReaderHeadingBottomGap).roundToPx()
+                }
+
+                val contentPages = remember(state.blocks, widthPx, pageHeightPx, fontScale) {
+                    val measurer = ParagraphMeasurer(
+                        context = context,
+                        widthPx = widthPx,
+                        fontSizeSp = bodyFontSp(fontScale),
+                        lineSpacingMultiplier = ReaderLineSpacing,
+                    )
+                    paginateBlocks(
+                        blocks = state.blocks,
+                        pageHeightPx = pageHeightPx,
+                        measureParagraph = { md -> measurer.measure(md) + paraGapPx },
+                        measureHeading = { md, level ->
+                            val result = textMeasurer.measure(
+                                text = AnnotatedString(md),
+                                style = headingTextStyle(level),
+                                constraints = Constraints(maxWidth = widthPx),
+                            )
+                            result.size.height + headingGapPx
                         },
                     )
                 }
-            }
-        }
 
-        // Top chrome: minimal bar + hairline reading progress.
-        AnimatedVisibility(
-            visible = chromeVisible,
-            modifier = Modifier.align(Alignment.TopCenter),
-            enter = slideInVertically { -it },
-            exit = slideOutVertically { -it },
-        ) {
-            Column(modifier = Modifier.fillMaxWidth().background(palette.chrome)) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 6.dp, vertical = 4.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    ReaderIconButton(Icons.AutoMirrored.Outlined.ArrowBack, "返回", palette, onClose)
-                    Text(
-                        text = state.paper.title,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        style = MaterialTheme.typography.labelLarge,
-                        color = palette.muted,
-                        modifier = Modifier.weight(1f).padding(horizontal = 4.dp),
-                    )
-                    ReaderIconButton(Icons.Outlined.TextFields, "版式", palette) { showTypeSheet = true }
-                    if (state.toc.isNotEmpty()) {
-                        ReaderIconButton(Icons.AutoMirrored.Outlined.List, "目录", palette) {
-                            showToc = true
-                        }
+                val totalPages = contentPages.size + 2
+                fun pageForBlock(blockIndex: Int): Int {
+                    val idx = contentPages.indexOfFirst { page ->
+                        page.any { it.blockIndex >= blockIndex }
                     }
+                    return if (idx < 0) totalPages - 1 else idx + 1
                 }
-                LinearProgressIndicator(
-                    progress = { progress },
-                    modifier = Modifier.fillMaxWidth().height(2.dp),
-                    color = palette.accent,
-                    trackColor = palette.divider,
-                )
-            }
-        }
+                fun startBlockOf(page: Int): Int = when {
+                    page <= 0 -> 0
+                    page >= totalPages - 1 -> state.blocks.lastIndex.coerceAtLeast(0)
+                    else -> contentPages.getOrNull(page - 1)?.firstOrNull()?.blockIndex ?: 0
+                }
 
-        // Bottom chrome: book-like position readout.
-        AnimatedVisibility(
-            visible = chromeVisible && !state.loading && state.error == null,
-            modifier = Modifier.align(Alignment.BottomCenter),
-            enter = slideInVertically { it },
-            exit = slideOutVertically { it },
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(palette.chrome)
-                    .padding(horizontal = 22.dp, vertical = 12.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    text = "${(progress * 100).toInt()}%",
-                    style = MaterialTheme.typography.labelLarge,
-                    color = palette.text,
+                val initialPage = remember(contentPages) {
+                    if (state.initialBlockIndex > 0) pageForBlock(state.initialBlockIndex) else 0
+                }
+                val pagerState = rememberPagerState(
+                    initialPage = initialPage.coerceIn(0, totalPages - 1),
+                    pageCount = { totalPages },
                 )
-                Text(
-                    text = "约 $minutes 分钟 · ${state.blocks.size} 段",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = palette.muted,
-                )
-            }
-        }
-    }
 
-    if (showToc) {
-        ModalBottomSheet(
-            onDismissRequest = { showToc = false },
-            containerColor = palette.chrome,
-        ) {
-            Text(
-                text = "目录",
-                style = MaterialTheme.typography.titleMedium,
-                color = palette.text,
-                modifier = Modifier.padding(start = 20.dp, bottom = 4.dp),
-            )
-            LazyColumn(modifier = Modifier.padding(bottom = 24.dp)) {
-                items(count = state.toc.size, key = { it }) { index ->
-                    val entry = state.toc[index]
-                    Text(
-                        text = entry.title,
-                        style = if (entry.level <= 2) {
-                            MaterialTheme.typography.titleSmall
-                        } else {
-                            MaterialTheme.typography.bodyMedium
-                        },
-                        color = if (entry.level <= 2) palette.text else palette.muted,
+                LaunchedEffect(pagerState, contentPages) {
+                    snapshotFlow { pagerState.currentPage }
+                        .distinctUntilChanged()
+                        .collect { onSaveProgress(startBlockOf(it)) }
+                }
+
+                val toggleChrome = Modifier.clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null,
+                ) { chromeVisible = !chromeVisible }
+
+                HorizontalPager(state = pagerState, modifier = Modifier.fillMaxSize()) { page ->
+                    Box(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable {
-                                showToc = false
-                                scope.launch {
-                                    listState.scrollToItem(
-                                        entry.blockIndex.coerceAtMost(state.blocks.size - 1),
+                            .fillMaxSize()
+                            .then(toggleChrome)
+                            .padding(
+                                start = ReaderHPadding,
+                                end = ReaderHPadding,
+                                top = ReaderTopInset,
+                                bottom = ReaderBottomInset,
+                            ),
+                    ) {
+                        when (page) {
+                            0 -> ReaderCover(
+                                category = state.paper.category,
+                                title = state.paper.title,
+                                minutes = minutes,
+                                blocks = state.blocks.size,
+                                palette = palette,
+                            )
+                            totalPages - 1 -> ReaderColophon(
+                                palette = palette,
+                                done = markedDone,
+                                onMarkDone = {
+                                    markedDone = true
+                                    onMarkDone()
+                                },
+                            )
+                            else -> Column(modifier = Modifier.fillMaxSize()) {
+                                contentPages[page - 1].forEach { item ->
+                                    PagedBlock(
+                                        item = item,
+                                        annotations = state.annotations.filter {
+                                            it.blockIndex == item.blockIndex
+                                        },
+                                        palette = palette,
+                                        fontScale = fontScale,
+                                        onLongClick = { annotationTarget = item.blockIndex },
                                     )
                                 }
                             }
-                            .padding(
-                                start = (20 + (entry.level - 1).coerceAtLeast(0) * 16).dp,
-                                end = 20.dp,
-                                top = 11.dp,
-                                bottom = 11.dp,
-                            ),
+                        }
+                    }
+                }
+
+                val progress = if (totalPages <= 1) {
+                    1f
+                } else {
+                    pagerState.currentPage.toFloat() / (totalPages - 1)
+                }
+
+                ReaderChrome(
+                    visible = chromeVisible,
+                    palette = palette,
+                    title = state.paper.title,
+                    progress = progress,
+                    hasToc = state.toc.isNotEmpty(),
+                    pageLabel = "${pagerState.currentPage + 1} / $totalPages",
+                    minutes = minutes,
+                    onClose = onClose,
+                    onType = { showTypeSheet = true },
+                    onToc = { showToc = true },
+                )
+
+                if (showToc) {
+                    TocSheet(
+                        toc = state.toc,
+                        palette = palette,
+                        onSelect = { entry ->
+                            showToc = false
+                            scope.launch {
+                                pagerState.animateScrollToPage(pageForBlock(entry.blockIndex))
+                            }
+                        },
+                        onDismiss = { showToc = false },
                     )
                 }
             }
@@ -388,6 +376,125 @@ fun PaperReaderScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun BoxScope.ReaderChrome(
+    visible: Boolean,
+    palette: ReaderPalette,
+    title: String,
+    progress: Float,
+    hasToc: Boolean,
+    pageLabel: String,
+    minutes: Int,
+    onClose: () -> Unit,
+    onType: () -> Unit,
+    onToc: () -> Unit,
+) {
+    AnimatedVisibility(
+        visible = visible,
+        modifier = Modifier.align(Alignment.TopCenter),
+        enter = slideInVertically { -it },
+        exit = slideOutVertically { -it },
+    ) {
+        Column(modifier = Modifier.fillMaxWidth().background(palette.chrome)) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 6.dp, vertical = 4.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                ReaderIconButton(Icons.AutoMirrored.Outlined.ArrowBack, "返回", palette, onClose)
+                Text(
+                    text = title,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    style = MaterialTheme.typography.labelLarge,
+                    color = palette.muted,
+                    modifier = Modifier.weight(1f).padding(horizontal = 4.dp),
+                )
+                ReaderIconButton(Icons.Outlined.TextFields, "版式", palette, onType)
+                if (hasToc) {
+                    ReaderIconButton(Icons.AutoMirrored.Outlined.List, "目录", palette, onToc)
+                }
+            }
+            LinearProgressIndicator(
+                progress = { progress },
+                modifier = Modifier.fillMaxWidth().height(2.dp),
+                color = palette.accent,
+                trackColor = palette.divider,
+            )
+        }
+    }
+
+    AnimatedVisibility(
+        visible = visible,
+        modifier = Modifier.align(Alignment.BottomCenter),
+        enter = slideInVertically { it },
+        exit = slideOutVertically { it },
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(palette.chrome)
+                .padding(horizontal = 22.dp, vertical = 12.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = pageLabel,
+                style = MaterialTheme.typography.labelLarge,
+                color = palette.text,
+            )
+            Text(
+                text = "约 $minutes 分钟",
+                style = MaterialTheme.typography.labelMedium,
+                color = palette.muted,
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun TocSheet(
+    toc: List<PaperTocEntryDto>,
+    palette: ReaderPalette,
+    onSelect: (PaperTocEntryDto) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    ModalBottomSheet(onDismissRequest = onDismiss, containerColor = palette.chrome) {
+        Text(
+            text = "目录",
+            style = MaterialTheme.typography.titleMedium,
+            color = palette.text,
+            modifier = Modifier.padding(start = 20.dp, bottom = 4.dp),
+        )
+        LazyColumn(modifier = Modifier.padding(bottom = 24.dp)) {
+            items(count = toc.size, key = { it }) { index ->
+                val entry = toc[index]
+                Text(
+                    text = entry.title,
+                    style = if (entry.level <= 2) {
+                        MaterialTheme.typography.titleSmall
+                    } else {
+                        MaterialTheme.typography.bodyMedium
+                    },
+                    color = if (entry.level <= 2) palette.text else palette.muted,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onSelect(entry) }
+                        .padding(
+                            start = (20 + (entry.level - 1).coerceAtLeast(0) * 16).dp,
+                            end = 20.dp,
+                            top = 11.dp,
+                            bottom = 11.dp,
+                        ),
+                )
+            }
+        }
+    }
+}
+
 @Composable
 private fun ReaderIconButton(
     icon: androidx.compose.ui.graphics.vector.ImageVector,
@@ -409,10 +516,9 @@ private fun ReaderCover(
     palette: ReaderPalette,
 ) {
     Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(top = 24.dp, bottom = 28.dp),
+        modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
     ) {
         Text(
             text = category.uppercase(),
@@ -452,10 +558,9 @@ private fun ReaderColophon(
     onMarkDone: () -> Unit,
 ) {
     Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(top = 36.dp, bottom = 8.dp),
+        modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
     ) {
         Text(
             text = "· 全文完 ·",
@@ -495,72 +600,66 @@ private fun ReaderColophon(
 }
 
 @Composable
-private fun ReaderBlock(
-    block: PaperBlockDto,
+private fun PagedBlock(
+    item: PageItem,
     annotations: List<PaperAnnotationDto>,
     palette: ReaderPalette,
     fontScale: Float,
     onLongClick: () -> Unit,
 ) {
-    val highlighted = annotations.isNotEmpty()
-    val background = if (highlighted) {
-        highlightColor(annotations.first().color).copy(alpha = 0.32f)
-    } else {
-        Color.Transparent
-    }
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(6.dp))
-            .background(background)
-            .padding(
-                horizontal = if (highlighted) 8.dp else 0.dp,
-                vertical = if (block.type == "heading") 14.dp else 9.dp,
-            ),
-    ) {
-        if (block.type == "heading") {
-            val level = block.level ?: 2
-            Text(
-                text = block.md,
-                style = when (level) {
-                    1 -> MaterialTheme.typography.headlineSmall
-                    2 -> MaterialTheme.typography.titleLarge
-                    else -> MaterialTheme.typography.titleMedium
-                }.copy(fontFamily = FontFamily.Serif),
-                fontWeight = FontWeight.Bold,
-                color = palette.text,
-            )
-        } else {
-            MarkdownText(
-                markdown = block.md,
-                style = MaterialTheme.typography.bodyLarge.copy(
-                    color = palette.text,
-                    fontSize = (18 * fontScale).sp,
-                ),
-                serif = true,
-                lineSpacingMultiplier = 1.55f,
-                justify = true,
-                onLongClick = onLongClick,
-            )
-        }
-        annotations.filter { it.note.isNotBlank() }.forEach { annotation ->
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Surface(
-                    color = highlightColor(annotation.color),
-                    shape = CircleShape,
-                    modifier = Modifier.size(10.dp),
-                ) {}
-                Spacer(Modifier.width(8.dp))
-                Text(
-                    text = annotation.note,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = palette.muted,
-                )
+    when (item) {
+        is PageItem.Heading -> Text(
+            text = item.md,
+            style = headingTextStyle(item.level).copy(color = palette.text),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = ReaderHeadingTopGap, bottom = ReaderHeadingBottomGap),
+        )
+        is PageItem.Paragraph -> {
+            val highlighted = annotations.isNotEmpty()
+            val background = if (highlighted) {
+                highlightColor(annotations.first().color).copy(alpha = 0.32f)
+            } else {
+                Color.Transparent
+            }
+            Column(modifier = Modifier.fillMaxWidth().padding(bottom = ReaderParaGap)) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(6.dp))
+                        .background(background)
+                        .padding(horizontal = if (highlighted) 8.dp else 0.dp),
+                ) {
+                    MarkdownText(
+                        markdown = item.md,
+                        style = MaterialTheme.typography.bodyLarge.copy(
+                            color = palette.text,
+                            fontSize = bodyFontSp(fontScale).sp,
+                        ),
+                        serif = true,
+                        lineSpacingMultiplier = ReaderLineSpacing,
+                        justify = false,
+                        onLongClick = onLongClick,
+                    )
+                }
+                annotations.filter { it.note.isNotBlank() }.forEach { annotation ->
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Surface(
+                            color = highlightColor(annotation.color),
+                            shape = CircleShape,
+                            modifier = Modifier.size(10.dp),
+                        ) {}
+                        Spacer(Modifier.width(8.dp))
+                        Text(
+                            text = annotation.note,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = palette.muted,
+                        )
+                    }
+                }
             }
         }
     }
