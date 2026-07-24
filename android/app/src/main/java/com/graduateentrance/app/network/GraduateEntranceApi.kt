@@ -168,15 +168,15 @@ data class PaperStatusResultDto(
 )
 
 data class PaperBlockDto(
-    val type: String,
-    val md: String,
+    val type: String? = null,
+    val md: String? = null,
     val level: Int? = null,
 )
 
 data class PaperTocEntryDto(
-    val title: String,
-    val level: Int,
-    @SerializedName("block_index") val blockIndex: Int,
+    val title: String? = null,
+    val level: Int? = null,
+    @SerializedName("block_index") val blockIndex: Int? = null,
 )
 
 data class PaperContentDto(
@@ -187,13 +187,13 @@ data class PaperContentDto(
 )
 
 data class PaperAnnotationDto(
-    val id: String,
-    @SerializedName("paper_id") val paperId: String,
-    @SerializedName("block_index") val blockIndex: Int,
-    val excerpt: String,
-    val note: String,
-    val color: String,
-    @SerializedName("created_at") val createdAt: String,
+    val id: String? = null,
+    @SerializedName("paper_id") val paperId: String? = null,
+    @SerializedName("block_index") val blockIndex: Int? = null,
+    val excerpt: String? = null,
+    val note: String? = null,
+    val color: String? = null,
+    @SerializedName("created_at") val createdAt: String? = null,
 )
 
 data class PaperAnnotationListDto(

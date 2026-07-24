@@ -4,18 +4,18 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.graduateentrance.app.data.PaperAnnotationResult
+import com.graduateentrance.app.data.PaperContentAnnotation
+import com.graduateentrance.app.data.PaperContentBlock
+import com.graduateentrance.app.data.PaperContentTocEntry
 import com.graduateentrance.app.data.PaperContentResult
 import com.graduateentrance.app.data.PaperDownloadResult
 import com.graduateentrance.app.data.PaperStatusResult
 import com.graduateentrance.app.data.PapersLoadResult
 import com.graduateentrance.app.data.PapersRepository
 import com.graduateentrance.app.data.ReadingProgressStore
-import com.graduateentrance.app.network.PaperAnnotationDto
-import com.graduateentrance.app.network.PaperBlockDto
 import com.graduateentrance.app.network.PaperDto
 import com.graduateentrance.app.network.PaperGroupDto
 import com.graduateentrance.app.network.PaperStatsDto
-import com.graduateentrance.app.network.PaperTocEntryDto
 import java.io.File
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -40,9 +40,9 @@ data class PdfViewerTarget(val file: File, val title: String)
 data class ReaderState(
     val paper: PaperDto,
     val loading: Boolean = true,
-    val blocks: List<PaperBlockDto> = emptyList(),
-    val toc: List<PaperTocEntryDto> = emptyList(),
-    val annotations: List<PaperAnnotationDto> = emptyList(),
+    val blocks: List<PaperContentBlock> = emptyList(),
+    val toc: List<PaperContentTocEntry> = emptyList(),
+    val annotations: List<PaperContentAnnotation> = emptyList(),
     val initialBlockIndex: Int = 0,
     val error: String? = null,
 )

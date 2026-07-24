@@ -76,6 +76,7 @@ private val emptyStats = PaperStatsDto(0, 0, 0, 0)
 private class FakePapersApi : GraduateEntranceApi {
 
     var contentResponse: PaperContentDto? = null
+    var annotationsResponse: PaperAnnotationListDto = PaperAnnotationListDto(emptyList())
 
     override suspend fun paperContent(paperId: String): PaperContentDto {
         maybeFail()
@@ -84,7 +85,7 @@ private class FakePapersApi : GraduateEntranceApi {
 
     override suspend fun paperAnnotations(paperId: String): PaperAnnotationListDto {
         maybeFail()
-        return PaperAnnotationListDto(emptyList())
+        return annotationsResponse
     }
 
     override suspend fun createPaperAnnotation(
@@ -251,6 +252,57 @@ class PapersRepositoryTest {
         assertEquals(2, result.blocks.size)
         assertEquals(0, result.toc.single().blockIndex)
         assertTrue(result.annotations.isEmpty())
+    }
+
+    @Test
+    fun contentFiltersMalformedBlocksTocAndAnnotations() = runTest {
+        val api = FakePapersApi()
+        api.contentResponse = PaperContentDto(
+            paper = paper("p1", "reading"),
+            source = "ar5iv",
+            blocks = listOf(
+                PaperBlockDto(type = "heading", md = "Intro", level = 2),
+                PaperBlockDto(type = null, md = "broken type"),
+                PaperBlockDto(type = "paragraph", md = null),
+                PaperBlockDto(type = "paragraph", md = "Body"),
+            ),
+            toc = listOf(
+                PaperTocEntryDto(title = "Intro", level = 2, blockIndex = 0),
+                PaperTocEntryDto(title = null, level = 2, blockIndex = 1),
+                PaperTocEntryDto(title = "Broken", level = null, blockIndex = null),
+            ),
+        )
+        api.annotationsResponse = PaperAnnotationListDto(
+            annotations = listOf(
+                PaperAnnotationDto(
+                    id = "a1",
+                    paperId = "p1",
+                    blockIndex = 0,
+                    excerpt = "Intro",
+                    note = "note",
+                    color = "yellow",
+                    createdAt = "2026-07-17T00:00:00Z",
+                ),
+                PaperAnnotationDto(
+                    id = null,
+                    paperId = "p1",
+                    blockIndex = 1,
+                    excerpt = "",
+                    note = "bad",
+                    color = null,
+                    createdAt = null,
+                ),
+            ),
+        )
+
+        val result = PapersRepository(api).content("p1")
+
+        assertTrue(result is PaperContentResult.Loaded)
+        result as PaperContentResult.Loaded
+        assertEquals(2, result.blocks.size)
+        assertEquals(1, result.toc.size)
+        assertEquals(1, result.annotations.size)
+        assertEquals("Body", result.blocks.last().md)
     }
 
     @Test
