@@ -19,16 +19,16 @@ import retrofit2.HttpException
 
 sealed interface PapersLoadResult {
     data class Loaded(
-        val today: PaperDto?,
-        val groups: List<PaperGroupDto>,
-        val stats: PaperStatsDto,
+        val today: PaperItem?,
+        val groups: List<PaperGroup>,
+        val stats: PaperStats,
     ) : PapersLoadResult
     data object Offline : PapersLoadResult
     data class Rejected(val code: Int) : PapersLoadResult
 }
 
 sealed interface PaperStatusResult {
-    data class Updated(val paper: PaperDto) : PaperStatusResult
+    data class Updated(val paper: PaperItem) : PaperStatusResult
     data object Offline : PaperStatusResult
     data class Rejected(val code: Int) : PaperStatusResult
 }
@@ -78,6 +78,31 @@ data class PaperContentAnnotation(
     val createdAt: String,
 )
 
+data class PaperItem(
+    val id: String,
+    val relPath: String,
+    val title: String,
+    val category: String,
+    val sizeBytes: Long,
+    val status: String,
+    val hasFile: Boolean,
+    val hasContent: Boolean,
+    val startedOn: String?,
+    val finishedOn: String?,
+)
+
+data class PaperGroup(
+    val category: String,
+    val papers: List<PaperItem>,
+)
+
+data class PaperStats(
+    val totalCount: Int,
+    val unreadCount: Int,
+    val readingCount: Int,
+    val doneCount: Int,
+)
+
 class PapersRepository(
     private val api: GraduateEntranceApi,
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
@@ -86,7 +111,11 @@ class PapersRepository(
         try {
             val today = api.papersToday()
             val list = api.papers()
-            PapersLoadResult.Loaded(today.paper, list.groups, list.stats)
+            PapersLoadResult.Loaded(
+                today = today.paper.toPaperItemOrNull(),
+                groups = list.groups.orEmpty().mapNotNull { it.toPaperGroupOrNull() },
+                stats = list.stats.toPaperStats(),
+            )
         } catch (_: IOException) {
             PapersLoadResult.Offline
         } catch (error: HttpException) {
@@ -95,9 +124,11 @@ class PapersRepository(
 
     suspend fun setStatus(paperId: String, status: String): PaperStatusResult =
         try {
-            PaperStatusResult.Updated(
-                api.setPaperStatus(paperId, PaperStatusRequest(status)).paper,
-            )
+            api.setPaperStatus(paperId, PaperStatusRequest(status))
+                .paper
+                ?.toPaperItemOrNull()
+                ?.let { PaperStatusResult.Updated(it) }
+                ?: PaperStatusResult.Rejected(502)
         } catch (_: IOException) {
             PaperStatusResult.Offline
         } catch (error: HttpException) {
@@ -193,6 +224,41 @@ class PapersRepository(
         } catch (error: HttpException) {
             PaperAnnotationResult.Rejected(error.code())
         }
+}
+
+private fun PaperDto?.toPaperItemOrNull(): PaperItem? {
+    val paper = this ?: return null
+    val id = paper.id?.trim().orEmpty()
+    if (id.isBlank()) return null
+    return PaperItem(
+        id = id,
+        relPath = paper.relPath?.trim().orEmpty(),
+        title = paper.title?.trim().takeUnless { it.isNullOrBlank() } ?: "未命名论文",
+        category = paper.category?.trim().takeUnless { it.isNullOrBlank() } ?: "未分类",
+        sizeBytes = paper.sizeBytes ?: 0L,
+        status = paper.status?.trim().takeUnless { it.isNullOrBlank() } ?: "unread",
+        hasFile = paper.hasFile == true,
+        hasContent = paper.hasContent == true,
+        startedOn = paper.startedOn,
+        finishedOn = paper.finishedOn,
+    )
+}
+
+private fun PaperGroupDto.toPaperGroupOrNull(): PaperGroup? {
+    val category = category?.trim().takeUnless { it.isNullOrBlank() } ?: "未分类"
+    val papers = papers.orEmpty().mapNotNull { it.toPaperItemOrNull() }
+    if (papers.isEmpty()) return null
+    return PaperGroup(category, papers)
+}
+
+private fun PaperStatsDto?.toPaperStats(): PaperStats {
+    val stats = this
+    return PaperStats(
+        totalCount = stats?.totalCount?.coerceAtLeast(0) ?: 0,
+        unreadCount = stats?.unreadCount?.coerceAtLeast(0) ?: 0,
+        readingCount = stats?.readingCount?.coerceAtLeast(0) ?: 0,
+        doneCount = stats?.doneCount?.coerceAtLeast(0) ?: 0,
+    )
 }
 
 private fun PaperBlockDto?.toContentBlockOrNull(): PaperContentBlock? {

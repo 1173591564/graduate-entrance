@@ -250,10 +250,17 @@ fun PaperReaderScreen(
                     pageCount = { totalPages },
                 )
 
+                LaunchedEffect(totalPages) {
+                    val safePage = pagerState.currentPage.coerceIn(0, totalPages - 1)
+                    if (safePage != pagerState.currentPage) {
+                        pagerState.scrollToPage(safePage)
+                    }
+                }
+
                 LaunchedEffect(pagerState, contentPages) {
                     snapshotFlow { pagerState.currentPage }
                         .distinctUntilChanged()
-                        .collect { onSaveProgress(startBlockOf(it)) }
+                        .collect { onSaveProgress(startBlockOf(it.coerceIn(0, totalPages - 1))) }
                 }
 
                 val toggleChrome = Modifier.clickable(
@@ -290,7 +297,7 @@ fun PaperReaderScreen(
                                 },
                             )
                             else -> Column(modifier = Modifier.fillMaxSize()) {
-                                contentPages[page - 1].forEach { item ->
+                                contentPages.getOrNull(page - 1).orEmpty().forEach { item ->
                                     PagedBlock(
                                         item = item,
                                         annotations = state.annotations.filter {
@@ -471,25 +478,26 @@ private fun TocSheet(
         )
         LazyColumn(modifier = Modifier.padding(bottom = 24.dp)) {
             items(count = toc.size, key = { it }) { index ->
-                val entry = toc[index]
-                Text(
-                    text = entry.title,
-                    style = if (entry.level <= 2) {
-                        MaterialTheme.typography.titleSmall
-                    } else {
-                        MaterialTheme.typography.bodyMedium
-                    },
-                    color = if (entry.level <= 2) palette.text else palette.muted,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { onSelect(entry) }
-                        .padding(
-                            start = (20 + (entry.level - 1).coerceAtLeast(0) * 16).dp,
-                            end = 20.dp,
-                            top = 11.dp,
-                            bottom = 11.dp,
-                        ),
-                )
+                toc.getOrNull(index)?.let { entry ->
+                    Text(
+                        text = entry.title,
+                        style = if (entry.level <= 2) {
+                            MaterialTheme.typography.titleSmall
+                        } else {
+                            MaterialTheme.typography.bodyMedium
+                        },
+                        color = if (entry.level <= 2) palette.text else palette.muted,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { onSelect(entry) }
+                            .padding(
+                                start = (20 + (entry.level - 1).coerceAtLeast(0) * 16).dp,
+                                end = 20.dp,
+                                top = 11.dp,
+                                bottom = 11.dp,
+                            ),
+                    )
+                }
             }
         }
     }
