@@ -36,6 +36,7 @@ fun MarkdownText(
     markdown: String,
     modifier: Modifier = Modifier,
     style: TextStyle = LocalTextStyle.current,
+    onLongClick: (() -> Unit)? = null,
 ) {
     val context = LocalContext.current
     val textColor = if (style.color.isSpecified) {
@@ -50,12 +51,18 @@ fun MarkdownText(
         modifier = modifier,
         factory = { ctx ->
             TextView(ctx).apply {
-                setTextIsSelectable(true)
+                setTextIsSelectable(onLongClick == null)
             }
         },
         update = { view ->
             view.textSize = fontSizeSp
             view.setTextColor(textColor.toArgb())
+            if (onLongClick != null) {
+                view.setOnLongClickListener {
+                    onLongClick()
+                    true
+                }
+            }
             buildMarkwon(view.context, textSizePx)
                 .setMarkdown(view, normalizeLatexDelimiters(markdown))
         },

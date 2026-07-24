@@ -167,3 +167,130 @@ async def test_upload_rejects_non_pdf(client: AsyncClient) -> None:
         files={"file": ("x.txt", io.BytesIO(b"nope"), "text/plain")},
     )
     assert response.status_code == 400
+
+
+CONTENT_PAYLOAD = {
+    "source": "ar5iv",
+    "blocks": [
+        {"type": "heading", "level": 1, "md": "RAG Survey"},
+        {"type": "heading", "level": 2, "md": "Abstract"},
+        {"type": "paragraph", "md": "We study retrieval."},
+        {"type": "heading", "level": 2, "md": "1 Introduction"},
+        {"type": "paragraph", "md": "Formula $\\pi_{\\theta}$ inline."},
+    ],
+}
+
+
+async def _paper_id(client: AsyncClient) -> str:
+    await client.post("/api/papers/sync", json=SYNC_PAYLOAD)
+    body = (await client.get("/api/papers")).json()
+    paper = body["groups"][0]["papers"][0]
+    assert isinstance(paper["id"], str)
+    return paper["id"]
+
+
+@pytest.mark.asyncio
+async def test_content_upload_read_and_toc(client: AsyncClient) -> None:
+    paper_id = await _paper_id(client)
+
+    missing = await client.get(f"/api/papers/{paper_id}/content")
+    assert missing.status_code == 404
+
+    upload = await client.put(
+        f"/api/papers/{paper_id}/content", json=CONTENT_PAYLOAD
+    )
+    assert upload.status_code == 200
+    assert upload.json()["paper"]["has_content"] is True
+
+    body = (await client.get(f"/api/papers/{paper_id}/content")).json()
+    assert body["source"] == "ar5iv"
+    assert len(body["blocks"]) == 5
+    assert body["toc"] == [
+        {"title": "RAG Survey", "level": 1, "block_index": 0},
+        {"title": "Abstract", "level": 2, "block_index": 1},
+        {"title": "1 Introduction", "level": 2, "block_index": 3},
+    ]
+
+    listed = (await client.get("/api/papers")).json()
+    flags = {
+        paper["id"]: paper["has_content"]
+        for group in listed["groups"]
+        for paper in group["papers"]
+    }
+    assert flags[paper_id] is True
+    assert sum(flags.values()) == 1
+
+
+@pytest.mark.asyncio
+async def test_content_upload_is_idempotent_overwrite(client: AsyncClient) -> None:
+    paper_id = await _paper_id(client)
+    await client.put(f"/api/papers/{paper_id}/content", json=CONTENT_PAYLOAD)
+
+    replaced = {
+        "source": "pdf",
+        "blocks": [{"type": "paragraph", "md": "plain text only"}],
+    }
+    second = await client.put(f"/api/papers/{paper_id}/content", json=replaced)
+    assert second.status_code == 200
+
+    body = (await client.get(f"/api/papers/{paper_id}/content")).json()
+    assert body["source"] == "pdf"
+    assert len(body["blocks"]) == 1
+    assert body["toc"] == []
+
+
+@pytest.mark.asyncio
+async def test_content_unknown_paper_returns_404(client: AsyncClient) -> None:
+    response = await client.put(
+        "/api/papers/00000000-0000-0000-0000-000000000000/content",
+        json=CONTENT_PAYLOAD,
+    )
+    assert response.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_annotation_crud(client: AsyncClient) -> None:
+    paper_id = await _paper_id(client)
+    await client.put(f"/api/papers/{paper_id}/content", json=CONTENT_PAYLOAD)
+
+    created = await client.post(
+        f"/api/papers/{paper_id}/annotations",
+        json={"block_index": 2, "excerpt": "We study retrieval.", "note": "核心论点"},
+    )
+    assert created.status_code == 201
+    annotation = created.json()
+    assert annotation["color"] == "yellow"
+    assert annotation["note"] == "核心论点"
+
+    listed = (await client.get(f"/api/papers/{paper_id}/annotations")).json()
+    assert len(listed["annotations"]) == 1
+
+    patched = await client.patch(
+        f"/api/papers/annotations/{annotation['id']}",
+        json={"note": "改后的批注", "color": "green"},
+    )
+    assert patched.status_code == 200
+    assert patched.json()["note"] == "改后的批注"
+    assert patched.json()["color"] == "green"
+
+    deleted = await client.delete(f"/api/papers/annotations/{annotation['id']}")
+    assert deleted.status_code == 204
+    empty = (await client.get(f"/api/papers/{paper_id}/annotations")).json()
+    assert empty["annotations"] == []
+
+
+@pytest.mark.asyncio
+async def test_annotation_rejects_out_of_range_block(client: AsyncClient) -> None:
+    paper_id = await _paper_id(client)
+    no_content = await client.post(
+        f"/api/papers/{paper_id}/annotations",
+        json={"block_index": 0},
+    )
+    assert no_content.status_code == 400
+
+    await client.put(f"/api/papers/{paper_id}/content", json=CONTENT_PAYLOAD)
+    out_of_range = await client.post(
+        f"/api/papers/{paper_id}/annotations",
+        json={"block_index": 99},
+    )
+    assert out_of_range.status_code == 400

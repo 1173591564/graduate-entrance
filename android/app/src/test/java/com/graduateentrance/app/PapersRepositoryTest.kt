@@ -3,6 +3,7 @@ package com.graduateentrance.app
 import com.graduateentrance.app.data.PaperDownloadResult
 import com.graduateentrance.app.data.PaperStatusResult
 import com.graduateentrance.app.data.PapersLoadResult
+import com.graduateentrance.app.data.PaperContentResult
 import com.graduateentrance.app.data.PapersRepository
 import com.graduateentrance.app.network.ChatConversationListDto
 import com.graduateentrance.app.network.ChatHistoryDto
@@ -10,6 +11,13 @@ import com.graduateentrance.app.network.ChatSendResultDto
 import com.graduateentrance.app.network.DueReviewsDto
 import com.graduateentrance.app.network.ExtractionResultDto
 import com.graduateentrance.app.network.GraduateEntranceApi
+import com.graduateentrance.app.network.PaperAnnotationCreateRequest
+import com.graduateentrance.app.network.PaperAnnotationDto
+import com.graduateentrance.app.network.PaperAnnotationListDto
+import com.graduateentrance.app.network.PaperAnnotationUpdateRequest
+import com.graduateentrance.app.network.PaperBlockDto
+import com.graduateentrance.app.network.PaperContentDto
+import com.graduateentrance.app.network.PaperTocEntryDto
 import com.graduateentrance.app.network.PaperDto
 import com.graduateentrance.app.network.PaperGroupDto
 import com.graduateentrance.app.network.PaperListDto
@@ -66,6 +74,31 @@ private fun paper(id: String, status: String = "unread") = PaperDto(
 private val emptyStats = PaperStatsDto(0, 0, 0, 0)
 
 private class FakePapersApi : GraduateEntranceApi {
+
+    var contentResponse: PaperContentDto? = null
+
+    override suspend fun paperContent(paperId: String): PaperContentDto {
+        maybeFail()
+        return contentResponse ?: throw UnsupportedOperationException()
+    }
+
+    override suspend fun paperAnnotations(paperId: String): PaperAnnotationListDto {
+        maybeFail()
+        return PaperAnnotationListDto(emptyList())
+    }
+
+    override suspend fun createPaperAnnotation(
+        paperId: String,
+        payload: PaperAnnotationCreateRequest,
+    ): PaperAnnotationDto = throw UnsupportedOperationException()
+
+    override suspend fun updatePaperAnnotation(
+        annotationId: String,
+        payload: PaperAnnotationUpdateRequest,
+    ): PaperAnnotationDto = throw UnsupportedOperationException()
+
+    override suspend fun deletePaperAnnotation(annotationId: String): Response<Unit> =
+        throw UnsupportedOperationException()
     var offline = false
     var rejectWith: Int? = null
     var listResponse = PaperListDto(emptyList(), emptyStats)
@@ -196,6 +229,40 @@ class PapersRepositoryTest {
         assertEquals("p1", result.today?.id)
         assertEquals(listOf("RAG"), result.groups.map { it.category })
         assertEquals(2, result.stats.totalCount)
+    }
+
+    @Test
+    fun contentReturnsBlocksTocAndAnnotations() = runTest {
+        val api = FakePapersApi()
+        api.contentResponse = PaperContentDto(
+            paper = paper("p1", "reading"),
+            source = "ar5iv",
+            blocks = listOf(
+                PaperBlockDto(type = "heading", md = "Intro", level = 2),
+                PaperBlockDto(type = "paragraph", md = "Body \$x\$"),
+            ),
+            toc = listOf(PaperTocEntryDto(title = "Intro", level = 2, blockIndex = 0)),
+        )
+
+        val result = PapersRepository(api).content("p1")
+
+        assertTrue(result is PaperContentResult.Loaded)
+        result as PaperContentResult.Loaded
+        assertEquals(2, result.blocks.size)
+        assertEquals(0, result.toc.single().blockIndex)
+        assertTrue(result.annotations.isEmpty())
+    }
+
+    @Test
+    fun contentReportsRejection() = runTest {
+        val api = FakePapersApi()
+        api.rejectWith = 404
+
+        val result = PapersRepository(api).content("p1")
+
+        assertTrue(result is PaperContentResult.Rejected)
+        result as PaperContentResult.Rejected
+        assertEquals(404, result.code)
     }
 
     @Test

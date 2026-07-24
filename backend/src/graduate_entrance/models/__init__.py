@@ -3,7 +3,7 @@ from graduate_entrance.models.automation import AutomationRun
 from graduate_entrance.models.chat import ChatConversation, ChatMessage, ChatTopicTag
 from graduate_entrance.models.essay import EssayMaterial
 from graduate_entrance.models.mastery import KpMastery
-from graduate_entrance.models.papers import Paper
+from graduate_entrance.models.papers import Paper, PaperAnnotation, PaperContent
 from graduate_entrance.models.planning import (
     AvailabilityException,
     AvailabilityPeriod,
@@ -56,6 +56,8 @@ __all__ = [
     "KpMastery",
     "Material",
     "Paper",
+    "PaperAnnotation",
+    "PaperContent",
     "PlanPhase",
     "PlanPhaseSubjectRatio",
     "Problem",
