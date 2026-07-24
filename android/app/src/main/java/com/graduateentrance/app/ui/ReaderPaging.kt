@@ -3,6 +3,7 @@ package com.graduateentrance.app.ui
 import android.content.Context
 import android.graphics.Typeface
 import android.view.View
+import android.view.ViewGroup
 import android.widget.TextView
 import com.graduateentrance.app.data.PaperContentBlock
 import io.noties.markwon.Markwon
@@ -38,6 +39,7 @@ internal class ParagraphMeasurer(
         )
         .build()
     private val view = TextView(context).apply {
+        layoutParams = ViewGroup.LayoutParams(widthPx, ViewGroup.LayoutParams.WRAP_CONTENT)
         textSize = fontSizeSp
         typeface = Typeface.SERIF
         setLineSpacing(0f, lineSpacingMultiplier)
