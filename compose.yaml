@@ -72,6 +72,7 @@ services:
     volumes:
       - caddy-data:/data
       - caddy-config:/config
+      - ./downloads:/srv/dl-u7t8otv2fm1z
     depends_on:
       backend:
         condition: service_healthy
